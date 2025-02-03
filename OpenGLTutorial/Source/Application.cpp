@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 
 #include <cmath>
+#include <fstream>
 #include <iostream>
 #include <string>
 
@@ -33,7 +34,7 @@ int main(void)
     float positions[6] = {
         -0.5f, -0.5f,
          0.0f,  0.25f * std::sqrt(3.0f),
-         0.5f, 0.5f,
+         0.5f, -0.5f,
     };
 
     uint32_t vertexBuffer;
@@ -47,7 +48,13 @@ int main(void)
     uint32_t program = glCreateProgram();
 
     uint32_t vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    std::string vertexShaderSource = "";
+    std::string vertexShaderSource;
+    std::ifstream vertexShaderFile("Shaders/VertexShader.glsl");
+    while (vertexShaderFile) {
+        std::string input;
+        getline(vertexShaderFile, input);
+        vertexShaderSource += input + "\n";
+    }
     const char* vertexSourceCStr = vertexShaderSource.c_str();
     glShaderSource(vertexShader, 1, &vertexSourceCStr, nullptr);
     glCompileShader(vertexShader);
@@ -65,7 +72,13 @@ int main(void)
     }
 
     uint32_t fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    std::string fragmentShaderSource = "";
+    std::string fragmentShaderSource;
+    std::ifstream fragmentShaderFile("Shaders/FragmentShader.glsl");
+    while (fragmentShaderFile) {
+        std::string input;
+        getline(fragmentShaderFile, input);
+        fragmentShaderSource += input + "\n";
+    }
     const char* fragmentSourceCStr = fragmentShaderSource.c_str();
     glShaderSource(fragmentShader, 1, &fragmentSourceCStr, nullptr);
     glCompileShader(fragmentShader);
@@ -86,6 +99,7 @@ int main(void)
     glAttachShader(program, fragmentShader);
     glLinkProgram(program);
     glValidateProgram(program);
+    glUseProgram(program);
 
     glDetachShader(program, vertexShader);
     glDetachShader(program, fragmentShader);
