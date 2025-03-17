@@ -1,9 +1,11 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include <chrono>
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <numbers>
 #include <string>
 
 uint32_t compileShader(GLenum shaderType, const std::string& shaderFilePath)
@@ -100,9 +102,19 @@ int main(void)
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
+        std::chrono::steady_clock::time_point current = std::chrono::steady_clock::now();
+        std::chrono::duration duration = current - start;
+        uint32_t milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+        float redColor = std::sin(milliseconds / 1000.0f * 2.0f * std::numbers::pi_v<float>) / 2.0f + 0.5f;
+
+        int redColorLocation = glGetUniformLocation(program, "redColor");
+        glUniform1f(redColorLocation, redColor);
+
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
