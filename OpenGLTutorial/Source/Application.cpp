@@ -6,6 +6,43 @@
 #include <iostream>
 #include <string>
 
+uint32_t compileShader(GLenum shaderType, const std::string& shaderFilePath)
+{
+    uint32_t shader = glCreateShader(shaderType);
+
+    // Reading shader code from file
+    std::string shaderSource;
+    std::ifstream shaderFile(shaderFilePath);
+    while (shaderFile)
+    {
+        std::string input;
+        getline(shaderFile, input);
+        shaderSource += input + "\n";
+    }
+
+    // Loading shader
+    const char* sourceCStr = shaderSource.c_str();
+    glShaderSource(shader, 1, &sourceCStr, nullptr);
+    glCompileShader(shader);
+
+    // Validating shader
+    int32_t result;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &result);
+    if (result == GL_FALSE) {
+        int32_t length;
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
+        char* message = (char*)alloca(length * sizeof(char));
+        glGetShaderInfoLog(shader, length, &length, message);
+        std::cout << "Failed to compile vertex shader." << std::endl;
+        std::cout << message << std::endl;
+        glDeleteShader(shader);
+
+        return 0;
+    }
+
+    return shader;
+}
+
 int main(void)
 {
     GLFWwindow* window;
@@ -15,7 +52,7 @@ int main(void)
         return -1;
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+    window = glfwCreateWindow(640, 360, "Hello World", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -47,53 +84,8 @@ int main(void)
 
     uint32_t program = glCreateProgram();
 
-    uint32_t vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    std::string vertexShaderSource;
-    std::ifstream vertexShaderFile("Shaders/VertexShader.glsl");
-    while (vertexShaderFile) {
-        std::string input;
-        getline(vertexShaderFile, input);
-        vertexShaderSource += input + "\n";
-    }
-    const char* vertexSourceCStr = vertexShaderSource.c_str();
-    glShaderSource(vertexShader, 1, &vertexSourceCStr, nullptr);
-    glCompileShader(vertexShader);
-
-    int32_t vertexResult;
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &vertexResult);
-    if (vertexResult == GL_FALSE) {
-        int32_t length;
-        glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &length);
-        char* message = (char*)alloca(length * sizeof(char));
-        glGetShaderInfoLog(vertexShader, length, &length, message);
-        std::cout << "Failed to compile vertex shader." << std::endl;
-        std::cout << message << std::endl;
-        glDeleteShader(vertexShader);
-    }
-
-    uint32_t fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    std::string fragmentShaderSource;
-    std::ifstream fragmentShaderFile("Shaders/FragmentShader.glsl");
-    while (fragmentShaderFile) {
-        std::string input;
-        getline(fragmentShaderFile, input);
-        fragmentShaderSource += input + "\n";
-    }
-    const char* fragmentSourceCStr = fragmentShaderSource.c_str();
-    glShaderSource(fragmentShader, 1, &fragmentSourceCStr, nullptr);
-    glCompileShader(fragmentShader);
-
-    int32_t fragmentResult;
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &fragmentResult);
-    if (fragmentResult == GL_FALSE) {
-        int32_t length;
-        glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &length);
-        char* message = (char*)alloca(length * sizeof(char));
-        glGetShaderInfoLog(fragmentShader, length, &length, message);
-        std::cout << "Failed to compile fragment shader." << std::endl;
-        std::cout << message << std::endl;
-        glDeleteShader(fragmentShader);
-    }
+    uint32_t vertexShader = compileShader(GL_VERTEX_SHADER, "Shaders/VertexShader.glsl");
+    uint32_t fragmentShader = compileShader(GL_FRAGMENT_SHADER, "Shaders/FragmentShader.glsl");
 
     glAttachShader(program, vertexShader);
     glAttachShader(program, fragmentShader);
