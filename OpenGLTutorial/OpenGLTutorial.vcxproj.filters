@@ -47,5 +47,8 @@
     <Image Include="Resources\NeutronStar.jpg">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Resources\ArchLinux.jpeg">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

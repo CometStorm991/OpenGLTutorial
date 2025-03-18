@@ -149,6 +149,7 @@
     <ClInclude Include="Source\Shader.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Resources\ArchLinux.jpeg" />
     <Image Include="Resources\NeutronStar.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
