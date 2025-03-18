@@ -7,7 +7,9 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include "stb_image.h"
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_FAILURE_USERMSG
+#include "STB/stb_image.h"
 
 #include "Program.hpp"
 #include "Shader.hpp"
@@ -28,6 +30,7 @@ uint32_t loadTexture(const std::string& imagePath, GLenum textureUnit)
     if (!data)
     {
         std::cout << "[Error] Failed to load texture" << std::endl;
+        std::cout << stbi_failure_reason() << std::endl;
     }
 
     uint32_t textureId;
@@ -186,8 +189,6 @@ int main(void)
     glUniform1i(glGetUniformLocation(program.getId(), "inputTexture0"), 0);
     glUniform1i(glGetUniformLocation(program.getId(), "inputTexture1"), 1);
     program.unuse();
-
-    std::cout << glGetError() << std::endl;
 
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
