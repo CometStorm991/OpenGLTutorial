@@ -1,12 +1,15 @@
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-
 #include <chrono>
 #include <cmath>
 #include <fstream>
 #include <iostream>
 #include <numbers>
 #include <string>
+
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+
+#include "Program.hpp"
+#include "Shader.hpp"
 
 uint32_t compileShader(GLenum shaderType, const std::string& shaderFilePath)
 {
@@ -43,6 +46,14 @@ uint32_t compileShader(GLenum shaderType, const std::string& shaderFilePath)
     }
 
     return shader;
+}
+
+template <class ClockType>
+uint64_t getMillisecondsSinceTimePoint(std::chrono::time_point<ClockType> start)
+{
+    std::chrono::steady_clock::time_point current = std::chrono::steady_clock::now();
+    std::chrono::duration duration = current - start;
+    return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
 }
 
 int main(void)
@@ -84,7 +95,7 @@ int main(void)
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (const void*)0);
 
-    uint32_t program = glCreateProgram();
+    /*uint32_t program = glCreateProgram();
 
     uint32_t vertexShader = compileShader(GL_VERTEX_SHADER, "Shaders/VertexShader.glsl");
     uint32_t fragmentShader = compileShader(GL_FRAGMENT_SHADER, "Shaders/FragmentShader.glsl");
@@ -98,7 +109,16 @@ int main(void)
     glDetachShader(program, vertexShader);
     glDetachShader(program, fragmentShader);
     glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    glDeleteShader(fragmentShader);*/
+    
+    std::shared_ptr<Shader> vertexShader = std::make_shared<Shader>(GL_VERTEX_SHADER, "Shaders/VertexShader.glsl");
+    std::shared_ptr<Shader> fragmentShader = std::make_shared<Shader>(GL_FRAGMENT_SHADER, "Shaders/FragmentShader.glsl");
+    vertexShader->load();
+    fragmentShader->load();
+    Program program = Program(vertexShader, fragmentShader);
+    program.load();
+
+    //Program program = Program();
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -107,12 +127,10 @@ int main(void)
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
-        std::chrono::steady_clock::time_point current = std::chrono::steady_clock::now();
-        std::chrono::duration duration = current - start;
-        uint32_t milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+        uint32_t milliseconds = getMillisecondsSinceTimePoint(start);
         float redColor = std::sin(milliseconds / 1000.0f * 2.0f * std::numbers::pi_v<float>) / 2.0f + 0.5f;
 
-        int redColorLocation = glGetUniformLocation(program, "redColor");
+        int redColorLocation = glGetUniformLocation(program.getId(), "redColor");
         glUniform1f(redColorLocation, redColor);
 
         /* Render here */
