@@ -18,5 +18,8 @@ public:
 
 	void load();
 
+	void use();
+	void unuse();
+
 	uint32_t getId() const;
 };

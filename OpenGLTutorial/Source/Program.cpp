@@ -33,7 +33,6 @@ void Program::load()
 	glAttachShader(id, fragmentShaderId);
 	glLinkProgram(id);
 	glValidateProgram(id);
-	glUseProgram(id);
 
 	glDetachShader(id, vertexShaderId);
 	glDetachShader(id, fragmentShaderId);
@@ -41,6 +40,16 @@ void Program::load()
 	glDeleteShader(fragmentShaderId);
 
 	programLoaded = true;
+}
+
+void Program::use()
+{
+	glUseProgram(id);
+}
+
+void Program::unuse()
+{
+	glUseProgram(0);
 }
 
 uint32_t Program::getId() const
