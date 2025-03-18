@@ -8,9 +8,21 @@ Program::Program(std::shared_ptr<Shader> vertexShader, std::shared_ptr<Shader> f
 void Program::load()
 {
 	id = glCreateProgram();
-	if (!vertexShader->getShaderLoaded() || !fragmentShader->getShaderLoaded())
+
+	bool allShadersLoaded = true;
+	if (!vertexShader->getShaderLoaded())
 	{
-		std::cout << "[Error] Not all shaders were loaded" << std::endl;
+		std::cout << "[Error] Vertex shader was not loaded" << std::endl;
+		allShadersLoaded = false;
+	}
+
+	if (!fragmentShader->getShaderLoaded())
+	{
+		std::cout << "[Error] Fragment shader was not loaded" << std::endl;
+		allShadersLoaded = false;
+	}
+	if (!allShadersLoaded)
+	{
 		return;
 	}
 

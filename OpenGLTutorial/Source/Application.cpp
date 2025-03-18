@@ -11,43 +11,6 @@
 #include "Program.hpp"
 #include "Shader.hpp"
 
-uint32_t compileShader(GLenum shaderType, const std::string& shaderFilePath)
-{
-    uint32_t shader = glCreateShader(shaderType);
-
-    // Reading shader code from file
-    std::string shaderSource;
-    std::ifstream shaderFile(shaderFilePath);
-    while (shaderFile)
-    {
-        std::string input;
-        getline(shaderFile, input);
-        shaderSource += input + "\n";
-    }
-
-    // Loading shader
-    const char* sourceCStr = shaderSource.c_str();
-    glShaderSource(shader, 1, &sourceCStr, nullptr);
-    glCompileShader(shader);
-
-    // Validating shader
-    int32_t result;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &result);
-    if (result == GL_FALSE) {
-        int32_t length;
-        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
-        char* message = (char*)alloca(length * sizeof(char));
-        glGetShaderInfoLog(shader, length, &length, message);
-        std::cout << "Failed to compile vertex shader." << std::endl;
-        std::cout << message << std::endl;
-        glDeleteShader(shader);
-
-        return 0;
-    }
-
-    return shader;
-}
-
 template <class ClockType>
 uint64_t getMillisecondsSinceTimePoint(std::chrono::time_point<ClockType> start)
 {
@@ -94,22 +57,6 @@ int main(void)
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (const void*)0);
-
-    /*uint32_t program = glCreateProgram();
-
-    uint32_t vertexShader = compileShader(GL_VERTEX_SHADER, "Shaders/VertexShader.glsl");
-    uint32_t fragmentShader = compileShader(GL_FRAGMENT_SHADER, "Shaders/FragmentShader.glsl");
-
-    glAttachShader(program, vertexShader);
-    glAttachShader(program, fragmentShader);
-    glLinkProgram(program);
-    glValidateProgram(program);
-    glUseProgram(program);
-
-    glDetachShader(program, vertexShader);
-    glDetachShader(program, fragmentShader);
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);*/
     
     std::shared_ptr<Shader> vertexShader = std::make_shared<Shader>(GL_VERTEX_SHADER, "Shaders/VertexShader.glsl");
     std::shared_ptr<Shader> fragmentShader = std::make_shared<Shader>(GL_FRAGMENT_SHADER, "Shaders/FragmentShader.glsl");
@@ -117,8 +64,6 @@ int main(void)
     fragmentShader->load();
     Program program = Program(vertexShader, fragmentShader);
     program.load();
-
-    //Program program = Program();
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
