@@ -9,7 +9,10 @@
 #include <GLFW/glfw3.h>
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_FAILURE_USERMSG
-#include "STB/stb_image.h"
+#include <STB/stb_image.h>
+#include "glm/glm.hpp"
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "Program.hpp"
 #include "Shader.hpp"
@@ -191,6 +194,12 @@ int main(void)
     program.unuse();
 
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+
+    glm::vec4 vector = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    glm::mat4 trans = glm::mat4(1.0f);
+    trans = glm::translate(trans, glm::vec3(1.0f, 1.0f, 0.0f));
+    vector = trans * vector;
+    std::cout << "X: " << vector.x << " Y: " << vector.y << " Z: " << vector.z << std::endl;
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
