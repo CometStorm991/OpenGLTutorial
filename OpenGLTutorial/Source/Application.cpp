@@ -266,6 +266,7 @@ int main(void)
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
     program.unuse();
 
+    glEnable(GL_DEPTH_TEST);
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
     /* Loop until the user closes the window */
@@ -273,7 +274,7 @@ int main(void)
     while (!glfwWindowShouldClose(window))
     {
         
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         program.use();
 
@@ -282,6 +283,17 @@ int main(void)
 
         int redColorLocation = glGetUniformLocation(program.getId(), "redColor");
         glUniform1f(redColorLocation, redColor);
+
+        
+        model = glm::mat4(1.0f);
+        model = glm::rotate(model, milliseconds / 1000.0f * 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+        model = glm::rotate(model, milliseconds / 1000.0f * 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::rotate(model, milliseconds / 1000.0f * 4.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+
+        mvp = projection * view * model;
+        uint32_t mvpLoc = glGetUniformLocation(program.getId(), "mvp");
+        glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture0);
@@ -296,6 +308,8 @@ int main(void)
         glBindTexture(GL_TEXTURE_2D, 0);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, 0);
+
+        program.unuse();
 
         
         glfwSwapBuffers(window);
