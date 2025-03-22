@@ -3,7 +3,9 @@
 #include <fstream>
 #include <iostream>
 #include <numbers>
+#include <random>
 #include <string>
+#include <vector>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -248,11 +250,38 @@ int main(void)
     program.load();
     program.unuse();
 
+    std::random_device randomDevice = std::random_device();
+    std::default_random_engine randomEngine = std::default_random_engine(randomDevice());
+
+    unsigned int cubeCount = 100;
+
+    std::vector<glm::vec3> cubePositions = std::vector<glm::vec3>();
+    cubePositions.reserve(cubeCount);
+    std::uniform_real_distribution<float> posDistrib = std::uniform_real_distribution<float>(-10.0f, 10.0f);
+    for (unsigned int i = 0; i < cubeCount; i++)
+    {
+        float x = posDistrib(randomEngine);
+        float y = posDistrib(randomEngine);
+        float z = posDistrib(randomEngine);
+        cubePositions.push_back(glm::vec3(x, y, z));
+    }
+
+    std::vector<glm::vec3> cubeRotationSpeeds = std::vector<glm::vec3>();
+    cubeRotationSpeeds.reserve(cubeCount);
+    std::uniform_real_distribution<float> speedDistrib = std::uniform_real_distribution<float>(0.0f, 5.0f);
+    for (unsigned int i = 0; i < cubeCount; i++)
+    {
+        float x = speedDistrib(randomEngine);
+        float y = speedDistrib(randomEngine);
+        float z = speedDistrib(randomEngine);
+        cubeRotationSpeeds.push_back(glm::vec3(x, y, z));
+    }
+
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     
     glm::mat4 view = glm::mat4(1.0f);
-    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -30.0f));
 
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), 1920.0f / 1080.0f, 0.1f, 100.0f);
 
@@ -284,17 +313,6 @@ int main(void)
         int redColorLocation = glGetUniformLocation(program.getId(), "redColor");
         glUniform1f(redColorLocation, redColor);
 
-        
-        model = glm::mat4(1.0f);
-        model = glm::rotate(model, milliseconds / 1000.0f * 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-        model = glm::rotate(model, milliseconds / 1000.0f * 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, milliseconds / 1000.0f * 4.0f, glm::vec3(0.0f, 0.0f, 1.0f));
-
-        mvp = projection * view * model;
-        uint32_t mvpLoc = glGetUniformLocation(program.getId(), "mvp");
-        glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-
-
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture0);
         glActiveTexture(GL_TEXTURE1);
@@ -302,7 +320,22 @@ int main(void)
 
         glBindVertexArray(vao);
         //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        for (unsigned int i = 0; i < cubeCount; i++)
+        {
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, cubePositions.at(i));
+
+            glm::vec3 rotationSpeed = cubeRotationSpeeds.at(i);
+            model = glm::rotate(model, milliseconds / 1000.0f * rotationSpeed.x, glm::vec3(1.0f, 0.0f, 0.0f));
+            model = glm::rotate(model, milliseconds / 1000.0f * rotationSpeed.y, glm::vec3(0.0f, 1.0f, 0.0f));
+            model = glm::rotate(model, milliseconds / 1000.0f * rotationSpeed.z, glm::vec3(0.0f, 0.0f, 1.0f));
+
+            mvp = projection * view * model;
+            uint32_t mvpLoc = glGetUniformLocation(program.getId(), "mvp");
+            glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, 0);
