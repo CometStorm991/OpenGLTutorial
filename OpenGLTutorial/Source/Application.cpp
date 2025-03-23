@@ -253,8 +253,9 @@ int main(void)
     std::random_device randomDevice = std::random_device();
     std::default_random_engine randomEngine = std::default_random_engine(randomDevice());
 
-    unsigned int cubeCount = 1200;
+    unsigned int cubeCount = 1000;
     // Desktop can handle 1200 cubes at 144 fps
+    // Laptop can handle 1000 cubes at about 144 fps
 
     std::vector<glm::vec3> cubePositions = std::vector<glm::vec3>();
     cubePositions.reserve(cubeCount);
