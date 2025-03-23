@@ -253,7 +253,8 @@ int main(void)
     std::random_device randomDevice = std::random_device();
     std::default_random_engine randomEngine = std::default_random_engine(randomDevice());
 
-    unsigned int cubeCount = 100;
+    unsigned int cubeCount = 1200;
+    // Desktop can handle 1200 cubes at 144 fps
 
     std::vector<glm::vec3> cubePositions = std::vector<glm::vec3>();
     cubePositions.reserve(cubeCount);
@@ -278,14 +279,22 @@ int main(void)
     }
 
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     
     glm::mat4 view = glm::mat4(1.0f);
     view = glm::translate(view, glm::vec3(0.0f, 0.0f, -30.0f));
 
+    glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+    glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 cameraReverseDir = glm::normalize(cameraPos - cameraTarget);
+    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraReverseDir));
+    glm::vec3 cameraUp = glm::normalize(glm::cross(cameraReverseDir, cameraRight));
+
+    
+
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), 1920.0f / 1080.0f, 0.1f, 100.0f);
 
-    glm::mat4 mvp = projection * view * model;
+    glm::mat4 mvp = glm::mat4(1.0f);
 
     program.use();
     glUniform1i(glGetUniformLocation(program.getId(), "inputTexture0"), 0);
@@ -297,6 +306,10 @@ int main(void)
 
     glEnable(GL_DEPTH_TEST);
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+
+    std::chrono::steady_clock::time_point lastSecond = std::chrono::steady_clock::now();
+    uint32_t leftOverMillis = 0;
+    uint32_t fps = 0;
 
     /* Loop until the user closes the window */
     
@@ -330,6 +343,12 @@ int main(void)
             model = glm::rotate(model, milliseconds / 1000.0f * rotationSpeed.y, glm::vec3(0.0f, 1.0f, 0.0f));
             model = glm::rotate(model, milliseconds / 1000.0f * rotationSpeed.z, glm::vec3(0.0f, 0.0f, 1.0f));
 
+            view = glm::lookAt(
+                glm::vec3(0.0f, 0.0f, -30.0f),
+                glm::vec3(0.0f, 0.0f, 0.0f),
+                glm::vec3(0.0f, 1.0f, 0.0f)
+            );
+
             mvp = projection * view * model;
             uint32_t mvpLoc = glGetUniformLocation(program.getId(), "mvp");
             glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
@@ -343,6 +362,16 @@ int main(void)
         glBindTexture(GL_TEXTURE_2D, 0);
 
         program.unuse();
+        
+        fps++;
+        uint32_t currentSecMillis = getMillisecondsSinceTimePoint(lastSecond);
+        if (currentSecMillis + leftOverMillis > 1000)
+        {
+            leftOverMillis = currentSecMillis + leftOverMillis - 1000;
+            lastSecond = std::chrono::steady_clock::now();
+            std::cout << fps << std::endl;
+            fps = 0;
+        }
 
         
         glfwSwapBuffers(window);
