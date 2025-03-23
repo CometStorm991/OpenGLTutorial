@@ -4,8 +4,6 @@ in vec2 textureCoordinates;
 
 layout(location = 0) out vec4 color;
 
-uniform float redColor;
-
 uniform sampler2D inputTexture0;
 uniform sampler2D inputTexture1;
 

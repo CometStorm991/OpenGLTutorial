@@ -282,14 +282,13 @@ int main(void)
     glm::mat4 model = glm::mat4(1.0f);
     
     glm::mat4 view = glm::mat4(1.0f);
-    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -30.0f));
 
-    glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-    glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 cameraReverseDir = glm::normalize(cameraPos - cameraTarget);
-    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-    glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraReverseDir));
-    glm::vec3 cameraUp = glm::normalize(glm::cross(cameraReverseDir, cameraRight));
+    float cameraSpeed = 1.0f;
+
+    glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, -30.0f);
+    glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
+    glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::vec3 cameraRight = glm::normalize(glm::cross(cameraFront, cameraUp));
 
     
 
@@ -312,6 +311,8 @@ int main(void)
     uint32_t leftOverMillis = 0;
     uint32_t fps = 0;
 
+    uint32_t previousMillis = 0;
+
     /* Loop until the user closes the window */
     
     while (!glfwWindowShouldClose(window))
@@ -322,10 +323,34 @@ int main(void)
         program.use();
 
         uint32_t milliseconds = getMillisecondsSinceTimePoint(start);
-        float redColor = std::sin(milliseconds / 1000.0f * 2.0f * std::numbers::pi_v<float>) / 2.0f + 0.5f;
+        float cameraX = std::sin(milliseconds / 1000.0f * 2.0f * std::numbers::pi_v<float> * 0.2f) * 30.0f;
+        float cameraZ = std::cos(milliseconds / 1000.0f * 2.0f * std::numbers::pi_v<float> * 0.2f) * 30.0f;
 
-        int redColorLocation = glGetUniformLocation(program.getId(), "redColor");
-        glUniform1f(redColorLocation, redColor);
+        float deltaTime = (milliseconds - previousMillis) / 1000.0f;
+        cameraSpeed = deltaTime * 10.0f;
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        {
+            cameraPos += cameraSpeed * cameraFront;
+        }
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        {
+            cameraPos -= cameraSpeed * cameraFront;
+        }
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        {
+            cameraPos += cameraSpeed * cameraRight;
+        }
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        {
+            cameraPos -= cameraSpeed * cameraRight;
+        }
+
+        view = glm::lookAt(
+            glm::vec3(cameraX, 0.0f, cameraZ),
+            glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f)
+        );
+        view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture0);
@@ -343,12 +368,6 @@ int main(void)
             model = glm::rotate(model, milliseconds / 1000.0f * rotationSpeed.x, glm::vec3(1.0f, 0.0f, 0.0f));
             model = glm::rotate(model, milliseconds / 1000.0f * rotationSpeed.y, glm::vec3(0.0f, 1.0f, 0.0f));
             model = glm::rotate(model, milliseconds / 1000.0f * rotationSpeed.z, glm::vec3(0.0f, 0.0f, 1.0f));
-
-            view = glm::lookAt(
-                glm::vec3(0.0f, 0.0f, -30.0f),
-                glm::vec3(0.0f, 0.0f, 0.0f),
-                glm::vec3(0.0f, 1.0f, 0.0f)
-            );
 
             mvp = projection * view * model;
             uint32_t mvpLoc = glGetUniformLocation(program.getId(), "mvp");
@@ -370,9 +389,11 @@ int main(void)
         {
             leftOverMillis = currentSecMillis + leftOverMillis - 1000;
             lastSecond = std::chrono::steady_clock::now();
-            std::cout << fps << std::endl;
+            std::cout << "FPS: " << fps << std::endl;
             fps = 0;
         }
+
+        previousMillis = milliseconds;
 
         
         glfwSwapBuffers(window);
