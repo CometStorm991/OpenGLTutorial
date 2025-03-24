@@ -114,6 +114,29 @@ void APIENTRY glDebugOutput(GLenum source,
     std::cout << std::endl;
 }
 
+// global variables :(
+float lastX = 0.0f; float lastY = 0.0f;
+float yaw = 90.0f; float pitch = 0.0f;
+void mouse_callback(GLFWwindow* window, double xPos, double yPos)
+{
+    float xOffset = xPos - lastX;
+    float yOffset = lastY - yPos; // Reversed because y coordinates range bottom up
+    lastX = xPos;
+    lastY = yPos;
+
+    float sensitivity = 0.1f;
+    xOffset *= sensitivity;
+    yOffset *= sensitivity;
+
+    yaw += xOffset;
+    pitch += yOffset;
+
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+    if (pitch < -89.0f)
+        pitch = -89.0f;
+}
+
 int main(void)
 {
     GLFWwindow* window;
@@ -123,6 +146,7 @@ int main(void)
         return -1;
 
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+    
 
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(1920, 1080, "Hello World", NULL, NULL);
@@ -148,6 +172,9 @@ int main(void)
         glDebugMessageCallback(glDebugOutput, nullptr);
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
     }
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouse_callback);
 
     /*float positions[16] = {
         -0.5f, -0.5f, 0.0f, 0.0f,
@@ -288,9 +315,12 @@ int main(void)
     glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, -30.0f);
     glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
     glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-    glm::vec3 cameraRight = glm::normalize(glm::cross(cameraFront, cameraUp));
+    
 
     
+
+    glm::vec3 cameraRight = glm::normalize(glm::cross(cameraFront, cameraUp));
+
 
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), 1920.0f / 1080.0f, 0.1f, 100.0f);
 
@@ -345,11 +375,16 @@ int main(void)
             cameraPos -= cameraSpeed * cameraRight;
         }
 
-        view = glm::lookAt(
+        /*view = glm::lookAt(
             glm::vec3(cameraX, 0.0f, cameraZ),
             glm::vec3(0.0f, 0.0f, 0.0f),
             glm::vec3(0.0f, 1.0f, 0.0f)
-        );
+        );*/
+        glm::vec3 cameraDirection;
+        cameraDirection.x = std::cos(glm::radians(yaw)) * std::cos(glm::radians(pitch));
+        cameraDirection.y = std::sin(glm::radians(pitch));
+        cameraDirection.z = std::sin(glm::radians(yaw)) * std::cos(glm::radians(pitch));
+        cameraFront = glm::normalize(cameraDirection);
         view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
         glActiveTexture(GL_TEXTURE0);
