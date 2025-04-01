@@ -53,9 +53,9 @@ void Application::initOpenGL()
     glfwSetCursorPosCallback(window, Application::mouseCallbackGLFW);
 }
 
-std::vector<float> Application::generateCube()
+void Application::generateCube(std::vector<float>& cubeVertices)
 {
-    std::vector<float> cubeVertices = {
+    cubeVertices = {
         // Front face
         0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
         1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
@@ -110,8 +110,13 @@ std::vector<float> Application::generateCube()
         0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
         1.0f, 0.0f, 1.0f, 1.0f, 1.0f
     };
+}
 
-    return cubeVertices;
+void Application::generateVertexBuffer(uint32_t& vertexBuffer, const std::vector<float>& cubeVertices)
+{
+    glGenBuffers(1, &vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, cubeVertices.size() * sizeof(float), cubeVertices.data(), GL_STATIC_DRAW);
 }
 
 float Application::getYaw()

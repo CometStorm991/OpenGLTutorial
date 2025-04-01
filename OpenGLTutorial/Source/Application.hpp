@@ -35,9 +35,9 @@ public:
 	GLFWwindow* initWindow();
 	void initOpenGL();
 
-	std::vector<float> generateCube();
+	void generateCube(std::vector<float>& cubeVertices);
 
-	
+	void generateVertexBuffer(uint32_t& vertexBuffer, const std::vector<float>& cubeVertices);
 
 	float getYaw();
 	float getPitch();

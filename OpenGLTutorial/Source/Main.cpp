@@ -76,12 +76,11 @@ int main(void)
     GLFWwindow* window = app.initWindow();
     app.initOpenGL();
 
-    std::vector<float> cubeVertices = app.generateCube();
+    std::vector<float> cubeVertices;
+    app.generateCube(cubeVertices);
 
     uint32_t vertexBuffer;
-    glGenBuffers(1, &vertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, 180 * sizeof(float), cubeVertices.data(), GL_STATIC_DRAW);
+    app.generateVertexBuffer(vertexBuffer, cubeVertices);
 
     /*uint32_t indexBuffer;
     glGenBuffers(1, &indexBuffer);
