@@ -44,6 +44,7 @@ public:
 	void generateVertexBuffer(uint32_t& vertexBuffer, const std::vector<float>& cubeVertices);
 	void generateIndexBuffer(uint32_t& indexBuffer, const std::vector<float>& indices);
 	void generateTexture(uint32_t& texture, const std::string& imagePath, GLenum textureUnit);
+	void generateVertexArray(uint32_t& vao, uint32_t vertexBuffer);
 
 	void testGLM();
 
