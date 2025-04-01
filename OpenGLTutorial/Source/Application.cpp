@@ -112,11 +112,54 @@ void Application::generateCube(std::vector<float>& cubeVertices)
     };
 }
 
-void Application::generateVertexBuffer(uint32_t& vertexBuffer, const std::vector<float>& cubeVertices)
+void Application::generateVertexBuffer(uint32_t& vertexBuffer, const std::vector<float>& vertices)
 {
     glGenBuffers(1, &vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, cubeVertices.size() * sizeof(float), cubeVertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+}
+
+void Application::generateIndexBuffer(uint32_t& indexBuffer, const std::vector<float>& indices)
+{   
+    glGenBuffers(1, &indexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t), indices.data(), GL_STATIC_DRAW);
+}
+
+void Application::generateTexture(uint32_t& texture, const std::string& imagePath, GLenum textureUnit)
+{
+    int width, height, channelCount;
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char* data = stbi_load(imagePath.c_str(), &width, &height, &channelCount, 0);
+    if (!data)
+    {
+        std::cout << "[Error] Failed to load texture" << std::endl;
+        std::cout << stbi_failure_reason() << std::endl;
+    }
+
+    glGenTextures(1, &texture);
+    glActiveTexture(textureUnit);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    stbi_image_free(data);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void Application::testGLM()
+{
+    glm::vec4 vector = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    glm::mat4 trans = glm::mat4(1.0f);
+    trans = glm::translate(trans, glm::vec3(1.0f, 1.0f, 0.0f));
+    vector = trans * vector;
+    std::cout << "X: " << vector.x << " Y: " << vector.y << " Z: " << vector.z << std::endl;
 }
 
 float Application::getYaw()

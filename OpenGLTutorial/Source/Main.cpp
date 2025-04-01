@@ -9,12 +9,12 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#define STB_IMAGE_IMPLEMENTATION
-#define STBI_FAILURE_USERMSG
-#include <STB/stb_image.h>
 #include "glm/glm.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_FAILURE_USERMSG
 
 #include "Program.hpp"
 #include "Shader.hpp"
@@ -27,47 +27,6 @@ uint64_t getMillisecondsSinceTimePoint(std::chrono::time_point<ClockType> start)
     std::chrono::duration duration = current - start;
     return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
 }
-
-uint32_t loadTexture(const std::string& imagePath, GLenum textureUnit)
-{
-    int width, height, channelCount;
-    stbi_set_flip_vertically_on_load(true);
-    unsigned char* data = stbi_load(imagePath.c_str(), &width, &height, &channelCount, 0);
-    if (!data)
-    {
-        std::cout << "[Error] Failed to load texture" << std::endl;
-        std::cout << stbi_failure_reason() << std::endl;
-    }
-
-    uint32_t textureId;
-    glGenTextures(1, &textureId);
-    glActiveTexture(textureUnit);
-    glBindTexture(GL_TEXTURE_2D, textureId);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    stbi_image_free(data);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    return textureId;
-}
-
-void testGLM()
-{
-    glm::vec4 vector = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-    glm::mat4 trans = glm::mat4(1.0f);
-    trans = glm::translate(trans, glm::vec3(1.0f, 1.0f, 0.0f));
-    vector = trans * vector;
-    std::cout << "X: " << vector.x << " Y: " << vector.y << " Z: " << vector.z << std::endl;
-}
-
-
 
 int main(void)
 {
@@ -82,13 +41,10 @@ int main(void)
     uint32_t vertexBuffer;
     app.generateVertexBuffer(vertexBuffer, cubeVertices);
 
-    /*uint32_t indexBuffer;
-    glGenBuffers(1, &indexBuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(uint32_t), elements, GL_STATIC_DRAW);*/
-
-    uint32_t texture0 = loadTexture("Resources/NeutronStar.jpg", GL_TEXTURE0);
-    uint32_t texture1 = loadTexture("Resources/ArchLinux.jpeg", GL_TEXTURE1);
+    uint32_t texture0;
+    app.generateTexture(texture0, "Resources/NeutronStar.jpg", GL_TEXTURE0);
+    uint32_t texture1;
+    app.generateTexture(texture1, "Resources/ArchLinux.jpeg", GL_TEXTURE1);
 
     uint32_t vao;
     glGenVertexArrays(1, &vao);

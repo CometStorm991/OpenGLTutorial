@@ -5,6 +5,10 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <STB/stb_image.h>
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 class Application
 {
@@ -38,6 +42,10 @@ public:
 	void generateCube(std::vector<float>& cubeVertices);
 
 	void generateVertexBuffer(uint32_t& vertexBuffer, const std::vector<float>& cubeVertices);
+	void generateIndexBuffer(uint32_t& indexBuffer, const std::vector<float>& indices);
+	void generateTexture(uint32_t& texture, const std::string& imagePath, GLenum textureUnit);
+
+	void testGLM();
 
 	float getYaw();
 	float getPitch();
