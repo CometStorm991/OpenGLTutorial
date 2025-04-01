@@ -195,6 +195,24 @@ int main(void)
         float cameraX = std::sin(milliseconds / 1000.0f * 2.0f * std::numbers::pi_v<float> * 0.2f) * 30.0f;
         float cameraZ = std::cos(milliseconds / 1000.0f * 2.0f * std::numbers::pi_v<float> * 0.2f) * 30.0f;
 
+
+
+        /*view = glm::lookAt(
+            glm::vec3(cameraX, 0.0f, cameraZ),
+            glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f)
+        );*/
+
+        float yaw = app.getYaw();
+        float pitch = app.getPitch();
+        glm::vec3 cameraDirection;
+        cameraDirection.x = std::cos(glm::radians(yaw)) * std::cos(glm::radians(pitch));
+        cameraDirection.y = std::sin(glm::radians(pitch));
+        cameraDirection.z = std::sin(glm::radians(yaw)) * std::cos(glm::radians(pitch));
+
+        cameraFront = glm::normalize(cameraDirection);
+        cameraRight = glm::normalize(glm::cross(cameraFront, cameraUp));
+
         float deltaTime = (milliseconds - previousMillis) / 1000.0f;
         cameraSpeed = deltaTime * 10.0f;
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -214,19 +232,7 @@ int main(void)
             cameraPos -= cameraSpeed * cameraRight;
         }
 
-        /*view = glm::lookAt(
-            glm::vec3(cameraX, 0.0f, cameraZ),
-            glm::vec3(0.0f, 0.0f, 0.0f),
-            glm::vec3(0.0f, 1.0f, 0.0f)
-        );*/
 
-        float yaw = app.getYaw();
-        float pitch = app.getPitch();
-        glm::vec3 cameraDirection;
-        cameraDirection.x = std::cos(glm::radians(yaw)) * std::cos(glm::radians(pitch));
-        cameraDirection.y = std::sin(glm::radians(pitch));
-        cameraDirection.z = std::sin(glm::radians(yaw)) * std::cos(glm::radians(pitch));
-        cameraFront = glm::normalize(cameraDirection);
         view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
         glActiveTexture(GL_TEXTURE0);
