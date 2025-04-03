@@ -10,6 +10,8 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
+#include "AttributeLayout.hpp"
+
 class Application
 {
 private:
@@ -33,6 +35,8 @@ private:
 	static void mouseCallbackGLFW(GLFWwindow* window, double xPos, double yPos);
 
 	void mouseCallback(GLFWwindow* window, double xPos, double yPos);
+
+	uint32_t getGLTypeSize(GLenum type);
 public:
 	Application();
 	
@@ -44,7 +48,7 @@ public:
 	void generateVertexBuffer(uint32_t& vertexBuffer, const std::vector<float>& cubeVertices);
 	void generateIndexBuffer(uint32_t& indexBuffer, const std::vector<float>& indices);
 	void generateTexture(uint32_t& texture, const std::string& imagePath, GLenum textureUnit);
-	void generateVertexArray(uint32_t& vao, uint32_t vertexBuffer);
+	void generateVertexArray(uint32_t& vao, uint32_t vertexBuffer, std::vector<AttributeLayout>& attribs);
 
 	void testGLM();
 

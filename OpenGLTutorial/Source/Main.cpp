@@ -16,6 +16,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_FAILURE_USERMSG
 
+#include "AttributeLayout.hpp"
 #include "Program.hpp"
 #include "Shader.hpp"
 #include "Application.hpp"
@@ -37,17 +38,25 @@ int main(void)
 
     std::vector<float> cubeVertices;
     app.generateCube(cubeVertices);
-
+    
     uint32_t vertexBuffer;
     app.generateVertexBuffer(vertexBuffer, cubeVertices);
+
+    AttributeLayout posAttrib = AttributeLayout(3, GL_FLOAT);
+    AttributeLayout texAttrib = AttributeLayout(2, GL_FLOAT);
+
+    std::vector<AttributeLayout> attribs = std::vector<AttributeLayout>();
+    attribs.push_back(posAttrib);
+    attribs.push_back(texAttrib);
+    uint32_t vao;
+
+    app.generateVertexArray(vao, vertexBuffer, attribs);
 
     uint32_t texture0;
     app.generateTexture(texture0, "Resources/NeutronStar.jpg", GL_TEXTURE0);
     uint32_t texture1;
     app.generateTexture(texture1, "Resources/ArchLinux.jpeg", GL_TEXTURE1);
 
-    uint32_t vao;
-    app.generateVertexArray(vao, vertexBuffer);
     
     std::shared_ptr<Shader> vertexShader = std::make_shared<Shader>(GL_VERTEX_SHADER, "Shaders/VertexShader.glsl");
     std::shared_ptr<Shader> fragmentShader = std::make_shared<Shader>(GL_FRAGMENT_SHADER, "Shaders/FragmentShader.glsl");
@@ -60,7 +69,7 @@ int main(void)
     std::random_device randomDevice = std::random_device();
     std::default_random_engine randomEngine = std::default_random_engine(randomDevice());
 
-    unsigned int cubeCount = 1000;
+    const unsigned int cubeCount = 1000;
     // Desktop can handle 1200 cubes at 144 fps
     // Laptop can handle 1000 cubes at about 144 fps
 

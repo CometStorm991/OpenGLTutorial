@@ -155,24 +155,57 @@ void Application::generateTexture(uint32_t& texture, const std::string& imagePat
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Application::generateVertexArray(uint32_t& vao, uint32_t vertexBuffer)
+void Application::generateVertexArray(uint32_t& vao, uint32_t vertexBuffer, std::vector<AttributeLayout>& attribs)
 {
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (const void*)0); // Binds vertex buffer in GL_ARRAY_BUFFER to VAO
+    uint32_t vertexSize = 0;
+    for (unsigned int i = 0; i < attribs.size(); i++)
+    {
+        AttributeLayout attrib = attribs.at(i);
+        uint32_t typeSize = getGLTypeSize(attrib.getType());
 
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (const void*)(3 * sizeof(float))); // Same vertex buffer is used for texture coords
+        vertexSize += attrib.getCount() * typeSize;
+    }
+
+    unsigned int offset = 0;
+    for (unsigned int i = 0; i < attribs.size(); i++)
+    {
+        AttributeLayout attrib = attribs.at(i);
+        uint32_t typeSize = getGLTypeSize(attrib.getType());
+        
+        glEnableVertexAttribArray(i);
+        glVertexAttribPointer(i, attrib.getCount(), attrib.getType(), GL_FALSE, vertexSize, (const void*)offset);
+
+        offset += attrib.getCount() * typeSize;
+    }
+
+    //glEnableVertexAttribArray(0);
+    //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (const void*)0); // Binds vertex buffer in GL_ARRAY_BUFFER to VAO
+
+    //glEnableVertexAttribArray(1);
+    //glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (const void*)(3 * sizeof(float))); // Same vertex buffer is used for texture coords
 
     //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer); // Binds element buffer in GL_ELEMENT_ARRAY_BUFFER to VAO
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+uint32_t Application::getGLTypeSize(GLenum type)
+{
+    switch (type)
+    {
+    case GL_FLOAT:
+        return sizeof(float);
+    }
+
+    std::cout << "Could not get size of type " << type << std::endl;
+    return 0;
 }
 
 void Application::testGLM()

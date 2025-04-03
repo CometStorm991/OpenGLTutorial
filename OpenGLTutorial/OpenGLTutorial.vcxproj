@@ -135,6 +135,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Source\Application.cpp" />
+    <ClCompile Include="Source\AttributeLayout.cpp" />
     <ClCompile Include="Source\Main.cpp" />
     <ClCompile Include="Source\Program.cpp" />
     <ClCompile Include="Source\Shader.cpp" />
@@ -145,6 +146,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application.hpp" />
+    <ClInclude Include="Source\AttributeLayout.hpp" />
     <ClInclude Include="Source\Program.hpp" />
     <ClInclude Include="Source\Shader.hpp" />
   </ItemGroup>
