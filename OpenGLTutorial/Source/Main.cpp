@@ -96,24 +96,15 @@ int main(void)
     }
 
     glm::mat4 model = glm::mat4(1.0f);
-    
     glm::mat4 view = glm::mat4(1.0f);
-
-    float cameraSpeed = 1.0f;
+    glm::mat4 projection = glm::perspective(glm::radians(60.0f), 1920.0f / 1080.0f, 0.1f, 100.0f);
+    glm::mat4 mvp = glm::mat4(1.0f);
 
     glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, -30.0f);
+
     glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
     glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-    
-
-    
-
     glm::vec3 cameraRight = glm::normalize(glm::cross(cameraFront, cameraUp));
-
-
-    glm::mat4 projection = glm::perspective(glm::radians(60.0f), 1920.0f / 1080.0f, 0.1f, 100.0f);
-
-    glm::mat4 mvp = glm::mat4(1.0f);
 
     program.use();
     glUniform1i(glGetUniformLocation(program.getId(), "inputTexture0"), 0);
@@ -124,12 +115,12 @@ int main(void)
     program.unuse();
 
     glEnable(GL_DEPTH_TEST);
-    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
+    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     std::chrono::steady_clock::time_point lastSecond = std::chrono::steady_clock::now();
+
     uint32_t leftOverMillis = 0;
     uint32_t fps = 0;
-
     uint32_t previousMillis = 0;
 
     /* Loop until the user closes the window */
@@ -164,7 +155,7 @@ int main(void)
         cameraRight = glm::normalize(glm::cross(cameraFront, cameraUp));
 
         float deltaTime = (milliseconds - previousMillis) / 1000.0f;
-        cameraSpeed = deltaTime * 10.0f;
+        float cameraSpeed = deltaTime * 10.0f;
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         {
             cameraPos += cameraSpeed * cameraFront;
@@ -181,7 +172,14 @@ int main(void)
         {
             cameraPos -= cameraSpeed * cameraRight;
         }
-
+        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+        {
+            cameraPos += cameraSpeed * glm::vec3(0.0f, 1.0f, 0.0f);
+        }
+        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+        {
+            cameraPos -= cameraSpeed * glm::vec3(0.0f, 1.0f, 0.0f);
+        }
 
         view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
