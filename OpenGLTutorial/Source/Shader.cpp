@@ -1,7 +1,7 @@
 #include "Shader.hpp"
 
 Shader::Shader(GLenum shaderType, const std::string& filePath)
-    : shaderType(shaderType), filePath(filePath), shaderLoaded(false), id(0)
+    : shaderType(shaderType), filePath(filePath), loaded(false), id(0)
 {
 }
 
@@ -38,12 +38,12 @@ void Shader::load()
         return;
     }
 
-    shaderLoaded = true;
+    loaded = true;
 }
 
 bool Shader::getShaderLoaded() const
 {
-    return shaderLoaded;
+    return loaded;
 }
 
 uint32_t Shader::getId() const

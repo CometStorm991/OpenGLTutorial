@@ -15,7 +15,7 @@ private:
 
 	uint32_t id;
 
-	bool shaderLoaded;
+	bool loaded;
 public:
 	Shader(GLenum shaderType, const std::string& filePath);
 

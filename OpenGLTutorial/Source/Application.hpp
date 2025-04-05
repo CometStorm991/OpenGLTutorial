@@ -1,57 +1,38 @@
 #pragma once
 
-#include <iostream>
-#include <vector>
+#include <random>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <STB/stb_image.h>
 #include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "AttributeLayout.hpp"
+#include "Program.hpp"
+#include "Shader.hpp"
+#include "Renderer.hpp"
 
 class Application
 {
 private:
-	// GLFW
-	GLFWwindow* window;
+	Renderer renderer;
 
-	float lastX = 0.0f;
-	float lastY = 0.0f;
-	float yaw = 90.0f;
-	float pitch = 0.0f;
+	const unsigned int cubeCount = 1000;
+	// Desktop can handle 1200 cubes at 144 fps
+	// Laptop can handle 1000 cubes at about 144 fps
+	std::vector<glm::vec3> cubePositions;
+	std::vector<glm::vec3> cubeRotationSpeeds;
 
-	static void APIENTRY debugOutputGLFW(
-		GLenum source,
-		GLenum type,
-		unsigned int id,
-		GLenum severity,
-		GLsizei length,
-		const char* message,
-		const void* userParam
-	);
-	static void mouseCallbackGLFW(GLFWwindow* window, double xPos, double yPos);
-
-	void mouseCallback(GLFWwindow* window, double xPos, double yPos);
-
-	uint32_t getGLTypeSize(GLenum type);
-public:
-	Application();
+	void addCubeVertices();
+	void prepareRotatingCubes();
 	
-	GLFWwindow* initWindow();
-	void initOpenGL();
+	void prepareForRun();
+public:
+	void init();
+	void prepare();
+	void run();
+	void terminate();
 
-	void generateCube(std::vector<float>& cubeVertices);
-
-	void generateVertexBuffer(uint32_t& vertexBuffer, const std::vector<float>& cubeVertices);
-	void generateIndexBuffer(uint32_t& indexBuffer, const std::vector<float>& indices);
-	void generateTexture(uint32_t& texture, const std::string& imagePath, GLenum textureUnit);
-	void generateVertexArray(uint32_t& vao, uint32_t vertexBuffer, std::vector<AttributeLayout>& attribs);
-
-	void testGLM();
-
-	float getYaw();
-	float getPitch();
+	bool shouldEnd();
 };

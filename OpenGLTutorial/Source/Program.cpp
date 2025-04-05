@@ -1,7 +1,7 @@
 #include "Program.hpp"
 
 Program::Program(std::shared_ptr<Shader> vertexShader, std::shared_ptr<Shader> fragmentShader)
-	: vertexShader(vertexShader), fragmentShader(fragmentShader), id(0), programLoaded(false)
+	: vertexShader(vertexShader), fragmentShader(fragmentShader), id(0), programLoaded(false), beingUsed(false)
 {
 }
 
@@ -45,11 +45,18 @@ void Program::load()
 void Program::use()
 {
 	glUseProgram(id);
+	beingUsed = true;
 }
 
 void Program::unuse()
 {
 	glUseProgram(0);
+	beingUsed = false;
+}
+
+bool Program::getBeingUsed()
+{
+	return beingUsed;
 }
 
 uint32_t Program::getId() const

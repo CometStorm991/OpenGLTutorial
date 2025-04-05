@@ -135,10 +135,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Source\Application.cpp" />
+    <ClCompile Include="Source\Renderer.cpp" />
     <ClCompile Include="Source\AttributeLayout.cpp" />
     <ClCompile Include="Source\Main.cpp" />
     <ClCompile Include="Source\Program.cpp" />
     <ClCompile Include="Source\Shader.cpp" />
+    <ClCompile Include="Source\Texture.cpp" />
+    <ClCompile Include="Vendors\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\FragmentShader.glsl" />
@@ -146,9 +149,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application.hpp" />
+    <ClInclude Include="Source\Renderer.hpp" />
     <ClInclude Include="Source\AttributeLayout.hpp" />
     <ClInclude Include="Source\Program.hpp" />
     <ClInclude Include="Source\Shader.hpp" />
+    <ClInclude Include="Source\Texture.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\ArchLinux.jpeg" />
