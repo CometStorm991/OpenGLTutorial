@@ -101,6 +101,7 @@ public:
 	void terminateGLFW();
 
 	void setUniform1i(const std::string& name, int32_t value);
+	void setUniform3f(const std::string& name, const glm::vec3& value);
 	void setUniformMatrix4fv(const std::string& name, const glm::mat4& value);
 
 	void testGLM();

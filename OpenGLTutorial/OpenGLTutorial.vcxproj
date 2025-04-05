@@ -134,6 +134,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="Shaders\LightingFS.glsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\LightingVS.glsl">
+      <FileType>Document</FileType>
+    </None>
     <ClCompile Include="Source\Application.cpp" />
     <ClCompile Include="Source\Renderer.cpp" />
     <ClCompile Include="Source\AttributeLayout.cpp" />
@@ -144,8 +150,8 @@
     <ClCompile Include="Vendors\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\FragmentShader.glsl" />
-    <None Include="Shaders\VertexShader.glsl" />
+    <None Include="Shaders\GettingStartedFS.glsl" />
+    <None Include="Shaders\GettingStartedVS.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application.hpp" />

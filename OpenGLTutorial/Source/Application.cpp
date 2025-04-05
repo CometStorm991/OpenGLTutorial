@@ -35,7 +35,7 @@ void Application::addCubeVertices()
     uint32_t texture1;
     renderer.generateTexture(texture1, "Resources/ArchLinux.jpeg", GL_TEXTURE1);
 
-    renderer.generateShaders("Shaders/VertexShader.glsl", "Shaders/FragmentShader.glsl");
+    renderer.generateShaders("Shaders/GettingStartedVS.glsl", "Shaders/GettingStartedFS.glsl");
 
     renderer.setUniform1i("inputTexture0", 0);
     renderer.setUniform1i("inputTexture1", 1);
@@ -69,6 +69,14 @@ void Application::prepareRotatingCubes()
         float z = speedDistrib(randomEngine);
         cubeRotationSpeeds.push_back(glm::vec3(x, y, z));
     }
+}
+
+void Application::prepareLighting()
+{
+    addCubeVertices();
+
+    renderer.setUniform3f("objectColor", glm::vec3(0.5f, 0.0f, 1.0f));
+    renderer.setUniform3f("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
 }
 
 void Application::prepareForRun()

@@ -26,6 +26,7 @@ private:
 
 	void addCubeVertices();
 	void prepareRotatingCubes();
+	void prepareLighting();
 	
 	void prepareForRun();
 public:

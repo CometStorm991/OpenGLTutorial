@@ -352,6 +352,17 @@ void Renderer::setUniform1i(const std::string& name, int32_t value)
     }
 }
 
+void Renderer::setUniform3f(const std::string& name, const glm::vec3& value)
+{
+    bool wasUsed = program->getBeingUsed();
+    program->use();
+    glUniform3f(glGetUniformLocation(program->getId(), name.c_str()), value[0], value[1], value[2]);
+    if (!wasUsed)
+    {
+        program->unuse();
+    }
+}
+
 void Renderer::setUniformMatrix4fv(const std::string& name, const glm::mat4& value)
 {
     bool wasUsed = program->getBeingUsed();
