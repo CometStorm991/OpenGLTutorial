@@ -35,7 +35,7 @@ void Application::addCubeVertices()
     uint32_t texture1;
     renderer.generateTexture(texture1, "Resources/ArchLinux.jpeg", GL_TEXTURE1);
 
-    renderer.generateShaders();
+    renderer.generateShaders("Shaders/VertexShader.glsl", "Shaders/FragmentShader.glsl");
 
     renderer.setUniform1i("inputTexture0", 0);
     renderer.setUniform1i("inputTexture1", 1);

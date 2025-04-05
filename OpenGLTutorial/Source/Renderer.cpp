@@ -135,10 +135,10 @@ void Renderer::generateCube(std::vector<float>& cubeVertices)
     };
 }
 
-void Renderer::generateShaders()
+void Renderer::generateShaders(const std::string& vertexShaderPath, const std::string& fragmentShaderPath)
 {
-    vertexShader = std::make_shared<Shader>(GL_VERTEX_SHADER, "Shaders/VertexShader.glsl");
-    fragmentShader = std::make_shared<Shader>(GL_FRAGMENT_SHADER, "Shaders/FragmentShader.glsl");
+    vertexShader = std::make_shared<Shader>(GL_VERTEX_SHADER, vertexShaderPath);
+    fragmentShader = std::make_shared<Shader>(GL_FRAGMENT_SHADER, fragmentShaderPath);
     program = std::make_unique<Program>(vertexShader, fragmentShader);
 
     vertexShader->load();

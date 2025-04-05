@@ -84,7 +84,7 @@ public:
 
 	void generateCube(std::vector<float>& cubeVertices);
 
-	void generateShaders();
+	void generateShaders(const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
 	void generateVertexBuffer(uint32_t& vertexBuffer, const std::vector<float>& cubeVertices);
 	void generateIndexBuffer(uint32_t& indexBuffer, const std::vector<float>& indices);
 	void generateTexture(uint32_t& texture, const std::string& imagePath, GLenum textureUnit);
