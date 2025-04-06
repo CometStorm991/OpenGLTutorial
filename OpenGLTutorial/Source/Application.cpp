@@ -127,11 +127,14 @@ void Application::run()
 
 void Application::runGettingStarted()
 {
+    renderer.prepareForRender();
+    renderer.calculateCameraTransform();
+
     renderer.prepareForDraw(programId, textureIds, vaoId);
 
     uint64_t milliseconds = renderer.getMillisecondsSinceRunPreparation();
 
-    renderer.calculateCameraTransform();
+    
     for (unsigned int i = 0; i < cubeCount; i++)
     {
         glm::mat4 model = glm::mat4(1.0f);
