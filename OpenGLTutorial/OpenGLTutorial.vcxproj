@@ -134,10 +134,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="Shaders\LightingFS.glsl">
+    <None Include="Shaders\LightingRegularFS.glsl">
       <FileType>Document</FileType>
     </None>
     <None Include="Shaders\LightingVS.glsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\LightingLightFS.glsl">
       <FileType>Document</FileType>
     </None>
     <ClCompile Include="Source\Application.cpp" />

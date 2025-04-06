@@ -7,15 +7,21 @@
 class Program
 {
 private:
-	std::shared_ptr<Shader> vertexShader;
-	std::shared_ptr<Shader> fragmentShader;
+	std::string vertexShaderPath;
+	std::string fragmentShaderPath;
+
+	/*std::shared_ptr<Shader> vertexShader;
+	std::shared_ptr<Shader> fragmentShader;*/
+
+	Shader vertexShader;
+	Shader fragmentShader;
 
 	uint32_t id;
 
 	bool programLoaded;
 	bool beingUsed;
 public:
-	Program(std::shared_ptr<Shader> vertexShader, std::shared_ptr<Shader> fragmentShader);
+	Program(const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
 
 	void load();
 

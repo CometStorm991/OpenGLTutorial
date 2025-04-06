@@ -8,11 +8,11 @@ void Application::init()
 
 void Application::prepare()
 {
-    prepareRotatingCubes();
+    prepareLighting();
     prepareForRun();
 }
 
-void Application::addCubeVertices()
+void Application::addCubeVertices(std::vector<uint32_t>& textureIds, uint32_t& vao)
 {
     std::vector<float> cubeVertices;
     renderer.generateCube(cubeVertices);
@@ -26,7 +26,6 @@ void Application::addCubeVertices()
     std::vector<AttributeLayout> attribs = std::vector<AttributeLayout>();
     attribs.push_back(posAttrib);
     attribs.push_back(texAttrib);
-    uint32_t vao;
 
     renderer.generateVertexArray(vao, vertexBuffer, attribs);
 
@@ -34,16 +33,19 @@ void Application::addCubeVertices()
     renderer.generateTexture(texture0, "Resources/NeutronStar.jpg", GL_TEXTURE0);
     uint32_t texture1;
     renderer.generateTexture(texture1, "Resources/ArchLinux.jpeg", GL_TEXTURE1);
-
-    renderer.generateShaders("Shaders/GettingStartedVS.glsl", "Shaders/GettingStartedFS.glsl");
-
-    renderer.setUniform1i("inputTexture0", 0);
-    renderer.setUniform1i("inputTexture1", 1);
+    textureIds.clear();
+    textureIds.push_back(texture0);
+    textureIds.push_back(texture1);
 }
 
-void Application::prepareRotatingCubes()
+void Application::prepareGettingStarted()
 {
-    addCubeVertices();
+    addCubeVertices(textureIds, vaoId);
+
+    renderer.generateProgram(programId, "Shaders/GettingStartedVS.glsl", "Shaders/GettingStartedFS.glsl");
+
+    renderer.setUniform1i(programId, "inputTexture0", 0);
+    renderer.setUniform1i(programId, "inputTexture1", 1);
 
     std::random_device randomDevice = std::random_device();
     std::default_random_engine randomEngine = std::default_random_engine(randomDevice());
@@ -73,10 +75,36 @@ void Application::prepareRotatingCubes()
 
 void Application::prepareLighting()
 {
-    addCubeVertices();
+    std::vector<float> cubeVertices;
+    renderer.generateCube(cubeVertices);
 
-    renderer.setUniform3f("objectColor", glm::vec3(0.5f, 0.0f, 1.0f));
-    renderer.setUniform3f("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+    uint32_t vertexBuffer;
+    renderer.generateVertexBuffer(vertexBuffer, cubeVertices);
+
+    AttributeLayout posAttrib = AttributeLayout(3, GL_FLOAT);
+    AttributeLayout texAttrib = AttributeLayout(2, GL_FLOAT);
+
+    std::vector<AttributeLayout> attribs = std::vector<AttributeLayout>();
+    attribs.push_back(posAttrib);
+    attribs.push_back(texAttrib);
+
+    renderer.generateVertexArray(vaoId, vertexBuffer, attribs);
+
+    uint32_t texture0;
+    renderer.generateTexture(texture0, "Resources/NeutronStar.jpg", GL_TEXTURE0);
+    uint32_t texture1;
+    renderer.generateTexture(texture1, "Resources/ArchLinux.jpeg", GL_TEXTURE1);
+    textureIds.clear();
+    textureIds.push_back(texture0);
+    textureIds.push_back(texture1);
+
+    renderer.generateProgram(programId, "Shaders/LightingVS.glsl", "Shaders/LightingRegularFS.glsl");
+    renderer.generateProgram(lightProgramId, "Shaders/LightingVS.glsl", "Shaders/LightingLightFS.glsl");
+
+    renderer.setUniform3f(programId, "objectColor", glm::vec3(0.5f, 0.0f, 1.0f));
+    renderer.setUniform3f(programId, "lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+
+    lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
 }
 
 void Application::prepareForRun()
@@ -86,7 +114,12 @@ void Application::prepareForRun()
 
 void Application::run()
 {
-    renderer.prepareForDraw();
+    runLighting();
+}
+
+void Application::runGettingStarted()
+{
+    renderer.prepareForDraw(programId, textureIds, vaoId);
 
     uint64_t milliseconds = renderer.getMillisecondsSinceRunPreparation();
 
@@ -101,11 +134,43 @@ void Application::run()
         model = glm::rotate(model, milliseconds / 1000.0f * rotationSpeed.y, glm::vec3(0.0f, 1.0f, 0.0f));
         model = glm::rotate(model, milliseconds / 1000.0f * rotationSpeed.z, glm::vec3(0.0f, 0.0f, 1.0f));
 
-        renderer.updateModelMatrix(model);
+        renderer.updateModelMatrix(programId, model);
         renderer.draw(36);
     }
 
-    renderer.unprepareForDraw();
+    renderer.unprepareForDraw(programId, textureIds);
+    renderer.calculateFps();
+    renderer.updateGLFW();
+}
+
+void Application::runLighting()
+{
+    renderer.prepareForRender();
+    renderer.calculateCameraTransform();
+
+    // -------------------------------------------------------------------------
+
+    renderer.prepareForDraw(programId, textureIds, vaoId);
+    
+    renderer.updateModelMatrix(programId, glm::mat4(1.0f));
+    renderer.draw(36);
+
+    renderer.unprepareForDraw(programId, textureIds);
+
+    // -------------------------------------------------------------------------
+
+    renderer.prepareForDraw(lightProgramId, textureIds, vaoId);
+
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, lightPos);
+    model = glm::scale(model, glm::vec3(0.2f));
+    renderer.updateModelMatrix(lightProgramId, model);
+    renderer.draw(36);
+
+    renderer.unprepareForDraw(lightProgramId, textureIds);
+
+    // -------------------------------------------------------------------------
+
     renderer.calculateFps();
     renderer.updateGLFW();
 }

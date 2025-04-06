@@ -2,8 +2,6 @@
 
 Renderer::Renderer()
     :
-    textures(std::vector<Texture>()),
-
     model(glm::mat4(1.0f)),
     view(glm::mat4(1.0f)),
     projection(glm::perspective(glm::radians(60.0f), 1920.0f / 1080.0f, 0.1f, 100.0f)),
@@ -135,16 +133,15 @@ void Renderer::generateCube(std::vector<float>& cubeVertices)
     };
 }
 
-void Renderer::generateShaders(const std::string& vertexShaderPath, const std::string& fragmentShaderPath)
+void Renderer::generateProgram(uint32_t& programId, const std::string& vertexShaderPath, const std::string& fragmentShaderPath)
 {
-    vertexShader = std::make_shared<Shader>(GL_VERTEX_SHADER, vertexShaderPath);
-    fragmentShader = std::make_shared<Shader>(GL_FRAGMENT_SHADER, fragmentShaderPath);
-    program = std::make_unique<Program>(vertexShader, fragmentShader);
+    Program program = Program(vertexShaderPath, fragmentShaderPath);
+    program.load();
 
-    vertexShader->load();
-    fragmentShader->load();
-    program->load();
-    program->unuse();
+    programId = program.getId();
+    programMap.insert({programId, program});
+
+    program.unuse();
 }
 
 void Renderer::generateVertexBuffer(uint32_t& vertexBuffer, const std::vector<float>& vertices)
@@ -163,17 +160,19 @@ void Renderer::generateIndexBuffer(uint32_t& indexBuffer, const std::vector<floa
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void Renderer::generateTexture(uint32_t& texture, const std::string& imagePath, GLenum textureUnit)
+void Renderer::generateTexture(uint32_t& textureId, const std::string& imagePath, GLenum textureUnit)
 {
-    textures.emplace_back(imagePath, textureUnit);
-    textures[textures.size() - 1].load();
+     Texture texture = Texture(imagePath, textureUnit);
+    texture.load();
+    
+    textureId = texture.getId();
+    textureMap.insert({textureId, texture});
 }
 
-void Renderer::generateVertexArray(uint32_t& vao, uint32_t vertexBuffer, std::vector<AttributeLayout>& attribs)
+void Renderer::generateVertexArray(uint32_t& vaoId, uint32_t vertexBuffer, std::vector<AttributeLayout>& attribs)
 {
-    glGenVertexArrays(1, &vao);
-    this->vao = vao;
-    glBindVertexArray(vao);
+    glGenVertexArrays(1, &vaoId);
+    glBindVertexArray(vaoId);
 
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 
@@ -276,42 +275,47 @@ void Renderer::calculateCameraPosition()
     }
 }
 
-void Renderer::prepareForDraw()
+void Renderer::prepareForRender()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    program->use();
-    for (Texture texture : textures)
-    {
-        texture.use();
-    }
-    glBindVertexArray(vao);
-
+    previousMillis = milliseconds;
     milliseconds = getMillisecondsSinceRunPreparation();
 }
 
-void Renderer::updateModelMatrix(const glm::mat4& model)
+void Renderer::prepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds, uint32_t vaoId)
+{
+    programMap.at(programId).use();
+    for (uint32_t textureId : textureIds)
+    {
+        textureMap.at(textureId).use();
+    }
+    glBindVertexArray(vaoId);
+}
+
+void Renderer::updateModelMatrix(uint32_t programId, const glm::mat4& model)
 {
    this->model = model;
+
+   view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+   mvp = projection * view * model;
+   setUniformMatrix4fv(programId, "mvp", mvp);
 }
 
 void Renderer::draw(unsigned int triangleCount)
 {
-    view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-    mvp = projection * view * model;
-    setUniformMatrix4fv("mvp", mvp);
-
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
-void Renderer::unprepareForDraw()
+void Renderer::unprepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds)
 {
-    program->unuse();
-    for (Texture texture : textures)
+    programMap.at(programId).unuse();
+    for (uint32_t textureId : textureIds)
     {
-        texture.unuse();
+        textureMap.at(textureId).unuse();
     }
     glBindVertexArray(0);
+
+    //milliseconds = getMillisecondsSinceRunPreparation();
 }
 
 void Renderer::calculateFps()
@@ -325,8 +329,6 @@ void Renderer::calculateFps()
         std::cout << "FPS: " << fps << std::endl;
         fps = 0;
     }
-
-    previousMillis = milliseconds;
 }
 
 void Renderer::updateGLFW()
@@ -341,36 +343,39 @@ void Renderer::terminateGLFW()
     glfwTerminate();
 }
 
-void Renderer::setUniform1i(const std::string& name, int32_t value)
+void Renderer::setUniform1i(uint32_t programId, const std::string& name, int32_t value)
 {
-    bool wasUsed = program->getBeingUsed();
-    program->use();
-    glUniform1i(glGetUniformLocation(program->getId(), name.c_str()), value);
+    Program program = programMap.at(programId);
+    bool wasUsed = program.getBeingUsed();
+    program.use();
+    glUniform1i(glGetUniformLocation(program.getId(), name.c_str()), value);
     if (!wasUsed)
     {
-        program->unuse();
+        program.unuse();
     }
 }
 
-void Renderer::setUniform3f(const std::string& name, const glm::vec3& value)
+void Renderer::setUniform3f(uint32_t programId, const std::string& name, const glm::vec3& value)
 {
-    bool wasUsed = program->getBeingUsed();
-    program->use();
-    glUniform3f(glGetUniformLocation(program->getId(), name.c_str()), value[0], value[1], value[2]);
+    Program program = programMap.at(programId);
+    bool wasUsed = program.getBeingUsed();
+    program.use();
+    glUniform3f(glGetUniformLocation(program.getId(), name.c_str()), value[0], value[1], value[2]);
     if (!wasUsed)
     {
-        program->unuse();
+        program.unuse();
     }
 }
 
-void Renderer::setUniformMatrix4fv(const std::string& name, const glm::mat4& value)
+void Renderer::setUniformMatrix4fv(uint32_t programId, const std::string& name, const glm::mat4& value)
 {
-    bool wasUsed = program->getBeingUsed();
-    program->use();
-    glUniformMatrix4fv(glGetUniformLocation(program->getId(), name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
+    Program program = programMap.at(programId);
+    bool wasUsed = program.getBeingUsed();
+    program.use();
+    glUniformMatrix4fv(glGetUniformLocation(program.getId(), name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
     if (!wasUsed)
     {
-        program->unuse();
+        program.unuse();
     }
 }
 

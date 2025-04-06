@@ -3,6 +3,7 @@
 #include <chrono>
 #include <cstdint>
 #include <iostream>
+#include <unordered_map>
 #include <vector>
 
 #include <GL/glew.h>
@@ -22,13 +23,14 @@ private:
 	// GLFW
 	GLFWwindow* window;
 
-	std::shared_ptr<Shader> vertexShader;
+	/*std::shared_ptr<Shader> vertexShader;
 	std::shared_ptr<Shader> fragmentShader;
-	std::unique_ptr<Program> program;
+	std::unique_ptr<Program> program;*/
 
-	uint32_t vao;
+	std::unordered_map<uint32_t, Program> programMap;
+	std::unordered_map<uint32_t, Texture> textureMap;
 
-	std::vector<Texture> textures;
+	/*std::vector<Texture> textures;*/
 
 	glm::mat4 model;
 	glm::mat4 view;
@@ -84,25 +86,26 @@ public:
 
 	void generateCube(std::vector<float>& cubeVertices);
 
-	void generateShaders(const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
+	void generateProgram(uint32_t& programId, const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
 	void generateVertexBuffer(uint32_t& vertexBuffer, const std::vector<float>& cubeVertices);
 	void generateIndexBuffer(uint32_t& indexBuffer, const std::vector<float>& indices);
-	void generateTexture(uint32_t& texture, const std::string& imagePath, GLenum textureUnit);
+	void generateTexture(uint32_t& textureId, const std::string& imagePath, GLenum textureUnit);
 	void generateVertexArray(uint32_t& vao, uint32_t vertexBuffer, std::vector<AttributeLayout>& attribs);
 
 	void prepareForRun();
 	void calculateCameraTransform();
-	void prepareForDraw();
-	void updateModelMatrix(const glm::mat4& model);
+	void prepareForRender();
+	void prepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds, uint32_t vaoId);
+	void updateModelMatrix(uint32_t programId, const glm::mat4& model);
 	void draw(unsigned int triangleCount);
-	void unprepareForDraw();
+	void unprepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds);
 	void calculateFps();
 	void updateGLFW();
 	void terminateGLFW();
 
-	void setUniform1i(const std::string& name, int32_t value);
-	void setUniform3f(const std::string& name, const glm::vec3& value);
-	void setUniformMatrix4fv(const std::string& name, const glm::mat4& value);
+	void setUniform1i(uint32_t programId, const std::string& name, int32_t value);
+	void setUniform3f(uint32_t programId, const std::string& name, const glm::vec3& value);
+	void setUniformMatrix4fv(uint32_t programId, const std::string& name, const glm::mat4& value);
 
 	void testGLM();
 

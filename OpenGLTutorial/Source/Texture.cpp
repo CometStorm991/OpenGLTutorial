@@ -51,3 +51,8 @@ void Texture::unuse()
     glActiveTexture(textureUnit);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
+
+uint32_t Texture::getId()
+{
+    return id;
+}

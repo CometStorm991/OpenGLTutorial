@@ -1,15 +1,21 @@
 #include "Program.hpp"
 
-Program::Program(std::shared_ptr<Shader> vertexShader, std::shared_ptr<Shader> fragmentShader)
-	: vertexShader(vertexShader), fragmentShader(fragmentShader), id(0), programLoaded(false), beingUsed(false)
+Program::Program(const std::string& vertexShaderPath, const std::string& fragmentShaderPath)
+	:
+	vertexShaderPath(vertexShaderPath),
+	fragmentShaderPath(fragmentShaderPath),
+	vertexShader(Shader(GL_VERTEX_SHADER, "")),
+	fragmentShader(Shader(GL_FRAGMENT_SHADER, ""))
+	/*vertexShader(vertexShader), fragmentShader(fragmentShader), id(0), programLoaded(false), beingUsed(false)*/
 {
+	
 }
 
 void Program::load()
 {
 	id = glCreateProgram();
 
-	bool allShadersLoaded = true;
+	/*bool allShadersLoaded = true;
 	if (!vertexShader->getShaderLoaded())
 	{
 		std::cout << "[Error] Vertex shader was not loaded" << std::endl;
@@ -24,10 +30,18 @@ void Program::load()
 	if (!allShadersLoaded)
 	{
 		return;
-	}
+	}*/
 
-	uint32_t vertexShaderId = vertexShader->getId();
-	uint32_t fragmentShaderId = fragmentShader->getId();
+	vertexShader = Shader(GL_VERTEX_SHADER, vertexShaderPath);
+	fragmentShader = Shader(GL_FRAGMENT_SHADER, fragmentShaderPath);
+	vertexShader.load();
+	fragmentShader.load();
+
+	/*uint32_t vertexShaderId = vertexShader->getId();
+	uint32_t fragmentShaderId = fragmentShader->getId();*/
+
+	uint32_t vertexShaderId = vertexShader.getId();
+	uint32_t fragmentShaderId = fragmentShader.getId();
 
 	glAttachShader(id, vertexShaderId);
 	glAttachShader(id, fragmentShaderId);

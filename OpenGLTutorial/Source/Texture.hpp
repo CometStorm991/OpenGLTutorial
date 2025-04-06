@@ -23,5 +23,6 @@ public:
 	void use();
 	void unuse();
 
+	uint32_t getId();
 	bool getLoaded();
 };

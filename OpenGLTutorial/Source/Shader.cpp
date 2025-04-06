@@ -12,6 +12,11 @@ void Shader::load()
     // Reading shader code from file
     std::string source;
     std::ifstream file(filePath);
+    if (!file.good())
+    {
+        std::cout << "[Error] File " << filePath << " does not exist" << std::endl;
+        return;
+    }
     while (file)
     {
         std::string input;
