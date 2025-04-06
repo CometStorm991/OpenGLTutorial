@@ -102,6 +102,8 @@ public:
 	void updateGLFW();
 	void terminateGLFW();
 
+	glm::vec3 getCameraPos();
+
 	void setUniform1i(uint32_t programId, const std::string& name, int32_t value);
 	void setUniform3f(uint32_t programId, const std::string& name, const glm::vec3& value);
 	void setUniformMatrix4fv(uint32_t programId, const std::string& name, const glm::mat4& value);

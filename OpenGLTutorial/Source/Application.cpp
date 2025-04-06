@@ -105,11 +105,12 @@ void Application::prepareLighting()
     renderer.generateProgram(programId, "Shaders/LightingVS.glsl", "Shaders/LightingRegularFS.glsl");
     renderer.generateProgram(lightProgramId, "Shaders/LightingVS.glsl", "Shaders/LightingLightFS.glsl");
 
-    lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
+    lightPos = glm::vec3(0.0f, 3.0f, 0.0f);
 
     renderer.setUniform3f(programId, "objectColor", glm::vec3(0.5f, 0.0f, 1.0f));
     renderer.setUniform3f(programId, "lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
     renderer.setUniform3f(programId, "lightPos", lightPos);
+    renderer.setUniform3f(programId, "viewPos", renderer.getCameraPos());
 
     renderer.setCameraPos(glm::vec3(0.0f, 0.0f, -10.0f));
 }
@@ -163,6 +164,8 @@ void Application::runLighting()
     renderer.prepareForDraw(programId, textureIds, vaoId);
     
     model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(0.0f, -3.0f, 0.0f));
+    model = glm::scale(model, glm::vec3(20.0f, 1.0f, 20.0f));
     renderer.updateModelMatrix(model);
     renderer.setUniformMatrix4fv(programId, "normalMatrix", glm::transpose(glm::inverse(model)));
     renderer.applyMvp(programId, "model", "view", "projection");
@@ -176,7 +179,7 @@ void Application::runLighting()
 
     model = glm::mat4(1.0f);
     model = glm::translate(model, lightPos);
-    model = glm::scale(model, glm::vec3(0.2f));
+    model = glm::scale(model, glm::vec3(1.0f));
     renderer.updateModelMatrix(model);
     renderer.applyMvp(lightProgramId, "model", "view", "projection");
     renderer.draw(36);
