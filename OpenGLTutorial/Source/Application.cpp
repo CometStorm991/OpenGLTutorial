@@ -156,11 +156,15 @@ void Application::runLighting()
     renderer.prepareForRender();
     renderer.calculateCameraTransform();
 
+    glm::mat4 model;
+
     // -------------------------------------------------------------------------
 
     renderer.prepareForDraw(programId, textureIds, vaoId);
     
-    renderer.updateModelMatrix(glm::mat4(1.0f));
+    model = glm::mat4(1.0f);
+    renderer.updateModelMatrix(model);
+    renderer.setUniformMatrix4fv(programId, "normalMatrix", glm::transpose(glm::inverse(model)));
     renderer.applyMvp(programId, "model", "view", "projection");
     renderer.draw(36);
 
@@ -170,7 +174,7 @@ void Application::runLighting()
 
     renderer.prepareForDraw(lightProgramId, textureIds, vaoId);
 
-    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::mat4(1.0f);
     model = glm::translate(model, lightPos);
     model = glm::scale(model, glm::vec3(0.2f));
     renderer.updateModelMatrix(model);
