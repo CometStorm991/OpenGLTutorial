@@ -310,6 +310,18 @@ void Renderer::setUniform1i(uint32_t programId, const std::string& name, int32_t
     }
 }
 
+void Renderer::setUniform1f(uint32_t programId, const std::string& name, float value)
+{
+    Program program = programMap.at(programId);
+    bool wasUsed = program.getBeingUsed();
+    program.use();
+    glUniform1f(glGetUniformLocation(program.getId(), name.c_str()), value);
+    if (!wasUsed)
+    {
+        program.unuse();
+    }
+}
+
 void Renderer::setUniform3f(uint32_t programId, const std::string& name, const glm::vec3& value)
 {
     Program program = programMap.at(programId);
