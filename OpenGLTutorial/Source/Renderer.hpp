@@ -83,9 +83,6 @@ public:
 
 	void init();
 
-
-	void generateCube(std::vector<float>& cubeVertices);
-
 	void generateProgram(uint32_t& programId, const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
 	void generateVertexBuffer(uint32_t& vertexBuffer, const std::vector<float>& cubeVertices);
 	void generateIndexBuffer(uint32_t& indexBuffer, const std::vector<float>& indices);
@@ -93,11 +90,12 @@ public:
 	void generateVertexArray(uint32_t& vao, uint32_t vertexBuffer, std::vector<AttributeLayout>& attribs);
 
 	void prepareForRun();
+	void setCameraPos(const glm::vec3& cameraPos);
 	void calculateCameraTransform();
 	void prepareForRender();
 	void prepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds, uint32_t vaoId);
 	void updateModelMatrix(const glm::mat4& model);
-	void calculateMvp(uint32_t programId, const std::string& uniformName);
+	void applyMvp(uint32_t programId, const std::string& modelName, const std::string& viewName, const std::string& projectionName);
 	void draw(unsigned int triangleCount);
 	void unprepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds);
 	void calculateFps();

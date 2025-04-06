@@ -39,10 +39,16 @@
     <ClCompile Include="Vendors\stb_image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Cube.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\VertexShader.glsl" />
-    <None Include="Shaders\FragmentShader.glsl" />
+    <None Include="Shaders\LightingRegularFS.glsl" />
+    <None Include="Shaders\LightingVS.glsl" />
+    <None Include="Shaders\LightingLightFS.glsl" />
+    <None Include="Shaders\GettingStartedFS.glsl" />
+    <None Include="Shaders\GettingStartedVS.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Shader.hpp">
@@ -61,6 +67,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\Texture.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Cube.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

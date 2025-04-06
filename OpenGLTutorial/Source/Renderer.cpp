@@ -74,65 +74,6 @@ void Renderer::initOpenGL()
     glEnable(GL_DEPTH_TEST);
 }
 
-void Renderer::generateCube(std::vector<float>& cubeVertices)
-{
-    cubeVertices = {
-        // Front face
-        0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-        1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-        1.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-
-        0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-        1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-
-        // Back face
-        1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-        0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-
-        0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-        1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-        0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-
-        // Left face
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-        0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-        0.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-
-        // Right face
-        1.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-        1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-        1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-
-        1.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-        1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-        1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-
-        // Top face
-        0.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-        1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-        1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-
-        0.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-        1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-
-        // Bottom face
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        1.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-        1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-        1.0f, 0.0f, 1.0f, 1.0f, 1.0f
-    };
-}
-
 void Renderer::generateProgram(uint32_t& programId, const std::string& vertexShaderPath, const std::string& fragmentShaderPath)
 {
     Program program = Program(vertexShaderPath, fragmentShaderPath);
@@ -228,6 +169,11 @@ void Renderer::prepareForRun()
     lastSecondTime = std::chrono::steady_clock::now();
 }
 
+void Renderer::setCameraPos(const glm::vec3& cameraPos)
+{
+    this->cameraPos = cameraPos;
+}
+
 void Renderer::calculateCameraTransform()
 {
     calculateCameraOrientation();
@@ -297,11 +243,12 @@ void Renderer::updateModelMatrix(const glm::mat4& model)
    this->model = model;
 }
 
-void Renderer::calculateMvp(uint32_t programId, const std::string& uniformName)
+void Renderer::applyMvp(uint32_t programId, const std::string& modelName, const std::string& viewName, const std::string& projectionName)
 {
     view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-    mvp = projection * view * model;
-    setUniformMatrix4fv(programId, "mvp", mvp);
+    setUniformMatrix4fv(programId, modelName, model);
+    setUniformMatrix4fv(programId, viewName, view);
+    setUniformMatrix4fv(programId, projectionName, projection);
 }
 
 void Renderer::draw(unsigned int triangleCount)

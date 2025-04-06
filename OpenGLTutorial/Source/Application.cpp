@@ -15,7 +15,7 @@ void Application::prepare()
 void Application::addCubeVertices(std::vector<uint32_t>& textureIds, uint32_t& vao)
 {
     std::vector<float> cubeVertices;
-    renderer.generateCube(cubeVertices);
+    Cube::generatePT(cubeVertices);
 
     uint32_t vertexBuffer;
     renderer.generateVertexBuffer(vertexBuffer, cubeVertices);
@@ -71,21 +71,25 @@ void Application::prepareGettingStarted()
         float z = speedDistrib(randomEngine);
         cubeRotationSpeeds.push_back(glm::vec3(x, y, z));
     }
+
+    renderer.setCameraPos(glm::vec3(0.0f, 0.0f, -30.0f));
 }
 
 void Application::prepareLighting()
 {
     std::vector<float> cubeVertices;
-    renderer.generateCube(cubeVertices);
+    Cube::generatePNT(cubeVertices);
 
     uint32_t vertexBuffer;
     renderer.generateVertexBuffer(vertexBuffer, cubeVertices);
 
     AttributeLayout posAttrib = AttributeLayout(3, GL_FLOAT);
+    AttributeLayout normAttrib = AttributeLayout(3, GL_FLOAT);
     AttributeLayout texAttrib = AttributeLayout(2, GL_FLOAT);
 
     std::vector<AttributeLayout> attribs = std::vector<AttributeLayout>();
     attribs.push_back(posAttrib);
+    attribs.push_back(normAttrib);
     attribs.push_back(texAttrib);
 
     renderer.generateVertexArray(vaoId, vertexBuffer, attribs);
@@ -101,10 +105,13 @@ void Application::prepareLighting()
     renderer.generateProgram(programId, "Shaders/LightingVS.glsl", "Shaders/LightingRegularFS.glsl");
     renderer.generateProgram(lightProgramId, "Shaders/LightingVS.glsl", "Shaders/LightingLightFS.glsl");
 
+    lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
+
     renderer.setUniform3f(programId, "objectColor", glm::vec3(0.5f, 0.0f, 1.0f));
     renderer.setUniform3f(programId, "lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+    renderer.setUniform3f(programId, "lightPos", lightPos);
 
-    lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
+    renderer.setCameraPos(glm::vec3(0.0f, 0.0f, -10.0f));
 }
 
 void Application::prepareForRun()
@@ -135,7 +142,7 @@ void Application::runGettingStarted()
         model = glm::rotate(model, milliseconds / 1000.0f * rotationSpeed.z, glm::vec3(0.0f, 0.0f, 1.0f));
 
         renderer.updateModelMatrix(model);
-        renderer.calculateMvp(programId, "mvp");
+        renderer.applyMvp(programId, "model", "view", "projection");
         renderer.draw(36);
     }
 
@@ -154,7 +161,7 @@ void Application::runLighting()
     renderer.prepareForDraw(programId, textureIds, vaoId);
     
     renderer.updateModelMatrix(glm::mat4(1.0f));
-    renderer.calculateMvp(programId, "mvp");
+    renderer.applyMvp(programId, "model", "view", "projection");
     renderer.draw(36);
 
     renderer.unprepareForDraw(programId, textureIds);
@@ -167,7 +174,7 @@ void Application::runLighting()
     model = glm::translate(model, lightPos);
     model = glm::scale(model, glm::vec3(0.2f));
     renderer.updateModelMatrix(model);
-    renderer.calculateMvp(lightProgramId, "mvp");
+    renderer.applyMvp(lightProgramId, "model", "view", "projection");
     renderer.draw(36);
 
     renderer.unprepareForDraw(lightProgramId, textureIds);

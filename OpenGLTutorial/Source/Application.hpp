@@ -9,6 +9,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "AttributeLayout.hpp"
+#include "Cube.hpp"
 #include "Program.hpp"
 #include "Shader.hpp"
 #include "Renderer.hpp"
@@ -33,6 +34,7 @@ private:
 	uint32_t lightProgramId;
 	glm::vec3 lightPos;
 
+	void generateCubePNT(std::vector<float>& vertices);
 	void addCubeVertices(std::vector<uint32_t>& textureIds, uint32_t& vao);
 	void prepareGettingStarted();
 	void prepareLighting();
