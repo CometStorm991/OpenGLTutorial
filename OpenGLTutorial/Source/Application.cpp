@@ -134,7 +134,8 @@ void Application::runGettingStarted()
         model = glm::rotate(model, milliseconds / 1000.0f * rotationSpeed.y, glm::vec3(0.0f, 1.0f, 0.0f));
         model = glm::rotate(model, milliseconds / 1000.0f * rotationSpeed.z, glm::vec3(0.0f, 0.0f, 1.0f));
 
-        renderer.updateModelMatrix(programId, model);
+        renderer.updateModelMatrix(model);
+        renderer.calculateMvp(programId, "mvp");
         renderer.draw(36);
     }
 
@@ -152,7 +153,8 @@ void Application::runLighting()
 
     renderer.prepareForDraw(programId, textureIds, vaoId);
     
-    renderer.updateModelMatrix(programId, glm::mat4(1.0f));
+    renderer.updateModelMatrix(glm::mat4(1.0f));
+    renderer.calculateMvp(programId, "mvp");
     renderer.draw(36);
 
     renderer.unprepareForDraw(programId, textureIds);
@@ -164,7 +166,8 @@ void Application::runLighting()
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, lightPos);
     model = glm::scale(model, glm::vec3(0.2f));
-    renderer.updateModelMatrix(lightProgramId, model);
+    renderer.updateModelMatrix(model);
+    renderer.calculateMvp(lightProgramId, "mvp");
     renderer.draw(36);
 
     renderer.unprepareForDraw(lightProgramId, textureIds);

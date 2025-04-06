@@ -96,7 +96,8 @@ public:
 	void calculateCameraTransform();
 	void prepareForRender();
 	void prepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds, uint32_t vaoId);
-	void updateModelMatrix(uint32_t programId, const glm::mat4& model);
+	void updateModelMatrix(const glm::mat4& model);
+	void calculateMvp(uint32_t programId, const std::string& uniformName);
 	void draw(unsigned int triangleCount);
 	void unprepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds);
 	void calculateFps();

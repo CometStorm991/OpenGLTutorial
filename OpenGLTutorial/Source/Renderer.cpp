@@ -292,13 +292,16 @@ void Renderer::prepareForDraw(uint32_t programId, const std::vector<uint32_t>& t
     glBindVertexArray(vaoId);
 }
 
-void Renderer::updateModelMatrix(uint32_t programId, const glm::mat4& model)
+void Renderer::updateModelMatrix(const glm::mat4& model)
 {
    this->model = model;
+}
 
-   view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-   mvp = projection * view * model;
-   setUniformMatrix4fv(programId, "mvp", mvp);
+void Renderer::calculateMvp(uint32_t programId, const std::string& uniformName)
+{
+    view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+    mvp = projection * view * model;
+    setUniformMatrix4fv(programId, "mvp", mvp);
 }
 
 void Renderer::draw(unsigned int triangleCount)
