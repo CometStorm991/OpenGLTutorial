@@ -80,5 +80,11 @@
     <Image Include="Resources\ArchLinux.jpeg">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Resources\TutorialDiffuseMap.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\TutorialSpecularMap.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

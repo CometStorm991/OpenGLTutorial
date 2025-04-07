@@ -10,18 +10,18 @@ class Texture
 {
 private:
 	std::string imagePath;
-	GLenum textureUnit;
+	GLenum pixelFormat;
 
 	uint32_t id;
 
 	bool loaded = false;
 public:
-	Texture(const std::string& imagePath, GLenum textureUnit);
+	Texture(const std::string& imagePath, GLenum pixelFormat);
 
 	void load();
 	
-	void use();
-	void unuse();
+	void use(GLenum textureUnit);
+	void unuse(GLenum textureUnit);
 
 	uint32_t getId();
 	bool getLoaded();

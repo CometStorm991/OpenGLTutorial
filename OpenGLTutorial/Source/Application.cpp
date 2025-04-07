@@ -95,9 +95,9 @@ void Application::prepareLighting()
     renderer.generateVertexArray(vaoId, vertexBuffer, attribs);
 
     uint32_t texture0;
-    renderer.generateTexture(texture0, "Resources/NeutronStar.jpg", GL_TEXTURE0);
+    renderer.generateTexture(texture0, "Resources/TutorialDiffuseMap.png", GL_RGBA);
     uint32_t texture1;
-    renderer.generateTexture(texture1, "Resources/ArchLinux.jpeg", GL_TEXTURE1);
+    renderer.generateTexture(texture1, "Resources/TutorialSpecularMap.png", GL_RGBA);
     textureIds.clear();
     textureIds.push_back(texture0);
     textureIds.push_back(texture1);
@@ -106,12 +106,12 @@ void Application::prepareLighting()
     renderer.generateProgram(lightProgramId, "Shaders/LightingVS.glsl", "Shaders/LightingLightFS.glsl");
 
     lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
-
     
     renderer.setUniform3f(programId, "viewPos", renderer.getCameraPos());
 
-    renderer.setUniform3f(programId, "material.ambient", glm::vec3(1.0f, 0.5f, 0.31f));
-    renderer.setUniform3f(programId, "material.diffuse", glm::vec3(1.0f, 0.5f, 0.31f));
+    /*renderer.setUniform3f(programId, "material.ambient", glm::vec3(1.0f, 0.5f, 0.31f));
+    renderer.setUniform3f(programId, "material.diffuse", glm::vec3(1.0f, 0.5f, 0.31f));*/
+    renderer.setUniform1i(programId, "material.diffuse", 0);
     renderer.setUniform3f(programId, "material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
     renderer.setUniform1f(programId, "material.shininess", 32.0f);
 

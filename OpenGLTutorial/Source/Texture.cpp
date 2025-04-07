@@ -1,7 +1,7 @@
 #include "Texture.hpp"
 
-Texture::Texture(const std::string& imagePath, GLenum textureUnit)
-	: imagePath(imagePath), textureUnit(textureUnit), loaded(false)
+Texture::Texture(const std::string& imagePath, GLenum pixelFormat)
+	: imagePath(imagePath), pixelFormat(pixelFormat), loaded(false)
 {
 
 }
@@ -18,7 +18,7 @@ void Texture::load()
     }
 
     glGenTextures(1, &id);
-    glActiveTexture(textureUnit);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, id);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -26,7 +26,7 @@ void Texture::load()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, pixelFormat, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     stbi_image_free(data);
@@ -35,7 +35,7 @@ void Texture::load()
     loaded = true;
 }
 
-void Texture::use()
+void Texture::use(GLenum textureUnit)
 {
     if (!loaded)
     {
@@ -46,7 +46,7 @@ void Texture::use()
     glBindTexture(GL_TEXTURE_2D, id);
 }
 
-void Texture::unuse()
+void Texture::unuse(GLenum textureUnit)
 {
     glActiveTexture(textureUnit);
     glBindTexture(GL_TEXTURE_2D, 0);

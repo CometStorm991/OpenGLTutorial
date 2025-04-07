@@ -169,6 +169,8 @@
   <ItemGroup>
     <Image Include="Resources\ArchLinux.jpeg" />
     <Image Include="Resources\NeutronStar.jpg" />
+    <Image Include="Resources\TutorialDiffuseMap.png" />
+    <Image Include="Resources\TutorialSpecularMap.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -231,9 +231,11 @@ void Renderer::prepareForRender()
 void Renderer::prepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds, uint32_t vaoId)
 {
     programMap.at(programId).use();
-    for (uint32_t textureId : textureIds)
+    for (unsigned int i = 0; i < textureIds.size(); i++)
     {
-        textureMap.at(textureId).use();
+        uint32_t textureId = textureIds.at(i);
+
+        textureMap.at(textureId).use(GL_TEXTURE0 + i);
     }
     glBindVertexArray(vaoId);
 }
@@ -259,9 +261,11 @@ void Renderer::draw(unsigned int triangleCount)
 void Renderer::unprepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds)
 {
     programMap.at(programId).unuse();
-    for (uint32_t textureId : textureIds)
+    for (unsigned int i = 0; i < textureIds.size(); i++)
     {
-        textureMap.at(textureId).unuse();
+        uint32_t textureId = textureIds.at(i);
+
+        textureMap.at(textureId).unuse(GL_TEXTURE0 + i);
     }
     glBindVertexArray(0);
 
