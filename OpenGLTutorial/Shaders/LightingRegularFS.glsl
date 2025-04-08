@@ -11,7 +11,7 @@ uniform vec3 viewPos;
 struct Material
 {
 	sampler2D diffuse;
-	vec3 specular;
+	sampler2D specular;
 	float shininess;
 };
 uniform Material material;
@@ -41,7 +41,7 @@ void main()
 	vec3 normalizedViewDir = normalize(viewPos - fragPos);
 	vec3 reflectDir = reflect(-normalizedLightDir, normalizedNorm);
 	float specularAmount = pow(max(dot(normalizedViewDir, reflectDir), 0.0f), material.shininess);
-	vec3 specular = specularAmount * material.specular * light.specular; 
+	vec3 specular = specularAmount * vec3(texture(material.specular, texCoords)) * light.specular; 
 	
 	vec3 result = ambient + diffuse + specular;
 	fragColor = vec4(result, 1.0f);

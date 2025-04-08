@@ -109,10 +109,8 @@ void Application::prepareLighting()
     
     renderer.setUniform3f(programId, "viewPos", renderer.getCameraPos());
 
-    /*renderer.setUniform3f(programId, "material.ambient", glm::vec3(1.0f, 0.5f, 0.31f));
-    renderer.setUniform3f(programId, "material.diffuse", glm::vec3(1.0f, 0.5f, 0.31f));*/
     renderer.setUniform1i(programId, "material.diffuse", 0);
-    renderer.setUniform3f(programId, "material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+    renderer.setUniform1i(programId, "material.specular", 1);
     renderer.setUniform1f(programId, "material.shininess", 32.0f);
 
     renderer.setUniform3f(programId, "light.position", lightPos);
