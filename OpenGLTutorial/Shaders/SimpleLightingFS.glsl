@@ -16,7 +16,7 @@ struct Material
 };
 uniform Material material;
 
-struct Light
+struct SimpleLight
 {
 	vec3 position;
 
@@ -24,25 +24,34 @@ struct Light
 	vec3 diffuse;
 	vec3 specular;
 };
-uniform Light light;
+uniform SimpleLight simpleLight;
+
+vec3 calculateSimpleLight(vec3 normalizedNorm, vec3 normalizedViewDir)
+{
+	vec3 diffuseColor = vec3(texture(material.diffuse, texCoords));
+	vec3 specularColor = vec3(texture(material.specular, texCoords));
+
+	vec3 normalizedLightDir = normalize(simpleLight.position - fragPos);
+
+	vec3 ambient = diffuseColor * simpleLight.ambient;
+
+	float diffuseAmount = max(dot(normalizedNorm, normalizedLightDir), 0.0f);
+	vec3 diffuse = diffuseAmount * diffuseColor * simpleLight.diffuse;
+
+	vec3 reflectDir = reflect(-normalizedLightDir, normalizedNorm);
+	float specularAmount = pow(max(dot(normalizedViewDir, reflectDir), 0.0f), material.shininess);
+	vec3 specular = specularAmount * specularColor * simpleLight.specular;
+
+	vec3 result = ambient + diffuse + specular;
+	return result;
+}
 
 void main()
 {
-	vec3 diffuseColor = vec3(texture(material.diffuse, texCoords));
-
-	vec3 ambient = diffuseColor * light.ambient;
-
 	vec3 normalizedNorm = normalize(norm);
-	vec3 normalizedLightDir = normalize(light.position - fragPos);
-
-	float diffuseAmount = max(dot(normalizedNorm, normalizedLightDir), 0.0f);
-	vec3 diffuse = diffuseAmount * diffuseColor * light.diffuse;
-
 	vec3 normalizedViewDir = normalize(viewPos - fragPos);
-	vec3 reflectDir = reflect(-normalizedLightDir, normalizedNorm);
-	float specularAmount = pow(max(dot(normalizedViewDir, reflectDir), 0.0f), material.shininess);
-	vec3 specular = specularAmount * vec3(texture(material.specular, texCoords)) * light.specular; 
-	
-	vec3 result = ambient + diffuse + specular;
+
+	vec3 result = calculateSimpleLight(normalizedNorm, normalizedViewDir);
+
 	fragColor = vec4(result, 1.0f);
 }

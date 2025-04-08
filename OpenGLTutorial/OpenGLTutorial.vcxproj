@@ -134,7 +134,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="Shaders\LightingRegularFS.glsl">
+    <None Include="Shaders\SimpleLightingFS.glsl">
       <FileType>Document</FileType>
     </None>
     <None Include="Shaders\LightingVS.glsl">
@@ -143,6 +143,7 @@
     <None Include="Shaders\LightingLightFS.glsl">
       <FileType>Document</FileType>
     </None>
+    <None Include="Shaders\MultipleLightingFS.glsl" />
     <ClCompile Include="Source\Application.cpp" />
     <ClCompile Include="Source\Cube.cpp" />
     <ClCompile Include="Source\Renderer.cpp" />

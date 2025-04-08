@@ -44,11 +44,14 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\LightingRegularFS.glsl" />
+    <None Include="Shaders\SimpleLightingFS.glsl" />
     <None Include="Shaders\LightingVS.glsl" />
     <None Include="Shaders\LightingLightFS.glsl" />
     <None Include="Shaders\GettingStartedFS.glsl" />
     <None Include="Shaders\GettingStartedVS.glsl" />
+    <None Include="Shaders\MultipleLightingFS.glsl">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Shader.hpp">
