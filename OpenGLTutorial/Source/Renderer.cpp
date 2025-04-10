@@ -302,6 +302,11 @@ glm::vec3 Renderer::getCameraPos()
     return cameraPos;
 }
 
+glm::vec3 Renderer::getCameraFront()
+{
+    return cameraFront;
+}
+
 void Renderer::setUniform1i(uint32_t programId, const std::string& name, int32_t value)
 {
     Program program = programMap.at(programId);

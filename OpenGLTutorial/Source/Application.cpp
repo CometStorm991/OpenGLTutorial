@@ -163,6 +163,7 @@ void Application::prepareMultipleLighting()
         cubeRotationSpeeds.push_back(glm::vec3(x, y, z));
     }
 
+    pointLightPos = glm::vec3(1.2f, 1.0f, 2.0f);
     directionalLightDir = glm::vec3(-0.2f, -1.0f, -0.3f);
 
     renderer.setUniform3f(programId, "viewPos", renderer.getCameraPos());
@@ -175,6 +176,25 @@ void Application::prepareMultipleLighting()
     renderer.setUniform3f(programId, "directionalLight.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
     renderer.setUniform3f(programId, "directionalLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
     renderer.setUniform3f(programId, "directionalLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+
+    renderer.setUniform3f(programId, "pointLight.position", pointLightPos);
+    renderer.setUniform3f(programId, "pointLight.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
+    renderer.setUniform3f(programId, "pointLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
+    renderer.setUniform3f(programId, "pointLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+    renderer.setUniform1f(programId, "pointLight.constant", 1.0f);
+    renderer.setUniform1f(programId, "pointLight.linear", 0.045f);
+    renderer.setUniform1f(programId, "pointLight.quadratic", 0.0075f);
+
+    renderer.setUniform3f(programId, "spotLight.position", renderer.getCameraPos());
+    renderer.setUniform3f(programId, "spotLight.direction", renderer.getCameraFront());
+    renderer.setUniform1f(programId, "spotLight.cutoff", glm::cos(glm::radians(12.5f)));
+    renderer.setUniform1f(programId, "spotLight.outerCutoff", glm::cos(glm::radians(17.5f)));
+    renderer.setUniform3f(programId, "spotLight.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
+    renderer.setUniform3f(programId, "spotLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
+    renderer.setUniform3f(programId, "spotLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+    renderer.setUniform1f(programId, "spotLight.constant", 1.0f);
+    renderer.setUniform1f(programId, "spotLight.linear", 0.007f);
+    renderer.setUniform1f(programId, "spotLight.quadratic", 0.0002f);
 }
 
 void Application::prepareForRun()
@@ -288,6 +308,8 @@ void Application::runMultipleLighting()
         renderer.setUniformMatrix4fv(programId, "normalMatrix", glm::transpose(glm::inverse(model)));
         renderer.applyMvp(programId, "model", "view", "projection");
         renderer.setUniform3f(programId, "viewPos", renderer.getCameraPos());
+        renderer.setUniform3f(programId, "spotLight.position", renderer.getCameraPos());
+        renderer.setUniform3f(programId, "spotLight.direction", renderer.getCameraFront());
         renderer.draw(36);
     }
 
@@ -295,16 +317,16 @@ void Application::runMultipleLighting()
 
     // -------------------------------------------------------------------------
 
-    /*renderer.prepareForDraw(lightProgramId, textureIds, vaoId);
+    renderer.prepareForDraw(lightProgramId, textureIds, vaoId);
 
     model = glm::mat4(1.0f);
-    model = glm::translate(model, simpleLightPos);
+    model = glm::translate(model, pointLightPos);
     model = glm::scale(model, glm::vec3(0.2f));
     renderer.updateModelMatrix(model);
     renderer.applyMvp(lightProgramId, "model", "view", "projection");
     renderer.draw(36);
 
-    renderer.unprepareForDraw(lightProgramId, textureIds);*/
+    renderer.unprepareForDraw(lightProgramId, textureIds);
 
     // -------------------------------------------------------------------------
 

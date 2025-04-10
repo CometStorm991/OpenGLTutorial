@@ -103,6 +103,7 @@ public:
 	void terminateGLFW();
 
 	glm::vec3 getCameraPos();
+	glm::vec3 getCameraFront();
 
 	void setUniform1i(uint32_t programId, const std::string& name, int32_t value);
 	void setUniform1f(uint32_t programId, const std::string& name, float value);

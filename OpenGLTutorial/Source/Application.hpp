@@ -32,6 +32,7 @@ private:
 	std::vector<glm::vec3> cubeRotationSpeeds;
 
 	glm::vec3 simpleLightPos;
+	glm::vec3 pointLightPos;
 	glm::vec3 directionalLightDir;
 
 	void addCubeVertices(std::vector<uint32_t>& textureIds, uint32_t& vao);
