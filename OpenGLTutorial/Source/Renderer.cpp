@@ -103,7 +103,7 @@ void Renderer::generateIndexBuffer(uint32_t& indexBuffer, const std::vector<floa
 
 void Renderer::generateTexture(uint32_t& textureId, const std::string& imagePath, GLenum textureUnit)
 {
-     Texture texture = Texture(imagePath, textureUnit);
+    Texture texture = Texture(imagePath, textureUnit);
     texture.load();
     
     textureId = texture.getId();
