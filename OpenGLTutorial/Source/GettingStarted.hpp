@@ -2,6 +2,7 @@
 #include <vector>
 
 #include "Cube.hpp"
+#include "Camera.hpp"
 #include "Demo.hpp"
 #include "Renderer.hpp"
 
@@ -17,6 +18,7 @@ public:
 	void terminate() override;
 private:
 	Renderer renderer;
+	Camera camera;
 
 	uint32_t vaoId;
 	std::vector<uint32_t> textureIds;

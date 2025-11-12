@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "Cube.hpp"
+#include "Camera.hpp"
 #include "Demo.hpp"
 #include "Renderer.hpp"
 
@@ -21,6 +22,7 @@ private:
 	void addLightingInfo();
 
 	Renderer renderer;
+	Camera camera;
 
 	uint32_t vaoId;
 	uint32_t programId;

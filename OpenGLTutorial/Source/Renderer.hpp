@@ -13,6 +13,7 @@
 #include "glm/gtc/type_ptr.hpp"
 
 #include "AttributeLayout.hpp"
+#include "Camera.hpp"
 #include "Program.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
@@ -21,7 +22,7 @@ class Renderer
 {
 private:
 	// GLFW
-	GLFWwindow* window;
+	GLFWwindow* window = nullptr;
 
 	/*std::shared_ptr<Shader> vertexShader;
 	std::shared_ptr<Shader> fragmentShader;
@@ -37,28 +38,26 @@ private:
 	glm::mat4 projection;
 	glm::mat4 mvp;
 
-	glm::vec3 cameraPos;
+	/*glm::vec3 cameraPos;
 	glm::vec3 cameraFront;
 	glm::vec3 cameraUp;
-	glm::vec3 cameraRight;
+	glm::vec3 cameraRight;*/
+	Camera& camera;
 
 	std::chrono::steady_clock::time_point startTime;
 	std::chrono::steady_clock::time_point lastSecondTime;
-	uint32_t milliseconds;
+	uint32_t milliseconds = 0;
 	uint32_t leftOverMillis = 0;
 	uint32_t fps = 0;
 	uint32_t previousMillis = 0;
 
 	float lastX = 0.0f;
 	float lastY = 0.0f;
-	float yaw = 90.0f;
-	float pitch = 0.0f;
 
 	GLFWwindow* initWindow();
 	void initOpenGL();
 
-	void calculateCameraOrientation();
-	void calculateCameraPosition();
+	void updateCameraPosition();
 
 	static void mouseCallbackGLFW(GLFWwindow* window, double xPos, double yPos);
 	void mouseCallback(GLFWwindow* window, double xPos, double yPos);
@@ -79,19 +78,17 @@ private:
 	);
 
 public:
-	Renderer();
+	Renderer(Camera& camera);
 
 	void init();
 
 	void generateProgram(uint32_t& programId, const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
 	void generateVertexBuffer(uint32_t& vertexBuffer, const std::vector<float>& cubeVertices);
-	void generateIndexBuffer(uint32_t& indexBuffer, const std::vector<float>& indices);
+	void generateIndexBuffer(uint32_t& indexBuffer, const std::vector<uint32_t>& indices);
 	void generateTexture(uint32_t& textureId, const std::string& imagePath, GLenum textureUnit);
-	void generateVertexArray(uint32_t& vao, uint32_t vertexBuffer, std::vector<AttributeLayout>& attribs);
+	void generateVertexArray(uint32_t& vao, uint32_t vertexBuffer, uint32_t indexBuffer, std::vector<AttributeLayout>& attribs);
 
 	void prepareForRun();
-	void setCameraPos(const glm::vec3& cameraPos);
-	void calculateCameraTransform();
 	void prepareForRender();
 	void prepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds, uint32_t vaoId);
 	void updateModelMatrix(const glm::mat4& model);
@@ -102,9 +99,6 @@ public:
 	void updateGLFW();
 	void terminateGLFW();
 
-	glm::vec3 getCameraPos();
-	glm::vec3 getCameraFront();
-
 	void setUniform1i(uint32_t programId, const std::string& name, int32_t value);
 	void setUniform1f(uint32_t programId, const std::string& name, float value);
 	void setUniform3f(uint32_t programId, const std::string& name, const glm::vec3& value);
@@ -114,8 +108,6 @@ public:
 
 	bool getWindowShouldClose();
 	uint64_t getMillisecondsSinceRunPreparation();
-	float getYaw();
-	float getPitch();
 };
 
 template <class ClockType>

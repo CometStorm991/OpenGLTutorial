@@ -16,6 +16,7 @@
 #include "Program.hpp"
 #include "SimpleLighting.hpp"
 #include "Shader.hpp"
+#include "Rearview.hpp"
 #include "Renderer.hpp"
 
 class Application

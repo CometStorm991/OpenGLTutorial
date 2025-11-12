@@ -1,7 +1,7 @@
 #include "GettingStarted.hpp"
 
 GettingStarted::GettingStarted()
-    : renderer(Renderer())
+    : renderer(Renderer(camera))
 {
     
 }
@@ -45,7 +45,7 @@ void GettingStarted::prepare()
         cubeRotationSpeeds.push_back(glm::vec3(x, y, z));
     }
 
-    renderer.setCameraPos(glm::vec3(0.0f, 0.0f, -30.0f));
+    camera.pos = glm::vec3(0.0f, 0.0f, -30.0f);
 
     renderer.prepareForRun();
 }
@@ -65,7 +65,7 @@ void GettingStarted::addCubeVertices(std::vector<uint32_t>& textureIds, uint32_t
     attribs.push_back(posAttrib);
     attribs.push_back(texAttrib);
 
-    renderer.generateVertexArray(vao, vertexBuffer, attribs);
+    renderer.generateVertexArray(vao, vertexBuffer, 0, attribs);
 
     uint32_t texture0;
     renderer.generateTexture(texture0, "Resources/NeutronStar.jpg", GL_RGB);
@@ -79,7 +79,6 @@ void GettingStarted::addCubeVertices(std::vector<uint32_t>& textureIds, uint32_t
 void GettingStarted::run()
 {
     renderer.prepareForRender();
-    renderer.calculateCameraTransform();
 
     renderer.prepareForDraw(programId, textureIds, vaoId);
 

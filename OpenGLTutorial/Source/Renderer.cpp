@@ -1,18 +1,17 @@
 #include "Renderer.hpp"
 
-Renderer::Renderer()
+Renderer::Renderer(Camera& camera)
     :
+    camera(camera),
     model(glm::mat4(1.0f)),
     view(glm::mat4(1.0f)),
     projection(glm::perspective(glm::radians(60.0f), 1920.0f / 1080.0f, 0.1f, 100.0f)),
-    mvp(glm::mat4(1.0f)),
-
-    cameraPos(glm::vec3(0.0f, 0.0f, -30.0f)),
+    mvp(glm::mat4(1.0f))
+{
+    /*cameraPos(glm::vec3(0.0f, 0.0f, -30.0f)),
     cameraFront(glm::vec3(0.0f, 0.0f, 1.0f)),
     cameraUp(glm::vec3(0.0f, 1.0f, 0.0f)),
-    cameraRight(glm::normalize(glm::cross(cameraFront, cameraUp)))
-{
-
+    cameraRight(glm::normalize(glm::cross(cameraFront, cameraUp)))*/
 }
 
 void Renderer::init()
@@ -93,7 +92,7 @@ void Renderer::generateVertexBuffer(uint32_t& vertexBuffer, const std::vector<fl
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void Renderer::generateIndexBuffer(uint32_t& indexBuffer, const std::vector<float>& indices)
+void Renderer::generateIndexBuffer(uint32_t& indexBuffer, const std::vector<uint32_t>& indices)
 {   
     glGenBuffers(1, &indexBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
@@ -110,7 +109,7 @@ void Renderer::generateTexture(uint32_t& textureId, const std::string& imagePath
     textureMap.insert({textureId, texture});
 }
 
-void Renderer::generateVertexArray(uint32_t& vaoId, uint32_t vertexBuffer, std::vector<AttributeLayout>& attribs)
+void Renderer::generateVertexArray(uint32_t& vaoId, uint32_t vertexBuffer, uint32_t indexBuffer, std::vector<AttributeLayout>& attribs)
 {
     glGenVertexArrays(1, &vaoId);
     glBindVertexArray(vaoId);
@@ -138,17 +137,12 @@ void Renderer::generateVertexArray(uint32_t& vaoId, uint32_t vertexBuffer, std::
         offset += attrib.getCount() * typeSize;
     }
 
-    //glEnableVertexAttribArray(0);
-    //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (const void*)0); // Binds vertex buffer in GL_ARRAY_BUFFER to VAO
-
-    //glEnableVertexAttribArray(1);
-    //glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (const void*)(3 * sizeof(float))); // Same vertex buffer is used for texture coords
-
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer); // Binds element buffer in GL_ELEMENT_ARRAY_BUFFER to VAO
+    // Binds element buffer in GL_ELEMENT_ARRAY_BUFFER to VAO
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 uint32_t Renderer::getGLTypeSize(GLenum type)
@@ -169,55 +163,33 @@ void Renderer::prepareForRun()
     lastSecondTime = std::chrono::steady_clock::now();
 }
 
-void Renderer::setCameraPos(const glm::vec3& cameraPos)
-{
-    this->cameraPos = cameraPos;
-}
-
-void Renderer::calculateCameraTransform()
-{
-    calculateCameraOrientation();
-    calculateCameraPosition();
-}
-
-void Renderer::calculateCameraOrientation()
-{
-    glm::vec3 cameraDirection;
-    cameraDirection.x = std::cos(glm::radians(yaw)) * std::cos(glm::radians(pitch));
-    cameraDirection.y = std::sin(glm::radians(pitch));
-    cameraDirection.z = std::sin(glm::radians(yaw)) * std::cos(glm::radians(pitch));
-
-    cameraFront = glm::normalize(cameraDirection);
-    cameraRight = glm::normalize(glm::cross(cameraFront, cameraUp));
-}
-
-void Renderer::calculateCameraPosition()
+void Renderer::updateCameraPosition()
 {
     float deltaTime = (milliseconds - previousMillis) / 1000.0f;
     float cameraSpeed = deltaTime * 10.0f;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
-        cameraPos += cameraSpeed * cameraFront;
+        camera.pos += cameraSpeed * camera.front;
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     {
-        cameraPos -= cameraSpeed * cameraFront;
+        camera.pos -= cameraSpeed * camera.front;
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     {
-        cameraPos += cameraSpeed * cameraRight;
+        camera.pos += cameraSpeed * camera.right;
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
     {
-        cameraPos -= cameraSpeed * cameraRight;
+        camera.pos -= cameraSpeed * camera.right;
     }
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
     {
-        cameraPos += cameraSpeed * glm::vec3(0.0f, 1.0f, 0.0f);
+        camera.pos += cameraSpeed * glm::vec3(0.0f, 1.0f, 0.0f);
     }
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
     {
-        cameraPos -= cameraSpeed * glm::vec3(0.0f, 1.0f, 0.0f);
+        camera.pos -= cameraSpeed * glm::vec3(0.0f, 1.0f, 0.0f);
     }
 }
 
@@ -247,7 +219,7 @@ void Renderer::updateModelMatrix(const glm::mat4& model)
 
 void Renderer::applyMvp(uint32_t programId, const std::string& modelName, const std::string& viewName, const std::string& projectionName)
 {
-    view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+    view = glm::lookAt(camera.pos, camera.pos + camera.front, camera.up);
     setUniformMatrix4fv(programId, modelName, model);
     setUniformMatrix4fv(programId, viewName, view);
     setUniformMatrix4fv(programId, projectionName, projection);
@@ -288,23 +260,13 @@ void Renderer::calculateFps()
 void Renderer::updateGLFW()
 {
     glfwSwapBuffers(window);
-
     glfwPollEvents();
+    updateCameraPosition();
 }
 
 void Renderer::terminateGLFW()
 {
     glfwTerminate();
-}
-
-glm::vec3 Renderer::getCameraPos()
-{
-    return cameraPos;
-}
-
-glm::vec3 Renderer::getCameraFront()
-{
-    return cameraFront;
 }
 
 void Renderer::setUniform1i(uint32_t programId, const std::string& name, int32_t value)
@@ -374,16 +336,6 @@ uint64_t Renderer::getMillisecondsSinceRunPreparation()
     return getMillisecondsSinceTimePoint(startTime);
 }
 
-float Renderer::getYaw()
-{
-    return yaw;
-}
-
-float Renderer::getPitch()
-{
-    return pitch;
-}
-
 void Renderer::mouseCallbackGLFW(GLFWwindow* window, double xPos, double yPos)
 {
     Renderer* renderer = (Renderer*)glfwGetWindowUserPointer(window);
@@ -401,6 +353,9 @@ void Renderer::mouseCallback(GLFWwindow* window, double xPos, double yPos)
     xOffset *= sensitivity;
     yOffset *= sensitivity;
 
+    float yaw = camera.getYaw();
+    float pitch = camera.getPitch();
+
     yaw += xOffset;
     pitch += yOffset;
 
@@ -408,6 +363,8 @@ void Renderer::mouseCallback(GLFWwindow* window, double xPos, double yPos)
         pitch = 89.0f;
     if (pitch < -89.0f)
         pitch = -89.0f;
+
+    camera.updateOrientation(yaw, pitch);
 }
 
 // This code is from learnopengl.com

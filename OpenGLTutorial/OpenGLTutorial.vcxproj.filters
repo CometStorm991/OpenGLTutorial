@@ -51,6 +51,12 @@
     <ClCompile Include="Source\MultipleLighting.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Rearview.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\SimpleLightingFS.glsl" />
@@ -61,6 +67,8 @@
     <None Include="Shaders\MultipleLightingFS.glsl">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="Shaders\QuadVS.glsl" />
+    <None Include="Shaders\QuadFS.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Shader.hpp">
@@ -94,6 +102,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\MultipleLighting.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Rearview.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Camera.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

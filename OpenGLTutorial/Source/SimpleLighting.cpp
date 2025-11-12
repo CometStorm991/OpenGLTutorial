@@ -1,7 +1,7 @@
 #include "SimpleLighting.hpp"
 
 SimpleLighting::SimpleLighting()
-	: renderer(Renderer())
+	: renderer(Renderer(camera))
 {
 
 }
@@ -20,7 +20,7 @@ void SimpleLighting::prepare()
 
     simpleLightPos = glm::vec3(1.2f, 1.0f, 2.0f);
 
-    renderer.setUniform3f(programId, "viewPos", renderer.getCameraPos());
+    renderer.setUniform3f(programId, "viewPos", camera.pos);
 
     renderer.setUniform1i(programId, "material.diffuse", 0);
     renderer.setUniform1i(programId, "material.specular", 1);
@@ -31,7 +31,7 @@ void SimpleLighting::prepare()
     renderer.setUniform3f(programId, "simpleLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
     renderer.setUniform3f(programId, "simpleLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
 
-    renderer.setCameraPos(glm::vec3(0.0f, 0.0f, -10.0f));
+    camera.pos = glm::vec3(0.0f, 0.0f, -10.0f);
 
 	renderer.prepareForRun();
 }
@@ -53,7 +53,7 @@ void SimpleLighting::addLightingInfo()
     attribs.push_back(normAttrib);
     attribs.push_back(texAttrib);
 
-    renderer.generateVertexArray(vaoId, vertexBuffer, attribs);
+    renderer.generateVertexArray(vaoId, vertexBuffer, 0, attribs);
 
     uint32_t texture0;
     renderer.generateTexture(texture0, "Resources/TutorialDiffuseMap.png", GL_RGBA);
@@ -67,7 +67,6 @@ void SimpleLighting::addLightingInfo()
 void SimpleLighting::run()
 {
     renderer.prepareForRender();
-    renderer.calculateCameraTransform();
 
     glm::mat4 model;
 
@@ -81,7 +80,7 @@ void SimpleLighting::run()
     renderer.updateModelMatrix(model);
     renderer.setUniformMatrix4fv(programId, "normalMatrix", glm::transpose(glm::inverse(model)));
     renderer.applyMvp(programId, "model", "view", "projection");
-    renderer.setUniform3f(programId, "viewPos", renderer.getCameraPos());
+    renderer.setUniform3f(programId, "viewPos", camera.pos);
     renderer.draw(36);
 
     renderer.unprepareForDraw(programId, textureIds);

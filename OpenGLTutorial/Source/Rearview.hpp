@@ -13,10 +13,10 @@
 #include "Demo.hpp"
 #include "Renderer.hpp"
 
-class MultipleLighting : public Demo
+class Rearview : public Demo
 {
 public:
-	MultipleLighting();
+	Rearview();
 
 	void init() override;
 	void prepare() override;
@@ -24,14 +24,14 @@ public:
 	bool shouldEnd() override;
 	void terminate() override;
 private:
-	void addLightingInfo();
-
 	Renderer renderer;
 	Camera camera;
 
 	uint32_t vaoId;
+	uint32_t quadVaoId;
 	uint32_t programId;
 	uint32_t lightProgramId;
+	uint32_t quadProgramId;
 	std::vector<uint32_t> textureIds;
 
 	const uint32_t cubeCountML = 100;
@@ -39,4 +39,9 @@ private:
 	std::vector<glm::vec3> cubeRotationSpeeds;
 	glm::vec3 pointLightPos;
 	glm::vec3 directionalLightDir;
+
+	uint32_t framebuffer;
+	uint32_t textureColorBuffer;
+
+	void addLightingInfo();
 };

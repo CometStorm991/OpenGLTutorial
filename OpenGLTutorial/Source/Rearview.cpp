@@ -1,17 +1,17 @@
-#include "MultipleLighting.hpp"
+#include "Rearview.hpp"
 
-MultipleLighting::MultipleLighting()
-	: renderer(Renderer(camera))
+Rearview::Rearview()
+    : renderer(Renderer(camera))
 {
-	
+
 }
 
-void MultipleLighting::init()
+void Rearview::init()
 {
-	renderer.init();
+    renderer.init();
 }
 
-void MultipleLighting::prepare()
+void Rearview::prepare()
 {
     addLightingInfo();
 
@@ -75,9 +75,11 @@ void MultipleLighting::prepare()
     renderer.setUniform1f(programId, "spotLight.constant", 1.0f);
     renderer.setUniform1f(programId, "spotLight.linear", 0.007f);
     renderer.setUniform1f(programId, "spotLight.quadratic", 0.0002f);
+
+    renderer.prepareForRun();
 }
 
-void MultipleLighting::addLightingInfo()
+void Rearview::addLightingInfo()
 {
     std::vector<float> cubeVertices;
     Cube::generatePNT(cubeVertices);
@@ -104,11 +106,76 @@ void MultipleLighting::addLightingInfo()
     textureIds.push_back(texture0);
     textureIds.push_back(texture1);
 
-    renderer.prepareForRun();
+    glGenFramebuffers(1, &framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+    glGenTextures(1, &textureColorBuffer);
+    glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1920, 1080, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorBuffer, 0);
+
+    uint32_t renderBuffer;
+    glGenRenderbuffers(1, &renderBuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 1920, 1080);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "[Error] Framebuffer is not complete!" << std::endl;
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    std::vector<float> quadVertices =
+    {
+        -1.0f, -1.0f, 0.0f, 0.0f,
+         1.0f, -1.0f, 1.0f, 0.0f,
+        -1.0f,  1.0f, 0.0f, 1.0f,
+         1.0f,  1.0f, 1.0f, 1.0f,
+         0.6f,  0.6f, 0.0f, 0.0f,
+         1.0f,  0.6f, 1.0f, 0.0f,
+         0.6f,  1.0f, 0.0f, 1.0f,
+         1.0f,  1.0f, 1.0f, 1.0f,
+    };
+
+    std::vector<uint32_t> quadIndices =
+    {
+        0, 1, 2,
+        3, 2, 1,
+        4, 5, 6,
+        7, 6, 5
+    };
+
+    uint32_t quadVertexBuffer;
+    renderer.generateVertexBuffer(quadVertexBuffer, quadVertices);
+    uint32_t quadIndexBuffer;
+    renderer.generateIndexBuffer(quadIndexBuffer, quadIndices);
+    AttributeLayout quadPosAttrib = AttributeLayout(2, GL_FLOAT);
+    AttributeLayout quadTexAttrib = AttributeLayout(2, GL_FLOAT);
+    std::vector<AttributeLayout> quadAttribs =
+    {
+        quadPosAttrib, quadTexAttrib
+    };
+    
+    renderer.generateVertexArray(quadVaoId, quadVertexBuffer, quadIndexBuffer, quadAttribs);
+
+    renderer.generateProgram(quadProgramId, "Shaders/QuadVS.glsl", "Shaders/QuadFS.glsl");
+    renderer.setUniform1i(quadProgramId, "screenTexture", 0);
 }
 
-void MultipleLighting::run()
+void Rearview::run()
 {
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glEnable(GL_DEPTH_TEST);
+
     renderer.prepareForRender();
 
     glm::mat4 model;
@@ -163,16 +230,34 @@ void MultipleLighting::run()
 
     // -------------------------------------------------------------------------
 
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glUseProgram(quadProgramId);
+    glBindVertexArray(quadVaoId);
+    glDisable(GL_DEPTH_TEST);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
+    
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+    glEnable(GL_DEPTH_TEST);
+
+    // -------------------------------------------------------------------------
+
     renderer.calculateFps();
     renderer.updateGLFW();
 }
 
-bool MultipleLighting::shouldEnd()
+bool Rearview::shouldEnd()
 {
     return renderer.getWindowShouldClose();
 }
 
-void MultipleLighting::terminate()
+void Rearview::terminate()
 {
     renderer.terminateGLFW();
 }
