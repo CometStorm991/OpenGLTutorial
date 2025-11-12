@@ -34,7 +34,7 @@ private:
 	uint32_t quadProgramId;
 	std::vector<uint32_t> textureIds;
 
-	const uint32_t cubeCountML = 100;
+	const uint32_t cubeCount = 100;
 	std::vector<glm::vec3> cubePositions;
 	std::vector<glm::vec3> cubeRotationSpeeds;
 	glm::vec3 pointLightPos;

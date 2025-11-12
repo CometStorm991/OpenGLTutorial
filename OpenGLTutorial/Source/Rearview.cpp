@@ -22,9 +22,9 @@ void Rearview::prepare()
     std::default_random_engine randomEngine = std::default_random_engine(randomDevice());
 
     cubePositions = std::vector<glm::vec3>();
-    cubePositions.reserve(cubeCountML);
+    cubePositions.reserve(cubeCount);
     std::uniform_real_distribution<float> posDistrib = std::uniform_real_distribution<float>(-10.0f, 10.0f);
-    for (unsigned int i = 0; i < cubeCountML; i++)
+    for (unsigned int i = 0; i < cubeCount; i++)
     {
         float x = posDistrib(randomEngine);
         float y = posDistrib(randomEngine);
@@ -33,9 +33,9 @@ void Rearview::prepare()
     }
 
     cubeRotationSpeeds = std::vector<glm::vec3>();
-    cubeRotationSpeeds.reserve(cubeCountML);
+    cubeRotationSpeeds.reserve(cubeCount);
     std::uniform_real_distribution<float> speedDistrib = std::uniform_real_distribution<float>(0.0f, 2.0f);
-    for (unsigned int i = 0; i < cubeCountML; i++)
+    for (unsigned int i = 0; i < cubeCount; i++)
     {
         float x = speedDistrib(randomEngine);
         float y = speedDistrib(randomEngine);
@@ -135,10 +135,10 @@ void Rearview::addLightingInfo()
 
     std::vector<float> quadVertices =
     {
-        -1.0f, -1.0f, 0.0f, 0.0f,
-         1.0f, -1.0f, 1.0f, 0.0f,
-        -1.0f,  1.0f, 0.0f, 1.0f,
-         1.0f,  1.0f, 1.0f, 1.0f,
+        //-1.0f, -1.0f, 0.0f, 0.0f,
+        // 1.0f, -1.0f, 1.0f, 0.0f,
+        //-1.0f,  1.0f, 0.0f, 1.0f,
+        // 1.0f,  1.0f, 1.0f, 1.0f,
          0.6f,  0.6f, 0.0f, 0.0f,
          1.0f,  0.6f, 1.0f, 0.0f,
          0.6f,  1.0f, 0.0f, 1.0f,
@@ -149,8 +149,8 @@ void Rearview::addLightingInfo()
     {
         0, 1, 2,
         3, 2, 1,
-        4, 5, 6,
-        7, 6, 5
+        //4, 5, 6,
+        //7, 6, 5
     };
 
     uint32_t quadVertexBuffer;
@@ -172,7 +172,7 @@ void Rearview::addLightingInfo()
 
 void Rearview::run()
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    // glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glEnable(GL_DEPTH_TEST);
 
@@ -184,17 +184,8 @@ void Rearview::run()
 
     renderer.prepareForDraw(programId, textureIds, vaoId);
 
-    //model = glm::mat4(1.0f);
-    ///*model = glm::translate(model, glm::vec3(0.0f, -3.0f, 0.0f));
-    //model = glm::scale(model, glm::vec3(20.0f, 1.0f, 20.0f));*/
-    //renderer.updateModelMatrix(model);
-    //renderer.setUniformMatrix4fv(programId, "normalMatrix", glm::transpose(glm::inverse(model)));
-    //renderer.applyMvp(programId, "model", "view", "projection");
-    //renderer.setUniform3f(programId, "viewPos", renderer.getCameraPos());
-    //renderer.draw(36);
-
     uint64_t milliseconds = renderer.getMillisecondsSinceRunPreparation();
-    for (unsigned int i = 0; i < cubeCountML; i++)
+    for (unsigned int i = 0; i < cubeCount; i++)
     {
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, cubePositions.at(i));
@@ -230,9 +221,58 @@ void Rearview::run()
 
     // -------------------------------------------------------------------------
 
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    {
+        renderer.prepareForDraw(programId, textureIds, vaoId);
+
+        camera.front = -camera.front;
+        camera.right = -camera.right;
+        for (unsigned int i = 0; i < cubeCount; i++)
+        {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, cubePositions.at(i));
+
+            glm::vec3 rotationSpeed = cubeRotationSpeeds.at(i);
+            model = glm::rotate(model, milliseconds / 1000.0f * rotationSpeed.x, glm::vec3(1.0f, 0.0f, 0.0f));
+            model = glm::rotate(model, milliseconds / 1000.0f * rotationSpeed.y, glm::vec3(0.0f, 1.0f, 0.0f));
+            model = glm::rotate(model, milliseconds / 1000.0f * rotationSpeed.z, glm::vec3(0.0f, 0.0f, 1.0f));
+
+            renderer.updateModelMatrix(model);
+            renderer.setUniformMatrix4fv(programId, "normalMatrix", glm::transpose(glm::inverse(model)));
+            renderer.applyMvp(programId, "model", "view", "projection");
+            renderer.setUniform3f(programId, "viewPos", camera.pos);
+            renderer.setUniform3f(programId, "spotLight.position", camera.pos);
+            renderer.setUniform3f(programId, "spotLight.direction", camera.front);
+            renderer.draw(36);
+        }
+        
+
+        renderer.unprepareForDraw(programId, textureIds);
+
+        // -------------------------------------------------------------------------
+
+        renderer.prepareForDraw(lightProgramId, textureIds, vaoId);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, pointLightPos);
+        model = glm::scale(model, glm::vec3(0.2f));
+        renderer.updateModelMatrix(model);
+        renderer.applyMvp(lightProgramId, "model", "view", "projection");
+        renderer.draw(36);
+
+        camera.front = -camera.front;
+        camera.right = -camera.right;
+
+        renderer.unprepareForDraw(lightProgramId, textureIds);
+    }
+
+    // -------------------------------------------------------------------------
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    //glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    /*glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);*/
 
     glUseProgram(quadProgramId);
     glBindVertexArray(quadVaoId);
@@ -240,9 +280,9 @@ void Rearview::run()
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
     
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     glEnable(GL_DEPTH_TEST);
 

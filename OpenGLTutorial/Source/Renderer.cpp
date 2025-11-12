@@ -8,10 +8,7 @@ Renderer::Renderer(Camera& camera)
     projection(glm::perspective(glm::radians(60.0f), 1920.0f / 1080.0f, 0.1f, 100.0f)),
     mvp(glm::mat4(1.0f))
 {
-    /*cameraPos(glm::vec3(0.0f, 0.0f, -30.0f)),
-    cameraFront(glm::vec3(0.0f, 0.0f, 1.0f)),
-    cameraUp(glm::vec3(0.0f, 1.0f, 0.0f)),
-    cameraRight(glm::normalize(glm::cross(cameraFront, cameraUp)))*/
+
 }
 
 void Renderer::init()
