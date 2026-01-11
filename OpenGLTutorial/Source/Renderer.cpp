@@ -160,9 +160,38 @@ void Renderer::generateVertexArray(uint32_t& vaoId, uint32_t vertexBuffer, uint3
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void Renderer::generateFramebuffer(uint32_t& framebufferId)
+void Renderer::generateRenderbuffer(uint32_t& renderbufferId, uint32_t width, uint32_t height)
+{
+    glGenRenderbuffers(1, &renderbufferId);
+    glBindRenderbuffer(GL_RENDERBUFFER, renderbufferId);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+}
+
+void Renderer::generateFramebuffer(uint32_t& framebufferId, const std::vector<FbAttachment>& attachments)
 {
     glGenFramebuffers(1, &framebufferId);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebufferId);
+    
+    for (FbAttachment attachment : attachments)
+    {
+        switch (attachment.getTargetType())
+        {
+        case GL_TEXTURE_2D:
+            glFramebufferTexture2D(GL_FRAMEBUFFER, attachment.getAttachmentPt(), GL_TEXTURE_2D, attachment.getAttachmentId(), 0);
+            break;
+        case GL_RENDERBUFFER:
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment.getAttachmentPt(), GL_RENDERBUFFER, attachment.getAttachmentId());
+            break;
+        }
+    }
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        std::cout << "[Error] Framebuffer is not complete!" << std::endl;
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 uint32_t Renderer::getGLTypeSize(GLenum type)
@@ -215,6 +244,7 @@ void Renderer::updateCameraPosition()
 
 void Renderer::prepareForRender()
 {
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     previousMillis = milliseconds;
     milliseconds = getMillisecondsSinceRunPreparation();
@@ -222,6 +252,19 @@ void Renderer::prepareForRender()
 
 void Renderer::prepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds, uint32_t vaoId)
 {
+    programMap.at(programId).use();
+    for (unsigned int i = 0; i < textureIds.size(); i++)
+    {
+        uint32_t textureId = textureIds.at(i);
+
+        textureMap.at(textureId).use(GL_TEXTURE0 + i);
+    }
+    glBindVertexArray(vaoId);
+}
+
+void Renderer::prepareForDraw(uint32_t framebufferId, uint32_t programId, const std::vector<uint32_t>& textureIds, uint32_t vaoId)
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, framebufferId);
     programMap.at(programId).use();
     for (unsigned int i = 0; i < textureIds.size(); i++)
     {

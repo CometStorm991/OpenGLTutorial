@@ -14,6 +14,7 @@
 
 #include "AttributeLayout.hpp"
 #include "Camera.hpp"
+#include "FbAttachment.hpp"
 #include "Program.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
@@ -78,11 +79,13 @@ public:
 	void generateTexture(uint32_t& textureId, const std::string& imagePath, GLenum pixelFormat);
 	void generateTexture(uint32_t& textureId, uint32_t width, uint32_t height);
 	void generateVertexArray(uint32_t& vao, uint32_t vertexBuffer, uint32_t indexBuffer, std::vector<AttributeLayout>& attribs);
-	void generateFramebuffer(uint32_t& framebufferId);
+	void generateRenderbuffer(uint32_t& renderbufferId, uint32_t width, uint32_t height);
+	void generateFramebuffer(uint32_t& framebufferId, const std::vector<FbAttachment>& attachments);
 
 	void prepareForRun();
 	void prepareForRender();
 	void prepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds, uint32_t vaoId);
+	void prepareForDraw(uint32_t framebufferId, uint32_t programId, const std::vector<uint32_t>& textureIds, uint32_t vaoId);
 	void updateModelMatrix(const glm::mat4& model);
 	void applyMvp(uint32_t programId, const std::string& modelName, const std::string& viewName, const std::string& projectionName);
 	void draw(unsigned int triangleCount);

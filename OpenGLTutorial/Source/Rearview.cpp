@@ -106,24 +106,16 @@ void Rearview::addLightingInfo()
     textureIds.push_back(texture0);
     textureIds.push_back(texture1);
 
-    glGenFramebuffers(1, &framebuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
     renderer.generateTexture(textureColorBuffer, 1920, 1080);
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorBuffer, 0);
+    uint32_t renderbuffer;
+    renderer.generateRenderbuffer(renderbuffer, 1920, 1080);
 
-    uint32_t renderBuffer;
-    glGenRenderbuffers(1, &renderBuffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 1920, 1080);
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    renderer.generateFramebuffer(framebuffer, {
+        {GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorBuffer},
+        {GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbuffer}
+        });
 
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
-
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "[Error] Framebuffer is not complete!" << std::endl;
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     std::vector<float> quadVertices =
     {
@@ -213,12 +205,8 @@ void Rearview::run()
 
     // -------------------------------------------------------------------------
 
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     {
-        renderer.prepareForDraw(programId, textureIds, vaoId);
+        renderer.prepareForDraw(framebuffer, programId, textureIds, vaoId);
 
         camera.front = -camera.front;
         camera.right = -camera.right;
@@ -262,9 +250,8 @@ void Rearview::run()
     }
 
     // -------------------------------------------------------------------------
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    /*glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);*/
 
     glUseProgram(quadProgramId);
     glBindVertexArray(quadVaoId);

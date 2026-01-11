@@ -149,6 +149,7 @@
     <ClCompile Include="Source\Application.cpp" />
     <ClCompile Include="Source\Camera.cpp" />
     <ClCompile Include="Source\Cube.cpp" />
+    <ClCompile Include="Source\FbAttachment.cpp" />
     <ClCompile Include="Source\GettingStarted.cpp" />
     <ClCompile Include="Source\MultipleLighting.cpp" />
     <ClCompile Include="Source\Rearview.cpp" />
@@ -171,6 +172,7 @@
     <ClInclude Include="Source\Camera.hpp" />
     <ClInclude Include="Source\Cube.hpp" />
     <ClInclude Include="Source\Demo.hpp" />
+    <ClInclude Include="Source\FbAttachment.hpp" />
     <ClInclude Include="Source\GettingStarted.hpp" />
     <ClInclude Include="Source\MultipleLighting.hpp" />
     <ClInclude Include="Source\Rearview.hpp" />
