@@ -1,12 +1,7 @@
 #include "Texture.hpp"
 
 Texture::Texture(const std::string& imagePath, GLenum pixelFormat)
-	: imagePath(imagePath), pixelFormat(pixelFormat), loaded(false)
-{
-
-}
-
-void Texture::load()
+	: imagePath(imagePath), pixelFormat(pixelFormat), id(0), isSetup(false)
 {
     int width, height, channelCount;
     stbi_set_flip_vertically_on_load(true);
@@ -17,14 +12,33 @@ void Texture::load()
         std::cout << stbi_failure_reason() << std::endl;
     }
 
+    if (width <= 0 || height <= 0) {
+        std::cout << "[Error] Width or height is equal to or less than 0" << std::endl;
+        std::cout << "Width is " << width << "Height is " << height << std::endl;
+    }
+
+    this->width = width;
+    this->height = height;
+    this->data = data;
+}
+
+// For textures that are used as attachments for framebuffers
+Texture::Texture(uint32_t width, uint32_t height)
+    : imagePath(""), pixelFormat(GL_RGB), id(0), width(width), height(height), data(nullptr), isSetup(false)
+{
+    
+}
+
+void Texture::setup(const std::vector<TextureParameter>& textureParameters)
+{
     glGenTextures(1, &id);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, id);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    for (TextureParameter textureParameter : textureParameters)
+    {
+        glTexParameteri(GL_TEXTURE_2D, textureParameter.getParameter(), textureParameter.getArgument());
+    }
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, pixelFormat, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
@@ -32,12 +46,12 @@ void Texture::load()
     stbi_image_free(data);
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    loaded = true;
+    isSetup = true;
 }
 
 void Texture::use(GLenum textureUnit)
 {
-    if (!loaded)
+    if (!isSetup)
     {
         std::cout << "[Error] Texture was not loaded" << std::endl;
     }
@@ -55,4 +69,9 @@ void Texture::unuse(GLenum textureUnit)
 uint32_t Texture::getId()
 {
     return id;
+}
+
+bool Texture::getIsSetup()
+{
+    return isSetup;
 }

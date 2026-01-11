@@ -97,11 +97,29 @@ void Renderer::generateIndexBuffer(uint32_t& indexBuffer, const std::vector<uint
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void Renderer::generateTexture(uint32_t& textureId, const std::string& imagePath, GLenum textureUnit)
+void Renderer::generateTexture(uint32_t& textureId, const std::string& imagePath, GLenum pixelFormat)
 {
-    Texture texture = Texture(imagePath, textureUnit);
-    texture.load();
+    Texture texture = Texture(imagePath, pixelFormat);
+    texture.setup({
+        {GL_TEXTURE_WRAP_S, GL_REPEAT},
+        {GL_TEXTURE_WRAP_T, GL_REPEAT},
+        {GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR},
+        {GL_TEXTURE_MAG_FILTER, GL_LINEAR}
+        });
     
+    textureId = texture.getId();
+    textureMap.insert({textureId, texture});
+}
+
+// For textures that are used as attachments for framebuffers
+void Renderer::generateTexture(uint32_t& textureId, uint32_t width, uint32_t height)
+{
+    Texture texture = Texture(width, height);
+    texture.setup({
+        {GL_TEXTURE_MIN_FILTER, GL_LINEAR},
+        {GL_TEXTURE_MAG_FILTER, GL_LINEAR}
+        });
+
     textureId = texture.getId();
     textureMap.insert({textureId, texture});
 }
@@ -140,6 +158,11 @@ void Renderer::generateVertexArray(uint32_t& vaoId, uint32_t vertexBuffer, uint3
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+void Renderer::generateFramebuffer(uint32_t& framebufferId)
+{
+    glGenFramebuffers(1, &framebufferId);
 }
 
 uint32_t Renderer::getGLTypeSize(GLenum type)

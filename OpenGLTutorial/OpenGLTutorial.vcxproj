@@ -159,6 +159,7 @@
     <ClCompile Include="Source\Shader.cpp" />
     <ClCompile Include="Source\SimpleLighting.cpp" />
     <ClCompile Include="Source\Texture.cpp" />
+    <ClCompile Include="Source\TextureParameter.cpp" />
     <ClCompile Include="Vendors\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -179,6 +180,7 @@
     <ClInclude Include="Source\Shader.hpp" />
     <ClInclude Include="Source\SimpleLighting.hpp" />
     <ClInclude Include="Source\Texture.hpp" />
+    <ClInclude Include="Source\TextureParameter.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\ArchLinux.jpeg" />

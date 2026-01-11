@@ -24,24 +24,14 @@ private:
 	// GLFW
 	GLFWwindow* window = nullptr;
 
-	/*std::shared_ptr<Shader> vertexShader;
-	std::shared_ptr<Shader> fragmentShader;
-	std::unique_ptr<Program> program;*/
-
 	std::unordered_map<uint32_t, Program> programMap;
 	std::unordered_map<uint32_t, Texture> textureMap;
-
-	/*std::vector<Texture> textures;*/
 
 	glm::mat4 model;
 	glm::mat4 view;
 	glm::mat4 projection;
 	glm::mat4 mvp;
 
-	/*glm::vec3 cameraPos;
-	glm::vec3 cameraFront;
-	glm::vec3 cameraUp;
-	glm::vec3 cameraRight;*/
 	Camera& camera;
 
 	std::chrono::steady_clock::time_point startTime;
@@ -85,8 +75,10 @@ public:
 	void generateProgram(uint32_t& programId, const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
 	void generateVertexBuffer(uint32_t& vertexBuffer, const std::vector<float>& cubeVertices);
 	void generateIndexBuffer(uint32_t& indexBuffer, const std::vector<uint32_t>& indices);
-	void generateTexture(uint32_t& textureId, const std::string& imagePath, GLenum textureUnit);
+	void generateTexture(uint32_t& textureId, const std::string& imagePath, GLenum pixelFormat);
+	void generateTexture(uint32_t& textureId, uint32_t width, uint32_t height);
 	void generateVertexArray(uint32_t& vao, uint32_t vertexBuffer, uint32_t indexBuffer, std::vector<AttributeLayout>& attribs);
+	void generateFramebuffer(uint32_t& framebufferId);
 
 	void prepareForRun();
 	void prepareForRender();
