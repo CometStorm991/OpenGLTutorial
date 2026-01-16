@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Cube.hpp"
 #include "Demo.hpp"
 #include "Renderer.hpp"
 
@@ -17,5 +18,9 @@ private:
 	Renderer renderer;
 	Camera camera;
 
+	uint32_t skyboxProgramId;
 	uint32_t skyboxTextureId;
+	uint32_t vertexArray;
+
+	std::vector<uint32_t> textureIds;
 };

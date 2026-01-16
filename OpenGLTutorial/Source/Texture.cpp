@@ -35,19 +35,37 @@ Texture::Texture(uint32_t width, uint32_t height)
     
 }
 
+// Default constructor with empty values
+Texture::Texture()
+    : imagePath(""), pixelFormat(GL_RGB), id(0), width(0), height(0), data(nullptr), isSetup(false), target(GL_NONE)
+{
+
+}
+
+// For textures that are managed externally
+Texture Texture::ExternalTexture(uint32_t id, GLenum target)
+{
+    Texture texture = Texture();
+    texture.id = id;
+    texture.target = target;
+    texture.isSetup = true;
+
+    return texture;
+}
+
 void Texture::setup(const std::vector<TextureParameter>& textureParameters)
 {
     glGenTextures(1, &id);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, id);
+    glBindTexture(target, id);
 
     for (TextureParameter textureParameter : textureParameters)
     {
-        glTexParameteri(GL_TEXTURE_2D, textureParameter.getParameter(), textureParameter.getArgument());
+        glTexParameteri(target, textureParameter.getParameter(), textureParameter.getArgument());
     }
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, pixelFormat, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexImage2D(target, 0, GL_RGB, width, height, 0, pixelFormat, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(target);
 
     stbi_image_free(data);
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -59,17 +77,17 @@ void Texture::use(GLenum textureUnit)
 {
     if (!isSetup)
     {
-        std::cout << "[Error] Texture was not loaded" << std::endl;
+        std::cout << "[Error] Texture was not setup" << std::endl;
     }
 
     glActiveTexture(textureUnit);
-    glBindTexture(GL_TEXTURE_2D, id);
+    glBindTexture(target, id);
 }
 
 void Texture::unuse(GLenum textureUnit)
 {
     glActiveTexture(textureUnit);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindTexture(target, 0);
 }
 
 uint32_t Texture::getId()

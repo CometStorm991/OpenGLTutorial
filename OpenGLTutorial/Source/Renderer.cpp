@@ -8,7 +8,8 @@ Renderer::Renderer(Camera& camera)
     projection(glm::perspective(glm::radians(60.0f), 1920.0f / 1080.0f, 0.1f, 100.0f)),
     mvp(glm::mat4(1.0f))
 {
-
+    // TODO:
+    // Have each texture choose its own texture unit instead of assigning texture units by order added to Renderer
 }
 
 void Renderer::init()
@@ -209,6 +210,12 @@ void Renderer::generateFramebuffer(uint32_t& framebufferId, const std::vector<Fb
     currentFramebuffer = 0;
 }
 
+void Renderer::addTexture(uint32_t& textureId, GLenum target)
+{
+    Texture texture = Texture::ExternalTexture(textureId, target);
+    textureMap.insert({ textureId, texture });
+}
+
 uint32_t Renderer::getGLTypeSize(GLenum type)
 {
     switch (type)
@@ -294,9 +301,18 @@ void Renderer::updateModelMatrix(const glm::mat4& model)
 void Renderer::applyMvp(uint32_t programId, const std::string& modelName, const std::string& viewName, const std::string& projectionName)
 {
     view = glm::lookAt(camera.pos, camera.pos + camera.front, camera.up);
-    setUniformMatrix4fv(programId, modelName, model);
-    setUniformMatrix4fv(programId, viewName, view);
-    setUniformMatrix4fv(programId, projectionName, projection);
+    if (!modelName.empty())
+    {
+        setUniformMatrix4fv(programId, modelName, model);
+    }
+    if (!viewName.empty())
+    {
+        setUniformMatrix4fv(programId, viewName, view);
+    }
+    if (!projectionName.empty())
+    {
+        setUniformMatrix4fv(programId, projectionName, projection);
+    }
 }
 
 void Renderer::draw(unsigned int triangleCount)

@@ -11,7 +11,21 @@
 
 class Texture
 {
-private:
+public:
+	Texture(const std::string& imagePath, GLenum pixelFormat);
+	Texture(GLenum target, const std::string& imagePath, GLenum pixelFormat);
+	Texture(uint32_t width, uint32_t height);
+	Texture();
+	static Texture ExternalTexture(uint32_t id, GLenum target);
+
+	void setup(const std::vector<TextureParameter>& textureParameters);
+	
+	void use(GLenum textureUnit);
+	void unuse(GLenum textureUnit);
+
+	uint32_t getId();
+	bool getIsSetup();
+
 	std::string imagePath;
 	GLenum pixelFormat;
 
@@ -22,16 +36,4 @@ private:
 	void* data;
 
 	bool isSetup = false;
-public:
-	Texture(const std::string& imagePath, GLenum pixelFormat);
-	Texture(GLenum target, const std::string& imagePath, GLenum pixelFormat);
-	Texture(uint32_t width, uint32_t height);
-
-	void setup(const std::vector<TextureParameter>& textureParameters);
-	
-	void use(GLenum textureUnit);
-	void unuse(GLenum textureUnit);
-
-	uint32_t getId();
-	bool getIsSetup();
 };

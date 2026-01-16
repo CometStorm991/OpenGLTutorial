@@ -14,10 +14,11 @@
 #include "GettingStarted.hpp"
 #include "MultipleLighting.hpp"
 #include "Program.hpp"
-#include "SimpleLighting.hpp"
-#include "Shader.hpp"
 #include "Rearview.hpp"
 #include "Renderer.hpp"
+#include "Shader.hpp"
+#include "SimpleLighting.hpp"
+#include "Skybox.hpp"
 
 class Application
 {
