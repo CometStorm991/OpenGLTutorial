@@ -159,9 +159,12 @@
     <ClCompile Include="Source\Program.cpp" />
     <ClCompile Include="Source\Shader.cpp" />
     <ClCompile Include="Source\SimpleLighting.cpp" />
+    <ClCompile Include="Source\Skybox.cpp" />
     <ClCompile Include="Source\Texture.cpp" />
     <ClCompile Include="Source\TextureParameter.cpp" />
     <ClCompile Include="Vendors\stb_image.cpp" />
+    <None Include="Shaders\SkyboxFS.glsl" />
+    <None Include="Shaders\SkyboxVS.glsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\GettingStartedFS.glsl" />
@@ -181,11 +184,24 @@
     <ClInclude Include="Source\Program.hpp" />
     <ClInclude Include="Source\Shader.hpp" />
     <ClInclude Include="Source\SimpleLighting.hpp" />
+    <ClInclude Include="Source\Skybox.hpp" />
     <ClInclude Include="Source\Texture.hpp" />
     <ClInclude Include="Source\TextureParameter.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\ArchLinux.jpeg" />
+    <Image Include="Resources\Daylight Box_Pieces\Daylight Box_Back.bmp" />
+    <Image Include="Resources\Daylight Box_Pieces\Daylight Box_Bottom.bmp" />
+    <Image Include="Resources\Daylight Box_Pieces\Daylight Box_Front.bmp" />
+    <Image Include="Resources\Daylight Box_Pieces\Daylight Box_Left.bmp" />
+    <Image Include="Resources\Daylight Box_Pieces\Daylight Box_Right.bmp" />
+    <Image Include="Resources\Daylight Box_Pieces\Daylight Box_Top.bmp" />
+    <Image Include="Resources\DaylightBoxFaces\DaylightBoxBack.bmp" />
+    <Image Include="Resources\DaylightBoxFaces\DaylightBoxBottom.bmp" />
+    <Image Include="Resources\DaylightBoxFaces\DaylightBoxFront.bmp" />
+    <Image Include="Resources\DaylightBoxFaces\DaylightBoxLeft.bmp" />
+    <Image Include="Resources\DaylightBoxFaces\DaylightBoxRight.bmp" />
+    <Image Include="Resources\DaylightBoxFaces\DaylightBoxTop.bmp" />
     <Image Include="Resources\NeutronStar.jpg" />
     <Image Include="Resources\TutorialDiffuseMap.png" />
     <Image Include="Resources\TutorialSpecularMap.png" />

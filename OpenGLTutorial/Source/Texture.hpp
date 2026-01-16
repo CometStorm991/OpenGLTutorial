@@ -16,6 +16,7 @@ private:
 	GLenum pixelFormat;
 
 	uint32_t id;
+	GLenum target;
 	uint32_t width;
 	uint32_t height;
 	void* data;
@@ -23,6 +24,7 @@ private:
 	bool isSetup = false;
 public:
 	Texture(const std::string& imagePath, GLenum pixelFormat);
+	Texture(GLenum target, const std::string& imagePath, GLenum pixelFormat);
 	Texture(uint32_t width, uint32_t height);
 
 	void setup(const std::vector<TextureParameter>& textureParameters);

@@ -157,8 +157,6 @@ void Rearview::addLightingInfo()
 void Rearview::run()
 {
     // glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glEnable(GL_DEPTH_TEST);
 
     renderer.prepareForRender();
 
@@ -167,6 +165,9 @@ void Rearview::run()
     // -------------------------------------------------------------------------
 
     renderer.prepareForDraw(programId, textureIds, vaoId);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glEnable(GL_DEPTH_TEST);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     uint64_t milliseconds = renderer.getMillisecondsSinceRunPreparation();
     for (unsigned int i = 0; i < cubeCount; i++)
@@ -207,6 +208,9 @@ void Rearview::run()
 
     {
         renderer.prepareForDraw(framebuffer, programId, textureIds, vaoId);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glEnable(GL_DEPTH_TEST);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         camera.front = -camera.front;
         camera.right = -camera.right;
@@ -234,7 +238,7 @@ void Rearview::run()
 
         // -------------------------------------------------------------------------
 
-        renderer.prepareForDraw(lightProgramId, textureIds, vaoId);
+        renderer.prepareForDraw(framebuffer, lightProgramId, textureIds, vaoId);
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, pointLightPos);
@@ -251,7 +255,7 @@ void Rearview::run()
 
     // -------------------------------------------------------------------------
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     glUseProgram(quadProgramId);
     glBindVertexArray(quadVaoId);
@@ -263,7 +267,7 @@ void Rearview::run()
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    glEnable(GL_DEPTH_TEST);
+    // glEnable(GL_DEPTH_TEST);
 
     // -------------------------------------------------------------------------
 

@@ -111,6 +111,20 @@ void Renderer::generateTexture(uint32_t& textureId, const std::string& imagePath
     textureMap.insert({textureId, texture});
 }
 
+void Renderer::generateTexture(uint32_t& textureId, GLenum target, const std::string& imagePath, GLenum pixelFormat)
+{
+    Texture texture = Texture(imagePath, pixelFormat);
+    texture.setup({
+        {GL_TEXTURE_WRAP_S, GL_REPEAT},
+        {GL_TEXTURE_WRAP_T, GL_REPEAT},
+        {GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR},
+        {GL_TEXTURE_MAG_FILTER, GL_LINEAR}
+        });
+
+    textureId = texture.getId();
+    textureMap.insert({ textureId, texture });
+}
+
 // For textures that are used as attachments for framebuffers
 void Renderer::generateTexture(uint32_t& textureId, uint32_t width, uint32_t height)
 {
@@ -192,6 +206,7 @@ void Renderer::generateFramebuffer(uint32_t& framebufferId, const std::vector<Fb
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    currentFramebuffer = 0;
 }
 
 uint32_t Renderer::getGLTypeSize(GLenum type)
@@ -244,27 +259,23 @@ void Renderer::updateCameraPosition()
 
 void Renderer::prepareForRender()
 {
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     previousMillis = milliseconds;
     milliseconds = getMillisecondsSinceRunPreparation();
 }
 
 void Renderer::prepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds, uint32_t vaoId)
 {
-    programMap.at(programId).use();
-    for (unsigned int i = 0; i < textureIds.size(); i++)
-    {
-        uint32_t textureId = textureIds.at(i);
-
-        textureMap.at(textureId).use(GL_TEXTURE0 + i);
-    }
-    glBindVertexArray(vaoId);
+    prepareForDraw(0, programId, textureIds, vaoId);
 }
 
 void Renderer::prepareForDraw(uint32_t framebufferId, uint32_t programId, const std::vector<uint32_t>& textureIds, uint32_t vaoId)
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, framebufferId);
+    if (currentFramebuffer != framebufferId)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, framebufferId);
+        currentFramebuffer = framebufferId;
+    }
+    
     programMap.at(programId).use();
     for (unsigned int i = 0; i < textureIds.size(); i++)
     {
@@ -295,6 +306,12 @@ void Renderer::draw(unsigned int triangleCount)
 
 void Renderer::unprepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds)
 {
+    if (currentFramebuffer != 0)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        currentFramebuffer = 0;
+    }
+
     programMap.at(programId).unuse();
     for (unsigned int i = 0; i < textureIds.size(); i++)
     {

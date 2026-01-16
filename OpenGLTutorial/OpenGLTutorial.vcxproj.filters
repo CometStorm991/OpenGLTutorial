@@ -63,6 +63,9 @@
     <ClCompile Include="Source\FbAttachment.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Skybox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\SimpleLightingFS.glsl" />
@@ -75,6 +78,8 @@
     </None>
     <None Include="Shaders\QuadVS.glsl" />
     <None Include="Shaders\QuadFS.glsl" />
+    <None Include="Shaders\SkyboxFS.glsl" />
+    <None Include="Shaders\SkyboxVS.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Shader.hpp">
@@ -122,6 +127,9 @@
     <ClInclude Include="Source\FbAttachment.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Skybox.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\NeutronStar.jpg">
@@ -134,6 +142,42 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="Resources\TutorialSpecularMap.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\Daylight Box_Pieces\Daylight Box_Back.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\Daylight Box_Pieces\Daylight Box_Bottom.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\Daylight Box_Pieces\Daylight Box_Front.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\Daylight Box_Pieces\Daylight Box_Left.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\Daylight Box_Pieces\Daylight Box_Right.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\Daylight Box_Pieces\Daylight Box_Top.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\DaylightBoxFaces\DaylightBoxBack.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\DaylightBoxFaces\DaylightBoxBottom.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\DaylightBoxFaces\DaylightBoxFront.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\DaylightBoxFaces\DaylightBoxLeft.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\DaylightBoxFaces\DaylightBoxRight.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\DaylightBoxFaces\DaylightBoxTop.bmp">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

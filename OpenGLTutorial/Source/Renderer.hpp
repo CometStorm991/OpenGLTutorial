@@ -27,6 +27,7 @@ private:
 
 	std::unordered_map<uint32_t, Program> programMap;
 	std::unordered_map<uint32_t, Texture> textureMap;
+	uint32_t currentFramebuffer = 0;
 
 	glm::mat4 model;
 	glm::mat4 view;
@@ -77,6 +78,7 @@ public:
 	void generateVertexBuffer(uint32_t& vertexBuffer, const std::vector<float>& cubeVertices);
 	void generateIndexBuffer(uint32_t& indexBuffer, const std::vector<uint32_t>& indices);
 	void generateTexture(uint32_t& textureId, const std::string& imagePath, GLenum pixelFormat);
+	void generateTexture(uint32_t& textureId, GLenum target, const std::string& imagePath, GLenum pixelFormat);
 	void generateTexture(uint32_t& textureId, uint32_t width, uint32_t height);
 	void generateVertexArray(uint32_t& vao, uint32_t vertexBuffer, uint32_t indexBuffer, std::vector<AttributeLayout>& attribs);
 	void generateRenderbuffer(uint32_t& renderbufferId, uint32_t width, uint32_t height);

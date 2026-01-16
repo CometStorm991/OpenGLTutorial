@@ -1,8 +1,14 @@
 #include "Texture.hpp"
 
-Texture::Texture(const std::string& imagePath, GLenum pixelFormat)
-	: imagePath(imagePath), pixelFormat(pixelFormat), id(0), isSetup(false)
+Texture::Texture(const std::string& imagePath, GLenum pixelFormat) : Texture(GL_TEXTURE_2D, imagePath, pixelFormat)
 {
+
+}
+
+Texture::Texture(GLenum target, const std::string& imagePath, GLenum pixelFormat)
+    : imagePath(imagePath), pixelFormat(pixelFormat), id(0), isSetup(false), target(target)
+{
+    
     int width, height, channelCount;
     stbi_set_flip_vertically_on_load(true);
     unsigned char* data = stbi_load(imagePath.c_str(), &width, &height, &channelCount, 0);
@@ -24,7 +30,7 @@ Texture::Texture(const std::string& imagePath, GLenum pixelFormat)
 
 // For textures that are used as attachments for framebuffers
 Texture::Texture(uint32_t width, uint32_t height)
-    : imagePath(""), pixelFormat(GL_RGB), id(0), width(width), height(height), data(nullptr), isSetup(false)
+    : imagePath(""), pixelFormat(GL_RGB), id(0), width(width), height(height), data(nullptr), isSetup(false), target(GL_TEXTURE_2D)
 {
     
 }
