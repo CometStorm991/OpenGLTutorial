@@ -91,6 +91,7 @@ public:
 	void prepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds, uint32_t vaoId);
 	void prepareForDraw(uint32_t framebufferId, uint32_t programId, const std::vector<uint32_t>& textureIds, uint32_t vaoId);
 	void updateModelMatrix(const glm::mat4& model);
+	void updateViewMatrix(const glm::mat4& view);
 	void applyMvp(uint32_t programId, const std::string& modelName, const std::string& viewName, const std::string& projectionName);
 	void draw(unsigned int triangleCount);
 	void unprepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds);

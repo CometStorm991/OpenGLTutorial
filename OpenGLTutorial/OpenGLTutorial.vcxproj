@@ -204,6 +204,12 @@
     <Image Include="Resources\DaylightBoxFaces\DaylightBoxTop.bmp" />
     <Image Include="Resources\NeutronStar.jpg" />
     <Image Include="Resources\TutorialDiffuseMap.png" />
+    <Image Include="Resources\TutorialSkybox\back.jpg" />
+    <Image Include="Resources\TutorialSkybox\bottom.jpg" />
+    <Image Include="Resources\TutorialSkybox\front.jpg" />
+    <Image Include="Resources\TutorialSkybox\left.jpg" />
+    <Image Include="Resources\TutorialSkybox\right.jpg" />
+    <Image Include="Resources\TutorialSkybox\top.jpg" />
     <Image Include="Resources\TutorialSpecularMap.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

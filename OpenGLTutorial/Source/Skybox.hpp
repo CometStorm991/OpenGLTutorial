@@ -20,7 +20,10 @@ private:
 
 	uint32_t skyboxProgramId;
 	uint32_t skyboxTextureId;
-	uint32_t vertexArray;
+	uint32_t skyboxVertexArray;
+
+	uint32_t boxProgramId;
+	uint32_t boxVertexArray;
 
 	std::vector<uint32_t> textureIds;
 };

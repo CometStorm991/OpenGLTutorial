@@ -17,8 +17,11 @@ public:
 	const glm::vec3 up;
 	glm::vec3 right;
 
+	glm::mat4 view;
+
 	Camera();
 	void updateOrientation(float yaw, float pitch);
+	void updateView();
 
 	float getYaw();
 	float getPitch();

@@ -298,9 +298,13 @@ void Renderer::updateModelMatrix(const glm::mat4& model)
    this->model = model;
 }
 
+void Renderer::updateViewMatrix(const glm::mat4& view)
+{
+    this->view = view;
+}
+
 void Renderer::applyMvp(uint32_t programId, const std::string& modelName, const std::string& viewName, const std::string& projectionName)
 {
-    view = glm::lookAt(camera.pos, camera.pos + camera.front, camera.up);
     if (!modelName.empty())
     {
         setUniformMatrix4fv(programId, modelName, model);

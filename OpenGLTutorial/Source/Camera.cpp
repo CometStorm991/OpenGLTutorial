@@ -22,6 +22,13 @@ void Camera::updateOrientation(float yaw, float pitch)
 
     front = glm::normalize(cameraDirection);
     right = glm::normalize(glm::cross(front, up));
+
+    updateView();
+}
+
+void Camera::updateView()
+{
+    view = glm::lookAt(pos, pos + front, up);
 }
 
 float Camera::getYaw()

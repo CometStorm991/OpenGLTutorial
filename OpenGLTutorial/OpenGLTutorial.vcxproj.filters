@@ -180,5 +180,23 @@
     <Image Include="Resources\DaylightBoxFaces\DaylightBoxTop.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Resources\TutorialSkybox\back.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\TutorialSkybox\bottom.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\TutorialSkybox\front.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\TutorialSkybox\left.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\TutorialSkybox\right.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\TutorialSkybox\top.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
