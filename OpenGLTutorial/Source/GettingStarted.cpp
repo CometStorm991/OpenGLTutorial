@@ -81,6 +81,8 @@ void GettingStarted::run()
     renderer.prepareForRender();
 
     renderer.prepareForDraw(programId, textureIds, vaoId);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     uint64_t milliseconds = renderer.getMillisecondsSinceRunPreparation();
 
@@ -95,6 +97,8 @@ void GettingStarted::run()
         model = glm::rotate(model, milliseconds / 1000.0f * rotationSpeed.z, glm::vec3(0.0f, 0.0f, 1.0f));
 
         renderer.updateModelMatrix(model);
+        camera.updateView();
+        renderer.updateViewMatrix(camera.view);
         renderer.applyMvp(programId, "model", "view", "projection");
         renderer.draw(36);
     }

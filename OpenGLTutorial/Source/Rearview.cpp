@@ -181,6 +181,8 @@ void Rearview::run()
         model = glm::rotate(model, milliseconds / 1000.0f * rotationSpeed.z, glm::vec3(0.0f, 0.0f, 1.0f));
 
         renderer.updateModelMatrix(model);
+        camera.updateView();
+        renderer.updateViewMatrix(camera.view);
         renderer.setUniformMatrix4fv(programId, "normalMatrix", glm::transpose(glm::inverse(model)));
         renderer.applyMvp(programId, "model", "view", "projection");
         renderer.setUniform3f(programId, "viewPos", camera.pos);
@@ -199,6 +201,8 @@ void Rearview::run()
     model = glm::translate(model, pointLightPos);
     model = glm::scale(model, glm::vec3(0.2f));
     renderer.updateModelMatrix(model);
+    camera.updateView();
+    renderer.updateViewMatrix(camera.view);
     renderer.applyMvp(lightProgramId, "model", "view", "projection");
     renderer.draw(36);
 
@@ -225,6 +229,8 @@ void Rearview::run()
             model = glm::rotate(model, milliseconds / 1000.0f * rotationSpeed.z, glm::vec3(0.0f, 0.0f, 1.0f));
 
             renderer.updateModelMatrix(model);
+            camera.updateView();
+            renderer.updateViewMatrix(camera.view);
             renderer.setUniformMatrix4fv(programId, "normalMatrix", glm::transpose(glm::inverse(model)));
             renderer.applyMvp(programId, "model", "view", "projection");
             renderer.setUniform3f(programId, "viewPos", camera.pos);
@@ -244,6 +250,8 @@ void Rearview::run()
         model = glm::translate(model, pointLightPos);
         model = glm::scale(model, glm::vec3(0.2f));
         renderer.updateModelMatrix(model);
+        camera.updateView();
+        renderer.updateViewMatrix(camera.view);
         renderer.applyMvp(lightProgramId, "model", "view", "projection");
         renderer.draw(36);
 

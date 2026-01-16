@@ -116,6 +116,8 @@ void MultipleLighting::run()
     // -------------------------------------------------------------------------
 
     renderer.prepareForDraw(programId, textureIds, vaoId);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
     //model = glm::mat4(1.0f);
     ///*model = glm::translate(model, glm::vec3(0.0f, -3.0f, 0.0f));
@@ -138,6 +140,8 @@ void MultipleLighting::run()
         model = glm::rotate(model, milliseconds / 1000.0f * rotationSpeed.z, glm::vec3(0.0f, 0.0f, 1.0f));
 
         renderer.updateModelMatrix(model);
+        camera.updateView();
+        renderer.updateViewMatrix(camera.view);
         renderer.setUniformMatrix4fv(programId, "normalMatrix", glm::transpose(glm::inverse(model)));
         renderer.applyMvp(programId, "model", "view", "projection");
         renderer.setUniform3f(programId, "viewPos", camera.pos);
@@ -156,6 +160,8 @@ void MultipleLighting::run()
     model = glm::translate(model, pointLightPos);
     model = glm::scale(model, glm::vec3(0.2f));
     renderer.updateModelMatrix(model);
+    camera.updateView();
+    renderer.updateViewMatrix(camera.view);
     renderer.applyMvp(lightProgramId, "model", "view", "projection");
     renderer.draw(36);
 

@@ -73,12 +73,16 @@ void SimpleLighting::run()
     // -------------------------------------------------------------------------
 
     renderer.prepareForDraw(programId, textureIds, vaoId);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     model = glm::mat4(1.0f);
     /*model = glm::translate(model, glm::vec3(0.0f, -3.0f, 0.0f));
     model = glm::scale(model, glm::vec3(20.0f, 1.0f, 20.0f));*/
     renderer.updateModelMatrix(model);
     renderer.setUniformMatrix4fv(programId, "normalMatrix", glm::transpose(glm::inverse(model)));
+    camera.updateView();
+    renderer.updateViewMatrix(camera.view);
     renderer.applyMvp(programId, "model", "view", "projection");
     renderer.setUniform3f(programId, "viewPos", camera.pos);
     renderer.draw(36);
@@ -93,6 +97,8 @@ void SimpleLighting::run()
     model = glm::translate(model, simpleLightPos);
     model = glm::scale(model, glm::vec3(0.2f));
     renderer.updateModelMatrix(model);
+    camera.updateView();
+    renderer.updateViewMatrix(camera.view);
     renderer.applyMvp(lightProgramId, "model", "view", "projection");
     renderer.draw(36);
 
