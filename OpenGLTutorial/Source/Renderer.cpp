@@ -98,44 +98,31 @@ void Renderer::generateIndexBuffer(uint32_t& indexBuffer, const std::vector<uint
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void Renderer::generateTexture(uint32_t& textureId, const std::string& imagePath, GLenum pixelFormat)
+void Renderer::generateResourceTexture(uint32_t& textureId, const std::string& imagePath, bool flip, GLenum target, uint32_t textureUnit)
 {
-    Texture texture = Texture(imagePath, pixelFormat);
+    Texture texture = Texture::ResourceTexture(imagePath, flip, target, textureUnit);
     texture.setup({
+        false, {
         {GL_TEXTURE_WRAP_S, GL_REPEAT},
         {GL_TEXTURE_WRAP_T, GL_REPEAT},
         {GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR},
         {GL_TEXTURE_MAG_FILTER, GL_LINEAR}
-        });
+        } });
     
-    textureId = texture.getId();
+    textureId = texture.id;
     textureMap.insert({textureId, texture});
 }
 
-void Renderer::generateTexture(uint32_t& textureId, GLenum target, const std::string& imagePath, GLenum pixelFormat)
+void Renderer::generateFramebufferTexture(uint32_t& textureId, uint32_t width, uint32_t height)
 {
-    Texture texture = Texture(imagePath, pixelFormat);
+    Texture texture = Texture::FramebufferTexture(width, height);
     texture.setup({
-        {GL_TEXTURE_WRAP_S, GL_REPEAT},
-        {GL_TEXTURE_WRAP_T, GL_REPEAT},
-        {GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR},
-        {GL_TEXTURE_MAG_FILTER, GL_LINEAR}
-        });
-
-    textureId = texture.getId();
-    textureMap.insert({ textureId, texture });
-}
-
-// For textures that are used as attachments for framebuffers
-void Renderer::generateTexture(uint32_t& textureId, uint32_t width, uint32_t height)
-{
-    Texture texture = Texture(width, height);
-    texture.setup({
+        false, {
         {GL_TEXTURE_MIN_FILTER, GL_LINEAR},
         {GL_TEXTURE_MAG_FILTER, GL_LINEAR}
-        });
+        } });
 
-    textureId = texture.getId();
+    textureId = texture.id;
     textureMap.insert({textureId, texture});
 }
 
@@ -288,7 +275,7 @@ void Renderer::prepareForDraw(uint32_t framebufferId, uint32_t programId, const 
     {
         uint32_t textureId = textureIds.at(i);
 
-        textureMap.at(textureId).use(GL_TEXTURE0 + i);
+        textureMap.at(textureId).use();
     }
     glBindVertexArray(vaoId);
 }
@@ -336,12 +323,8 @@ void Renderer::unprepareForDraw(uint32_t programId, const std::vector<uint32_t>&
     for (unsigned int i = 0; i < textureIds.size(); i++)
     {
         uint32_t textureId = textureIds.at(i);
-
-        textureMap.at(textureId).unuse(GL_TEXTURE0 + i);
     }
     glBindVertexArray(0);
-
-    //milliseconds = getMillisecondsSinceRunPreparation();
 }
 
 void Renderer::calculateFps()

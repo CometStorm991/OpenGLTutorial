@@ -77,9 +77,8 @@ public:
 	void generateProgram(uint32_t& programId, const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
 	void generateVertexBuffer(uint32_t& vertexBuffer, const std::vector<float>& vertices);
 	void generateIndexBuffer(uint32_t& indexBuffer, const std::vector<uint32_t>& indices);
-	void generateTexture(uint32_t& textureId, const std::string& imagePath, GLenum pixelFormat);
-	void generateTexture(uint32_t& textureId, GLenum target, const std::string& imagePath, GLenum pixelFormat);
-	void generateTexture(uint32_t& textureId, uint32_t width, uint32_t height);
+	void generateResourceTexture(uint32_t& textureId, const std::string& imagePath, bool flip, GLenum target, uint32_t textureUnit);
+	void generateFramebufferTexture(uint32_t& textureId, uint32_t width, uint32_t height);
 	void generateVertexArray(uint32_t& vao, uint32_t vertexBuffer, uint32_t indexBuffer, std::vector<AttributeLayout>& attribs);
 	void generateRenderbuffer(uint32_t& renderbufferId, uint32_t width, uint32_t height);
 	void generateFramebuffer(uint32_t& framebufferId, const std::vector<FbAttachment>& attachments);

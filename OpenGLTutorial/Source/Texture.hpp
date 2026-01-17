@@ -8,29 +8,29 @@
 #include <STB/stb_image.h>
 
 #include "TextureParameter.hpp"
+#include "TextureSetup.hpp"
 
 class Texture
 {
 public:
-	Texture(const std::string& imagePath, GLenum pixelFormat);
-	Texture(GLenum target, const std::string& imagePath, GLenum pixelFormat);
-	Texture(uint32_t width, uint32_t height);
-	Texture();
+	Texture(GLenum target);
+	// For textures that are loaded using an image path
+	static Texture ResourceTexture(const std::string& imagePath, bool flip, GLenum target, uint32_t textureUnit);
+	// For textures that are used as attachments for framebuffers
+	static Texture FramebufferTexture(uint32_t width, uint32_t height);
+	// For textures that are managed externally
 	static Texture ExternalTexture(uint32_t id, GLenum target);
 
-	void setup(const std::vector<TextureParameter>& textureParameters);
+	void setup(const TextureSetup& textureSetup);
 	
-	void use(GLenum textureUnit);
-	void unuse(GLenum textureUnit);
-
-	uint32_t getId();
-	bool getIsSetup();
+	void use();
 
 	std::string imagePath;
 	GLenum pixelFormat;
 
 	uint32_t id;
 	GLenum target;
+	uint32_t textureUnit;
 	uint32_t width;
 	uint32_t height;
 	void* data;

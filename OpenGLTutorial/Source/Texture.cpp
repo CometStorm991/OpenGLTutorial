@@ -1,20 +1,28 @@
 #include "Texture.hpp"
 
-Texture::Texture(const std::string& imagePath, GLenum pixelFormat) : Texture(GL_TEXTURE_2D, imagePath, pixelFormat)
+Texture::Texture(GLenum target)
+    : imagePath(""), pixelFormat(GL_RGB), id(0), width(0), height(0), data(nullptr), isSetup(false), target(target), textureUnit(0)
 {
 
 }
 
-Texture::Texture(GLenum target, const std::string& imagePath, GLenum pixelFormat)
-    : imagePath(imagePath), pixelFormat(pixelFormat), id(0), isSetup(false), target(target)
+Texture Texture::ResourceTexture(const std::string& imagePath, bool flip, GLenum target, uint32_t textureUnit)
 {
+    if (imagePath.empty())
+    {
+        std::cout << "[Error] Image path is empty" << std::endl;
+    }
+
+    Texture texture = Texture(target);
+    texture.target = target;
+    texture.textureUnit = textureUnit;
     
     int width, height, channelCount;
-    stbi_set_flip_vertically_on_load(true);
+    stbi_set_flip_vertically_on_load(flip);
     unsigned char* data = stbi_load(imagePath.c_str(), &width, &height, &channelCount, 0);
     if (!data)
     {
-        std::cout << "[Error] Failed to load texture" << std::endl;
+        std::cout << "[Error] Failed to load texture" << imagePath << std::endl;
         std::cout << stbi_failure_reason() << std::endl;
     }
 
@@ -22,30 +30,40 @@ Texture::Texture(GLenum target, const std::string& imagePath, GLenum pixelFormat
         std::cout << "[Error] Width or height is equal to or less than 0" << std::endl;
         std::cout << "Width is " << width << "Height is " << height << std::endl;
     }
+    if (channelCount < 3 || channelCount > 4)
+    {
+        std::cout << "[Error]: Channel count is " << channelCount << std::endl;
+    }
 
-    this->width = width;
-    this->height = height;
-    this->data = data;
+    texture.width = width;
+    texture.height = height;
+    texture.data = data;
+    switch (channelCount)
+    {
+    case 3:
+        texture.pixelFormat = GL_RGB;
+        break;
+    case 4:
+    default:
+        texture.pixelFormat = GL_RGBA;
+        break;
+    }
+
+    return texture;
 }
 
-// For textures that are used as attachments for framebuffers
-Texture::Texture(uint32_t width, uint32_t height)
-    : imagePath(""), pixelFormat(GL_RGB), id(0), width(width), height(height), data(nullptr), isSetup(false), target(GL_TEXTURE_2D)
+Texture Texture::FramebufferTexture(uint32_t width, uint32_t height)
 {
-    
+    Texture texture = Texture(GL_TEXTURE_2D);
+    texture.width = width;
+    texture.height = height;
+
+    return texture;
 }
 
-// Default constructor with empty values
-Texture::Texture()
-    : imagePath(""), pixelFormat(GL_RGB), id(0), width(0), height(0), data(nullptr), isSetup(false), target(GL_NONE)
-{
-
-}
-
-// For textures that are managed externally
 Texture Texture::ExternalTexture(uint32_t id, GLenum target)
 {
-    Texture texture = Texture();
+    Texture texture = Texture(target);
     texture.id = id;
     texture.target = target;
     texture.isSetup = true;
@@ -53,49 +71,52 @@ Texture Texture::ExternalTexture(uint32_t id, GLenum target)
     return texture;
 }
 
-void Texture::setup(const std::vector<TextureParameter>& textureParameters)
+void Texture::setup(const TextureSetup& textureSetup)
 {
-    glGenTextures(1, &id);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(target, id);
-
-    for (TextureParameter textureParameter : textureParameters)
+    if (isSetup)
     {
-        glTexParameteri(target, textureParameter.getParameter(), textureParameter.getArgument());
+        std::cout << "[Error]: Texture " << imagePath << " is already setup" << std::endl;
     }
 
-    glTexImage2D(target, 0, GL_RGB, width, height, 0, pixelFormat, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(target);
+    glCreateTextures(target, 1, &id);
+
+    glTextureStorage2D(id, 1, GL_RGB8, width, height);
+    switch (GL_TEXTURE_2D)
+    {
+    case GL_TEXTURE_CUBE_MAP:
+        break;
+    case GL_TEXTURE_2D:
+    default:
+        if (data != nullptr)
+        {
+            glTextureSubImage2D(id, 0, 0, 0, width, height, pixelFormat, GL_UNSIGNED_BYTE, data);
+        }
+        break;
+    }
+
+    for (TextureParameter textureParameter : textureSetup.textureParameters)
+    {
+        glTextureParameteri(id, textureParameter.getParameter(), textureParameter.getArgument());
+    }
+
+    if (textureSetup.mipmap)
+    {
+        glGenerateTextureMipmap(id);
+    }
 
     stbi_image_free(data);
-    glBindTexture(GL_TEXTURE_2D, 0);
+
+    glBindTexture(target, 0);
 
     isSetup = true;
 }
 
-void Texture::use(GLenum textureUnit)
+void Texture::use()
 {
     if (!isSetup)
     {
         std::cout << "[Error] Texture was not setup" << std::endl;
     }
 
-    glActiveTexture(textureUnit);
-    glBindTexture(target, id);
-}
-
-void Texture::unuse(GLenum textureUnit)
-{
-    glActiveTexture(textureUnit);
-    glBindTexture(target, 0);
-}
-
-uint32_t Texture::getId()
-{
-    return id;
-}
-
-bool Texture::getIsSetup()
-{
-    return isSetup;
+    glBindTextureUnit(textureUnit, id);
 }

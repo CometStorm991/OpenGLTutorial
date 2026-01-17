@@ -164,6 +164,7 @@
     <ClCompile Include="Source\Skybox.cpp" />
     <ClCompile Include="Source\Texture.cpp" />
     <ClCompile Include="Source\TextureParameter.cpp" />
+    <ClCompile Include="Source\TextureSetup.cpp" />
     <ClCompile Include="Vendors\stb_image.cpp" />
     <None Include="Shaders\SkyboxFS.glsl" />
     <None Include="Shaders\SkyboxVS.glsl" />
@@ -189,6 +190,7 @@
     <ClInclude Include="Source\Skybox.hpp" />
     <ClInclude Include="Source\Texture.hpp" />
     <ClInclude Include="Source\TextureParameter.hpp" />
+    <ClInclude Include="Source\TextureSetup.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\ArchLinux.jpeg" />

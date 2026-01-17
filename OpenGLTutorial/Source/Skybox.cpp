@@ -45,9 +45,9 @@ void Skybox::prepareBox()
 	renderer.generateVertexArray(boxVertexArrayId, vertexBuffer, 0, attribs);
 
 	uint32_t texture0;
-	renderer.generateTexture(texture0, "Resources/TutorialDiffuseMap.png", GL_RGBA);
+	renderer.generateResourceTexture(texture0, "Resources/TutorialDiffuseMap.png", true, GL_TEXTURE_2D, 0);
 	uint32_t texture1;
-	renderer.generateTexture(texture1, "Resources/TutorialSpecularMap.png", GL_RGBA);
+	renderer.generateResourceTexture(texture1, "Resources/TutorialSpecularMap.png", true, GL_TEXTURE_2D, 1);
 	boxTextureIds.clear();
 	boxTextureIds.push_back(texture0);
 	boxTextureIds.push_back(texture1);
