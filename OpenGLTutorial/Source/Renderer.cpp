@@ -98,9 +98,9 @@ void Renderer::generateIndexBuffer(uint32_t& indexBuffer, const std::vector<uint
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void Renderer::generateResourceTexture(uint32_t& textureId, const std::string& imagePath, bool flip, GLenum target, uint32_t textureUnit)
+void Renderer::generateResourceTexture2D(uint32_t& textureId, const std::string& imagePath, bool flip, GLenum target, uint32_t textureUnit)
 {
-    Texture texture = Texture::ResourceTexture(imagePath, flip, target, textureUnit);
+    Texture texture = Texture::ResourceTexture2D(imagePath, flip, target, textureUnit);
     texture.setup({
         false, {
         {GL_TEXTURE_WRAP_S, GL_REPEAT},
@@ -111,6 +111,22 @@ void Renderer::generateResourceTexture(uint32_t& textureId, const std::string& i
     
     textureId = texture.id;
     textureMap.insert({textureId, texture});
+}
+
+void Renderer::generateResourceTextureCubemap(uint32_t& textureId, const std::vector<std::string>& imagePaths, bool flip, GLenum target, uint32_t textureUnit)
+{
+    Texture texture = Texture::ResourceTextureCubemap(imagePaths, flip, target, textureUnit);
+    texture.setup({
+        true, {
+        {GL_TEXTURE_MAG_FILTER, GL_LINEAR},
+        {GL_TEXTURE_MIN_FILTER, GL_LINEAR},
+        {GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE},
+        {GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE},
+        {GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE}
+        } });
+
+    textureId = texture.id;
+    textureMap.insert({ textureId, texture });
 }
 
 void Renderer::generateFramebufferTexture(uint32_t& textureId, uint32_t width, uint32_t height)

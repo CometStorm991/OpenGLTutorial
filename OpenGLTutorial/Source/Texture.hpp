@@ -14,8 +14,10 @@ class Texture
 {
 public:
 	Texture(GLenum target);
-	// For textures that are loaded using an image path
-	static Texture ResourceTexture(const std::string& imagePath, bool flip, GLenum target, uint32_t textureUnit);
+	// For 2D textures that are loaded using an image path
+	static Texture ResourceTexture2D(const std::string& imagePath, bool flip, GLenum target, uint32_t textureUnit);
+	// For cubemap textures that are loaded using an image path
+	static Texture ResourceTextureCubemap(const std::vector<std::string>& imagePaths, bool flip, GLenum target, uint32_t textureUnit);
 	// For textures that are used as attachments for framebuffers
 	static Texture FramebufferTexture(uint32_t width, uint32_t height);
 	// For textures that are managed externally
@@ -33,7 +35,7 @@ public:
 	uint32_t textureUnit;
 	uint32_t width;
 	uint32_t height;
-	void* data;
+	std::vector<void*> data;
 
 	bool isSetup = false;
 };

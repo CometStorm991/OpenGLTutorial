@@ -1,12 +1,12 @@
 #include "Texture.hpp"
 
 Texture::Texture(GLenum target)
-    : imagePath(""), pixelFormat(GL_RGB), id(0), width(0), height(0), data(nullptr), isSetup(false), target(target), textureUnit(0)
+    : imagePath(""), pixelFormat(GL_RGB), id(0), width(0), height(0), data({}), isSetup(false), target(target), textureUnit(0)
 {
 
 }
 
-Texture Texture::ResourceTexture(const std::string& imagePath, bool flip, GLenum target, uint32_t textureUnit)
+Texture Texture::ResourceTexture2D(const std::string& imagePath, bool flip, GLenum target, uint32_t textureUnit)
 {
     if (imagePath.empty())
     {
@@ -14,7 +14,6 @@ Texture Texture::ResourceTexture(const std::string& imagePath, bool flip, GLenum
     }
 
     Texture texture = Texture(target);
-    texture.target = target;
     texture.textureUnit = textureUnit;
     
     int width, height, channelCount;
@@ -37,7 +36,47 @@ Texture Texture::ResourceTexture(const std::string& imagePath, bool flip, GLenum
 
     texture.width = width;
     texture.height = height;
-    texture.data = data;
+    texture.data = { data };
+    switch (channelCount)
+    {
+    case 3:
+        texture.pixelFormat = GL_RGB;
+        break;
+    case 4:
+    default:
+        texture.pixelFormat = GL_RGBA;
+        break;
+    }
+
+    return texture;
+}
+
+Texture Texture::ResourceTextureCubemap(const std::vector<std::string>& imagePaths, bool flip, GLenum target, uint32_t textureUnit)
+{
+    Texture texture = Texture(target);
+    texture.textureUnit = textureUnit;
+
+    int width, height, channelCount;
+    stbi_set_flip_vertically_on_load(flip);
+    for (uint32_t i = 0; i < imagePaths.size(); i++)
+    {
+        void* currentData = stbi_load((imagePaths[i]).c_str(), &width, &height, &channelCount, 0);
+        texture.data.push_back(currentData);
+        /*glTexImage2D(
+            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);*/
+        
+    }
+    if (width <= 0 || height <= 0) {
+        std::cout << "[Error] Width or height is equal to or less than 0" << std::endl;
+        std::cout << "Width is " << width << "Height is " << height << std::endl;
+    }
+    if (channelCount < 3 || channelCount > 4)
+    {
+        std::cout << "[Error]: Channel count is " << channelCount << std::endl;
+    }
+
+    texture.width = width;
+    texture.height = height;
     switch (channelCount)
     {
     case 3:
@@ -65,7 +104,6 @@ Texture Texture::ExternalTexture(uint32_t id, GLenum target)
 {
     Texture texture = Texture(target);
     texture.id = id;
-    texture.target = target;
     texture.isSetup = true;
 
     return texture;
@@ -81,15 +119,21 @@ void Texture::setup(const TextureSetup& textureSetup)
     glCreateTextures(target, 1, &id);
 
     glTextureStorage2D(id, 1, GL_RGB8, width, height);
-    switch (GL_TEXTURE_2D)
+    switch (target)
     {
     case GL_TEXTURE_CUBE_MAP:
+        for (uint32_t i = 0; i < data.size(); i++)
+        {
+            glTextureSubImage3D(id, 0, 0, 0, i, width, height, 1, pixelFormat, GL_UNSIGNED_BYTE, data[i]);
+            stbi_image_free(data[i]);
+        }
         break;
     case GL_TEXTURE_2D:
     default:
-        if (data != nullptr)
+        if (data[0] != nullptr)
         {
-            glTextureSubImage2D(id, 0, 0, 0, width, height, pixelFormat, GL_UNSIGNED_BYTE, data);
+            glTextureSubImage2D(id, 0, 0, 0, width, height, pixelFormat, GL_UNSIGNED_BYTE, data[0]);
+            stbi_image_free(data[0]);
         }
         break;
     }
@@ -103,10 +147,6 @@ void Texture::setup(const TextureSetup& textureSetup)
     {
         glGenerateTextureMipmap(id);
     }
-
-    stbi_image_free(data);
-
-    glBindTexture(target, 0);
 
     isSetup = true;
 }

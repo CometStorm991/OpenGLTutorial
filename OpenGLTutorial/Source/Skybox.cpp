@@ -45,9 +45,9 @@ void Skybox::prepareBox()
 	renderer.generateVertexArray(boxVertexArrayId, vertexBuffer, 0, attribs);
 
 	uint32_t texture0;
-	renderer.generateResourceTexture(texture0, "Resources/TutorialDiffuseMap.png", true, GL_TEXTURE_2D, 0);
+	renderer.generateResourceTexture2D(texture0, "Resources/TutorialDiffuseMap.png", true, GL_TEXTURE_2D, 0);
 	uint32_t texture1;
-	renderer.generateResourceTexture(texture1, "Resources/TutorialSpecularMap.png", true, GL_TEXTURE_2D, 1);
+	renderer.generateResourceTexture2D(texture1, "Resources/TutorialSpecularMap.png", true, GL_TEXTURE_2D, 1);
 	boxTextureIds.clear();
 	boxTextureIds.push_back(texture0);
 	boxTextureIds.push_back(texture1);
@@ -88,35 +88,16 @@ void Skybox::prepareReflectiveBox()
 
 void Skybox::prepareSkybox()
 {
-	glGenTextures(1, &skyboxTextureId);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTextureId);
-
-	int width, height, channelCount;
-	void* data;
-	// Must be in +X, -X, +Y, -Y, +Z, -Z order
-	/*std::vector<std::string> textureFaces =
-	{
-		"DaylightBoxRight.bmp", "DaylightBoxLeft.bmp", "DaylightBoxTop.bmp", "DaylightBoxBottom.bmp", "DaylightBoxFront.bmp", "DaylightBoxBack.bmp"
-	};*/
 
 	std::vector<std::string> textureFaces =
 	{
 		"right.jpg", "left.jpg", "top.jpg", "bottom.jpg", "front.jpg", "back.jpg"
 	};
-	stbi_set_flip_vertically_on_load(false);
 	for (uint32_t i = 0; i < textureFaces.size(); i++)
 	{
-		data = stbi_load(("Resources/TutorialSkybox/" + textureFaces[i]).c_str(), &width, &height, &channelCount, 0);
-		glTexImage2D(
-			GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		textureFaces[i] = "Resources/TutorialSkybox/" + textureFaces[i];
 	}
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	renderer.generateResourceTextureCubemap(skyboxTextureId, textureFaces, false, GL_TEXTURE_CUBE_MAP, 0);
 
 	std::vector<float> skyboxVertices;
 	Cube::generatePSkybox(skyboxVertices);
