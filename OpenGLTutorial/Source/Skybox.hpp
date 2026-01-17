@@ -14,16 +14,24 @@ public:
 	void run() override;
 	bool shouldEnd() override;
 	void terminate() override;
+
+	void prepareBox();
+	void prepareReflectiveBox();
+	void prepareSkybox();
 private:
 	Renderer renderer;
 	Camera camera;
 
+	uint32_t boxProgramId;
+	uint32_t boxVertexArrayId;
+
+	uint32_t reflectiveBoxProgramId;
+	uint32_t reflectiveBoxVertexArrayId;
+
 	uint32_t skyboxProgramId;
 	uint32_t skyboxTextureId;
-	uint32_t skyboxVertexArray;
+	uint32_t skyboxVertexArrayId;
 
-	uint32_t boxProgramId;
-	uint32_t boxVertexArray;
 
-	std::vector<uint32_t> textureIds;
+	std::vector<uint32_t> boxTextureIds;
 };

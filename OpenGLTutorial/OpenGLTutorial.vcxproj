@@ -136,6 +136,8 @@
   <ItemGroup>
     <None Include="Shaders\QuadFS.glsl" />
     <None Include="Shaders\QuadVS.glsl" />
+    <None Include="Shaders\ReflectionFS.glsl" />
+    <None Include="Shaders\ReflectionVS.glsl" />
     <None Include="Shaders\SimpleLightingFS.glsl">
       <FileType>Document</FileType>
     </None>
