@@ -84,18 +84,14 @@ void Renderer::generateProgram(uint32_t& programId, const std::string& vertexSha
 
 void Renderer::generateVertexBuffer(uint32_t& vertexBuffer, const std::vector<float>& vertices)
 {
-    glGenBuffers(1, &vertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glCreateBuffers(1, &vertexBuffer);
+    glNamedBufferStorage(vertexBuffer, vertices.size() * sizeof(float), vertices.data(), GL_DYNAMIC_STORAGE_BIT);
 }
 
 void Renderer::generateIndexBuffer(uint32_t& indexBuffer, const std::vector<uint32_t>& indices)
 {   
-    glGenBuffers(1, &indexBuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t), indices.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glCreateBuffers(1, &indexBuffer);
+    glNamedBufferStorage(indexBuffer, indices.size() * sizeof(uint32_t), indices.data(), GL_DYNAMIC_STORAGE_BIT);
 }
 
 void Renderer::generateResourceTexture2D(uint32_t& textureId, const std::string& imagePath, bool flip, GLenum target, uint32_t textureUnit)
@@ -144,10 +140,7 @@ void Renderer::generateFramebufferTexture(uint32_t& textureId, uint32_t width, u
 
 void Renderer::generateVertexArray(uint32_t& vaoId, uint32_t vertexBuffer, uint32_t indexBuffer, std::vector<AttributeLayout>& attribs)
 {
-    glGenVertexArrays(1, &vaoId);
-    glBindVertexArray(vaoId);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glCreateVertexArrays(1, &vaoId);
 
     uint32_t vertexSize = 0;
     for (unsigned int i = 0; i < attribs.size(); i++)
@@ -158,59 +151,53 @@ void Renderer::generateVertexArray(uint32_t& vaoId, uint32_t vertexBuffer, uint3
         vertexSize += attrib.getCount() * typeSize;
     }
 
+    glVertexArrayVertexBuffer(vaoId, 0, vertexBuffer, 0, vertexSize);
+    if (indexBuffer != 0)
+    {
+        glVertexArrayElementBuffer(vaoId, indexBuffer);
+    }
+
     unsigned int offset = 0;
     for (unsigned int i = 0; i < attribs.size(); i++)
     {
         AttributeLayout attrib = attribs.at(i);
         uint32_t typeSize = getGLTypeSize(attrib.getType());
         
-        glEnableVertexAttribArray(i);
-        glVertexAttribPointer(i, attrib.getCount(), attrib.getType(), GL_FALSE, vertexSize, (const void*)offset);
+        glEnableVertexArrayAttrib(vaoId, i);
+        glVertexArrayAttribFormat(vaoId, i, attrib.getCount(), attrib.getType(), GL_FALSE, offset);
+        glVertexArrayAttribBinding(vaoId, i, 0);
 
         offset += attrib.getCount() * typeSize;
     }
-
-    // Binds element buffer in GL_ELEMENT_ARRAY_BUFFER to VAO
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void Renderer::generateRenderbuffer(uint32_t& renderbufferId, uint32_t width, uint32_t height)
 {
-    glGenRenderbuffers(1, &renderbufferId);
-    glBindRenderbuffer(GL_RENDERBUFFER, renderbufferId);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    glCreateRenderbuffers(1, &renderbufferId);
+    glNamedRenderbufferStorage(renderbufferId, GL_DEPTH24_STENCIL8, width, height);
 }
 
 void Renderer::generateFramebuffer(uint32_t& framebufferId, const std::vector<FbAttachment>& attachments)
 {
-    glGenFramebuffers(1, &framebufferId);
-    glBindFramebuffer(GL_FRAMEBUFFER, framebufferId);
+    glCreateFramebuffers(1, &framebufferId);
     
     for (FbAttachment attachment : attachments)
     {
         switch (attachment.getTargetType())
         {
         case GL_TEXTURE_2D:
-            glFramebufferTexture2D(GL_FRAMEBUFFER, attachment.getAttachmentPt(), GL_TEXTURE_2D, attachment.getAttachmentId(), 0);
+            glNamedFramebufferTexture(framebufferId, attachment.getAttachmentPt(), attachment.getAttachmentId(), 0);
             break;
         case GL_RENDERBUFFER:
-            glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment.getAttachmentPt(), GL_RENDERBUFFER, attachment.getAttachmentId());
+            glNamedFramebufferRenderbuffer(framebufferId, attachment.getAttachmentPt(), attachment.getTargetType(), attachment.getAttachmentId());
             break;
         }
     }
 
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    if (glCheckNamedFramebufferStatus(framebufferId, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
         std::cout << "[Error] Framebuffer is not complete!" << std::endl;
     }
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    currentFramebuffer = 0;
 }
 
 void Renderer::addTexture(uint32_t& textureId, GLenum target)

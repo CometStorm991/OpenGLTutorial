@@ -14,6 +14,7 @@ Texture Texture::ResourceTexture2D(const std::string& imagePath, bool flip, GLen
     }
 
     Texture texture = Texture(target);
+    texture.textureType = TextureType::RESOURCE_TEXTURE_2D;
     texture.textureUnit = textureUnit;
     
     int width, height, channelCount;
@@ -54,6 +55,7 @@ Texture Texture::ResourceTexture2D(const std::string& imagePath, bool flip, GLen
 Texture Texture::ResourceTextureCubemap(const std::vector<std::string>& imagePaths, bool flip, GLenum target, uint32_t textureUnit)
 {
     Texture texture = Texture(target);
+    texture.textureType = TextureType::RESOURCE_TEXTURE_CUBEMAP;
     texture.textureUnit = textureUnit;
 
     int width, height, channelCount;
@@ -94,6 +96,7 @@ Texture Texture::ResourceTextureCubemap(const std::vector<std::string>& imagePat
 Texture Texture::FramebufferTexture(uint32_t width, uint32_t height)
 {
     Texture texture = Texture(GL_TEXTURE_2D);
+    texture.textureType = TextureType::FRAMEBUFFER_TEXTURE;
     texture.width = width;
     texture.height = height;
 
@@ -103,6 +106,7 @@ Texture Texture::FramebufferTexture(uint32_t width, uint32_t height)
 Texture Texture::ExternalTexture(uint32_t id, GLenum target)
 {
     Texture texture = Texture(target);
+    texture.textureType = TextureType::EXTERNAL_TEXTURE;
     texture.id = id;
     texture.isSetup = true;
 
@@ -111,6 +115,12 @@ Texture Texture::ExternalTexture(uint32_t id, GLenum target)
 
 void Texture::setup(const TextureSetup& textureSetup)
 {
+    if (textureType == TextureType::EXTERNAL_TEXTURE)
+    {
+        isSetup = true;
+        return;
+    }
+
     if (isSetup)
     {
         std::cout << "[Error]: Texture " << imagePath << " is already setup" << std::endl;
@@ -119,17 +129,16 @@ void Texture::setup(const TextureSetup& textureSetup)
     glCreateTextures(target, 1, &id);
 
     glTextureStorage2D(id, 1, GL_RGB8, width, height);
-    switch (target)
+    switch (textureType)
     {
-    case GL_TEXTURE_CUBE_MAP:
+    case TextureType::RESOURCE_TEXTURE_CUBEMAP:
         for (uint32_t i = 0; i < data.size(); i++)
         {
             glTextureSubImage3D(id, 0, 0, 0, i, width, height, 1, pixelFormat, GL_UNSIGNED_BYTE, data[i]);
             stbi_image_free(data[i]);
         }
         break;
-    case GL_TEXTURE_2D:
-    default:
+    case TextureType::RESOURCE_TEXTURE_2D:
         if (data[0] != nullptr)
         {
             glTextureSubImage2D(id, 0, 0, 0, width, height, pixelFormat, GL_UNSIGNED_BYTE, data[0]);

@@ -9,6 +9,7 @@
 
 #include "TextureParameter.hpp"
 #include "TextureSetup.hpp"
+#include "TextureType.hpp"
 
 class Texture
 {
@@ -31,6 +32,7 @@ public:
 	GLenum pixelFormat;
 
 	uint32_t id;
+	TextureType textureType;
 	GLenum target;
 	uint32_t textureUnit;
 	uint32_t width;

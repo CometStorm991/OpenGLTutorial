@@ -191,6 +191,7 @@
     <ClInclude Include="Source\Texture.hpp" />
     <ClInclude Include="Source\TextureParameter.hpp" />
     <ClInclude Include="Source\TextureSetup.hpp" />
+    <ClInclude Include="Source\TextureType.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\ArchLinux.jpeg" />
