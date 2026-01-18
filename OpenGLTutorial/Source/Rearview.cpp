@@ -1,14 +1,8 @@
 #include "Rearview.hpp"
 
 Rearview::Rearview()
-    : renderer(Renderer(camera))
 {
 
-}
-
-void Rearview::init()
-{
-    renderer.init();
 }
 
 void Rearview::prepare()
@@ -45,8 +39,10 @@ void Rearview::prepare()
 
     pointLightPos = glm::vec3(1.2f, 1.0f, 2.0f);
     directionalLightDir = glm::vec3(-0.2f, -1.0f, -0.3f);
+    glm::vec3 cameraPos = camController.getCamera().pos;
+    glm::vec3 cameraFront = camController.getCamera().front;
 
-    renderer.setUniform3f(programId, "viewPos", camera.pos);
+    renderer.setUniform3f(programId, "viewPos", cameraPos);
 
     renderer.setUniform1i(programId, "material.diffuse", 0);
     renderer.setUniform1i(programId, "material.specular", 1);
@@ -65,8 +61,8 @@ void Rearview::prepare()
     renderer.setUniform1f(programId, "pointLight.linear", 0.045f);
     renderer.setUniform1f(programId, "pointLight.quadratic", 0.0075f);
 
-    renderer.setUniform3f(programId, "spotLight.position", camera.pos);
-    renderer.setUniform3f(programId, "spotLight.direction", camera.front);
+    renderer.setUniform3f(programId, "spotLight.position", cameraPos);
+    renderer.setUniform3f(programId, "spotLight.direction", cameraFront);
     renderer.setUniform1f(programId, "spotLight.cutoff", glm::cos(glm::radians(12.5f)));
     renderer.setUniform1f(programId, "spotLight.outerCutoff", glm::cos(glm::radians(17.5f)));
     renderer.setUniform3f(programId, "spotLight.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
@@ -158,9 +154,14 @@ void Rearview::run()
 {
     // glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    renderer.prepareForRender();
+    renderer.prepareForFrame();
 
     glm::mat4 model;
+    const Camera camera = camController.getCamera();
+    glm::mat4 view = camController.getCamera().getView();
+    camController.setCameraOrientation(-camera.yaw, -camera.pitch);
+    glm::mat4 rearview = camController.getCamera().getView();
+    camController.setCameraOrientation(camera.yaw, camera.pitch);
 
     // -------------------------------------------------------------------------
 
@@ -181,8 +182,7 @@ void Rearview::run()
         model = glm::rotate(model, milliseconds / 1000.0f * rotationSpeed.z, glm::vec3(0.0f, 0.0f, 1.0f));
 
         renderer.updateModelMatrix(model);
-        camera.updateView();
-        renderer.updateViewMatrix(camera.view);
+        renderer.updateViewMatrix(view);
         renderer.setUniformMatrix4fv(programId, "normalMatrix", glm::transpose(glm::inverse(model)));
         renderer.applyMvp(programId, "model", "view", "projection");
         renderer.setUniform3f(programId, "viewPos", camera.pos);
@@ -201,8 +201,7 @@ void Rearview::run()
     model = glm::translate(model, pointLightPos);
     model = glm::scale(model, glm::vec3(0.2f));
     renderer.updateModelMatrix(model);
-    camera.updateView();
-    renderer.updateViewMatrix(camera.view);
+    renderer.updateViewMatrix(view);
     renderer.applyMvp(lightProgramId, "model", "view", "projection");
     renderer.draw(36);
 
@@ -216,8 +215,6 @@ void Rearview::run()
         glEnable(GL_DEPTH_TEST);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        camera.front = -camera.front;
-        camera.right = -camera.right;
         for (unsigned int i = 0; i < cubeCount; i++)
         {
             glm::mat4 model = glm::mat4(1.0f);
@@ -229,8 +226,7 @@ void Rearview::run()
             model = glm::rotate(model, milliseconds / 1000.0f * rotationSpeed.z, glm::vec3(0.0f, 0.0f, 1.0f));
 
             renderer.updateModelMatrix(model);
-            camera.updateView();
-            renderer.updateViewMatrix(camera.view);
+            renderer.updateViewMatrix(rearview);
             renderer.setUniformMatrix4fv(programId, "normalMatrix", glm::transpose(glm::inverse(model)));
             renderer.applyMvp(programId, "model", "view", "projection");
             renderer.setUniform3f(programId, "viewPos", camera.pos);
@@ -250,13 +246,9 @@ void Rearview::run()
         model = glm::translate(model, pointLightPos);
         model = glm::scale(model, glm::vec3(0.2f));
         renderer.updateModelMatrix(model);
-        camera.updateView();
-        renderer.updateViewMatrix(camera.view);
+        renderer.updateViewMatrix(rearview);
         renderer.applyMvp(lightProgramId, "model", "view", "projection");
         renderer.draw(36);
-
-        camera.front = -camera.front;
-        camera.right = -camera.right;
 
         renderer.unprepareForDraw(lightProgramId, textureIds);
     }
@@ -279,16 +271,18 @@ void Rearview::run()
 
     // -------------------------------------------------------------------------
 
-    renderer.calculateFps();
-    renderer.updateGLFW();
+    renderer.unprepareForFrame();
+
+    window.updateGLFW();
+    camController.updateCamera(window.getInputState(), renderer.getFrameTimeMilliseconds());
 }
 
 bool Rearview::shouldEnd()
 {
-    return renderer.getWindowShouldClose();
+    return window.getShouldClose();
 }
 
 void Rearview::terminate()
 {
-    renderer.terminateGLFW();
+    window.terminate();
 }

@@ -1,14 +1,8 @@
 #include "MultipleLighting.hpp"
 
 MultipleLighting::MultipleLighting()
-	: renderer(Renderer(camera))
 {
 	
-}
-
-void MultipleLighting::init()
-{
-	renderer.init();
 }
 
 void MultipleLighting::prepare()
@@ -46,6 +40,7 @@ void MultipleLighting::prepare()
     pointLightPos = glm::vec3(1.2f, 1.0f, 2.0f);
     directionalLightDir = glm::vec3(-0.2f, -1.0f, -0.3f);
 
+    Camera camera = camController.getCamera();
     renderer.setUniform3f(programId, "viewPos", camera.pos);
 
     renderer.setUniform1i(programId, "material.diffuse", 0);
@@ -109,13 +104,16 @@ void MultipleLighting::addLightingInfo()
 
 void MultipleLighting::run()
 {
-    renderer.prepareForRender();
+    renderer.prepareForFrame();
 
     glm::mat4 model;
+    Camera camera = camController.getCamera();
+    glm::mat4 view = camera.getView();
 
     // -------------------------------------------------------------------------
 
     renderer.prepareForDraw(programId, textureIds, vaoId);
+    glEnable(GL_DEPTH_TEST);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
@@ -140,8 +138,7 @@ void MultipleLighting::run()
         model = glm::rotate(model, milliseconds / 1000.0f * rotationSpeed.z, glm::vec3(0.0f, 0.0f, 1.0f));
 
         renderer.updateModelMatrix(model);
-        camera.updateView();
-        renderer.updateViewMatrix(camera.view);
+        renderer.updateViewMatrix(view);
         renderer.setUniformMatrix4fv(programId, "normalMatrix", glm::transpose(glm::inverse(model)));
         renderer.applyMvp(programId, "model", "view", "projection");
         renderer.setUniform3f(programId, "viewPos", camera.pos);
@@ -160,8 +157,7 @@ void MultipleLighting::run()
     model = glm::translate(model, pointLightPos);
     model = glm::scale(model, glm::vec3(0.2f));
     renderer.updateModelMatrix(model);
-    camera.updateView();
-    renderer.updateViewMatrix(camera.view);
+    renderer.updateViewMatrix(view);
     renderer.applyMvp(lightProgramId, "model", "view", "projection");
     renderer.draw(36);
 
@@ -169,16 +165,17 @@ void MultipleLighting::run()
 
     // -------------------------------------------------------------------------
 
-    renderer.calculateFps();
-    renderer.updateGLFW();
+    renderer.unprepareForFrame();
+
+    window.updateGLFW();
+    camController.updateCamera(window.getInputState(), renderer.getFrameTimeMilliseconds());
 }
 
 bool MultipleLighting::shouldEnd()
 {
-    return renderer.getWindowShouldClose();
+    return window.getShouldClose();
 }
-
 void MultipleLighting::terminate()
 {
-    renderer.terminateGLFW();
+    window.terminate();
 }

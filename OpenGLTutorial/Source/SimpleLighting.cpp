@@ -1,14 +1,8 @@
 #include "SimpleLighting.hpp"
 
 SimpleLighting::SimpleLighting()
-	: renderer(Renderer(camera))
 {
 
-}
-
-void SimpleLighting::init()
-{
-	renderer.init();
 }
 
 void SimpleLighting::prepare()
@@ -20,6 +14,7 @@ void SimpleLighting::prepare()
 
     simpleLightPos = glm::vec3(1.2f, 1.0f, 2.0f);
 
+    Camera camera = camController.getCamera();
     renderer.setUniform3f(programId, "viewPos", camera.pos);
 
     renderer.setUniform1i(programId, "material.diffuse", 0);
@@ -66,9 +61,12 @@ void SimpleLighting::addLightingInfo()
 
 void SimpleLighting::run()
 {
-    renderer.prepareForRender();
+    renderer.prepareForFrame();
+    glEnable(GL_DEPTH_TEST);
 
     glm::mat4 model;
+    Camera camera = camController.getCamera();
+    glm::mat4 view = camera.getView();
 
     // -------------------------------------------------------------------------
 
@@ -81,8 +79,7 @@ void SimpleLighting::run()
     model = glm::scale(model, glm::vec3(20.0f, 1.0f, 20.0f));*/
     renderer.updateModelMatrix(model);
     renderer.setUniformMatrix4fv(programId, "normalMatrix", glm::transpose(glm::inverse(model)));
-    camera.updateView();
-    renderer.updateViewMatrix(camera.view);
+    renderer.updateViewMatrix(view);
     renderer.applyMvp(programId, "model", "view", "projection");
     renderer.setUniform3f(programId, "viewPos", camera.pos);
     renderer.draw(36);
@@ -97,8 +94,7 @@ void SimpleLighting::run()
     model = glm::translate(model, simpleLightPos);
     model = glm::scale(model, glm::vec3(0.2f));
     renderer.updateModelMatrix(model);
-    camera.updateView();
-    renderer.updateViewMatrix(camera.view);
+    renderer.updateViewMatrix(view);
     renderer.applyMvp(lightProgramId, "model", "view", "projection");
     renderer.draw(36);
 
@@ -106,16 +102,17 @@ void SimpleLighting::run()
 
     // -------------------------------------------------------------------------
 
-    renderer.calculateFps();
-    renderer.updateGLFW();
+    renderer.unprepareForFrame();
+    
+    window.updateGLFW();
+    camController.updateCamera(window.getInputState(), renderer.getFrameTimeMilliseconds());
 }
 
 bool SimpleLighting::shouldEnd()
 {
-    return renderer.getWindowShouldClose();
+    return window.getShouldClose();
 }
-
 void SimpleLighting::terminate()
 {
-    renderer.terminateGLFW();
+    window.terminate();
 }

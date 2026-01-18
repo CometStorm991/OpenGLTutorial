@@ -1,15 +1,16 @@
 #pragma once
 
+#include "CameraController.hpp"
 #include "Cube.hpp"
 #include "Demo.hpp"
 #include "Renderer.hpp"
+#include "Window.hpp"
 
 class Skybox : public Demo
 {
 public:
 	Skybox();
 
-	void init() override;
 	void prepare() override;
 	void run() override;
 	bool shouldEnd() override;
@@ -19,19 +20,20 @@ public:
 	void prepareReflectiveBox();
 	void prepareSkybox();
 private:
-	Renderer renderer;
-	Camera camera;
+	Window window{};
+	Renderer renderer{};
+	CameraController camController{};
 
-	uint32_t boxProgramId;
-	uint32_t boxVertexArrayId;
+	uint32_t boxProgramId = 0;
+	uint32_t boxVertexArrayId = 0;
 
-	uint32_t reflectiveBoxProgramId;
-	uint32_t reflectiveBoxVertexArrayId;
+	uint32_t reflectiveBoxProgramId = 0;
+	uint32_t reflectiveBoxVertexArrayId = 0;
 
-	uint32_t skyboxProgramId;
-	uint32_t skyboxTextureId;
-	uint32_t skyboxVertexArrayId;
+	uint32_t skyboxProgramId = 0;
+	uint32_t skyboxTextureId = 0;
+	uint32_t skyboxVertexArrayId = 0;
 
 
-	std::vector<uint32_t> boxTextureIds;
+	std::vector<uint32_t> boxTextureIds{};
 };

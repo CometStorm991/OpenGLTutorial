@@ -1,24 +1,26 @@
 #include <random>
 #include <vector>
 
+#include "CameraController.hpp"
 #include "Cube.hpp"
 #include "Camera.hpp"
 #include "Demo.hpp"
 #include "Renderer.hpp"
+#include "Window.hpp"
 
 class GettingStarted : public Demo
 {
 public:
 	GettingStarted();
 
-	void init() override;
 	void prepare() override;
 	void run() override;
 	bool shouldEnd() override;
 	void terminate() override;
 private:
-	Renderer renderer;
-	Camera camera;
+	Window window{};
+	Renderer renderer{};
+	CameraController camController{};
 
 	uint32_t vaoId;
 	std::vector<uint32_t> textureIds;

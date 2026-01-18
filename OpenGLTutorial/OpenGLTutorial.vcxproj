@@ -150,6 +150,7 @@
     <None Include="Shaders\MultipleLightingFS.glsl" />
     <ClCompile Include="Source\Application.cpp" />
     <ClCompile Include="Source\Camera.cpp" />
+    <ClCompile Include="Source\CameraController.cpp" />
     <ClCompile Include="Source\Cube.cpp" />
     <ClCompile Include="Source\FbAttachment.cpp" />
     <ClCompile Include="Source\GettingStarted.cpp" />
@@ -165,6 +166,7 @@
     <ClCompile Include="Source\Texture.cpp" />
     <ClCompile Include="Source\TextureParameter.cpp" />
     <ClCompile Include="Source\TextureSetup.cpp" />
+    <ClCompile Include="Source\Window.cpp" />
     <ClCompile Include="Vendors\stb_image.cpp" />
     <None Include="Shaders\SkyboxFS.glsl" />
     <None Include="Shaders\SkyboxVS.glsl" />
@@ -176,10 +178,12 @@
   <ItemGroup>
     <ClInclude Include="Source\Application.hpp" />
     <ClInclude Include="Source\Camera.hpp" />
+    <ClInclude Include="Source\CameraController.hpp" />
     <ClInclude Include="Source\Cube.hpp" />
     <ClInclude Include="Source\Demo.hpp" />
     <ClInclude Include="Source\FbAttachment.hpp" />
     <ClInclude Include="Source\GettingStarted.hpp" />
+    <ClInclude Include="Source\InputState.hpp" />
     <ClInclude Include="Source\MultipleLighting.hpp" />
     <ClInclude Include="Source\Rearview.hpp" />
     <ClInclude Include="Source\Renderer.hpp" />
@@ -192,6 +196,7 @@
     <ClInclude Include="Source\TextureParameter.hpp" />
     <ClInclude Include="Source\TextureSetup.hpp" />
     <ClInclude Include="Source\TextureType.hpp" />
+    <ClInclude Include="Source\Window.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\ArchLinux.jpeg" />

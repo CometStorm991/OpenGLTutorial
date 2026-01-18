@@ -1,13 +1,8 @@
 #include "Application.hpp"
 
 Application::Application()
-    : demo(std::make_unique<GettingStarted>())
+    : demo(std::make_unique<Skybox>())
 {
-}
-
-void Application::init()
-{
-    demo->init();
 }
 
 void Application::prepare()

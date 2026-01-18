@@ -1,14 +1,8 @@
 #include "GettingStarted.hpp"
 
 GettingStarted::GettingStarted()
-    : renderer(Renderer(camera))
 {
     
-}
-
-void GettingStarted::init()
-{
-    renderer.init();
 }
 
 void GettingStarted::prepare()
@@ -45,7 +39,7 @@ void GettingStarted::prepare()
         cubeRotationSpeeds.push_back(glm::vec3(x, y, z));
     }
 
-    camera.pos = glm::vec3(0.0f, 0.0f, -30.0f);
+    camController.setCameraPos(glm::vec3(0.0f, 0.0f, -30.0f));
 
     renderer.prepareForRun();
 }
@@ -78,9 +72,11 @@ void GettingStarted::addCubeVertices(std::vector<uint32_t>& textureIds, uint32_t
 
 void GettingStarted::run()
 {
-    renderer.prepareForRender();
+    renderer.prepareForFrame();
+    glm::mat4 view = camController.getCamera().getView();
 
     renderer.prepareForDraw(programId, textureIds, vaoId);
+    glEnable(GL_DEPTH_TEST);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -97,23 +93,23 @@ void GettingStarted::run()
         model = glm::rotate(model, milliseconds / 1000.0f * rotationSpeed.z, glm::vec3(0.0f, 0.0f, 1.0f));
 
         renderer.updateModelMatrix(model);
-        camera.updateView();
-        renderer.updateViewMatrix(camera.view);
+        renderer.updateViewMatrix(view);
         renderer.applyMvp(programId, "model", "view", "projection");
         renderer.draw(36);
     }
 
     renderer.unprepareForDraw(programId, textureIds);
-    renderer.calculateFps();
-    renderer.updateGLFW();
+    renderer.unprepareForFrame();
+
+    window.updateGLFW();
+    camController.updateCamera(window.getInputState(), renderer.getFrameTimeMilliseconds());
 }
 
 bool GettingStarted::shouldEnd()
 {
-    return renderer.getWindowShouldClose();
+    return window.getShouldClose();
 }
-
 void GettingStarted::terminate()
 {
-    renderer.terminateGLFW();
+    window.terminate();
 }

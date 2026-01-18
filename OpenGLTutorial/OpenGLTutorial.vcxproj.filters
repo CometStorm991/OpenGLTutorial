@@ -69,6 +69,12 @@
     <ClCompile Include="Source\TextureSetup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\CameraController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\SimpleLightingFS.glsl" />
@@ -139,6 +145,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\TextureType.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Window.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\InputState.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CameraController.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

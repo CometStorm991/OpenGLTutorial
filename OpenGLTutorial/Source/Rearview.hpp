@@ -8,24 +8,26 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "CameraController.hpp"
 #include "Cube.hpp"
 #include "Camera.hpp"
 #include "Demo.hpp"
 #include "Renderer.hpp"
+#include "Window.hpp"
 
 class Rearview : public Demo
 {
 public:
 	Rearview();
 
-	void init() override;
 	void prepare() override;
 	void run() override;
 	bool shouldEnd() override;
 	void terminate() override;
 private:
-	Renderer renderer;
-	Camera camera;
+	Window window{};
+	Renderer renderer{};
+	CameraController camController{};
 
 	uint32_t vaoId;
 	uint32_t quadVaoId;

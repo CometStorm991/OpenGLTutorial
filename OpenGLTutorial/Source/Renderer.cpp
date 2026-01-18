@@ -1,58 +1,14 @@
 #include "Renderer.hpp"
 
-Renderer::Renderer(Camera& camera)
+Renderer::Renderer()
     :
-    camera(camera),
     model(glm::mat4(1.0f)),
     view(glm::mat4(1.0f)),
     projection(glm::perspective(glm::radians(60.0f), 1920.0f / 1080.0f, 0.1f, 100.0f)),
     mvp(glm::mat4(1.0f))
 {
-    // TODO:
-    // Have each texture choose its own texture unit instead of assigning texture units by order added to Renderer
-}
-
-void Renderer::init()
-{
-    initWindow();
-    initOpenGL();
-}
-
-GLFWwindow* Renderer::initWindow()
-{
-    window = nullptr;
-
-    /* Initialize the library */
-    if (!glfwInit())
-    {
-        std::cout << "Failed to initialize GLFW" << std::endl;
-        return window;
-    }
-
-    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-
-
-    /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(1920, 1080, "Hello World", NULL, NULL);
-    if (!window)
-    {
-        glfwTerminate();
-        std::cout << "Failed to create GLFW window" << std::endl;
-        return window;
-    }
-
-    /* Make the window's context current */
-    glfwMakeContextCurrent(window);
-
-    glfwSetWindowUserPointer(window, this);
-
-    return window;
-}
-
-void Renderer::initOpenGL()
-{
     if (glewInit() != GLEW_OK) {
-        std::cout << "Glew failed." << std::endl;
+        std::cerr << "[Error]: Glew failed" << std::endl;
     }
 
     std::cout << glGetString(GL_VERSION) << std::endl;
@@ -61,14 +17,9 @@ void Renderer::initOpenGL()
     {
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        glDebugMessageCallback(Renderer::debugOutputGLFW, nullptr);
+        glDebugMessageCallback(Renderer::debugOutputOpenGL, nullptr);
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
     }
-
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPosCallback(window, Renderer::mouseCallbackGLFW);
-
-    glEnable(GL_DEPTH_TEST);
 }
 
 void Renderer::generateProgram(uint32_t& programId, const std::string& vertexShaderPath, const std::string& fragmentShaderPath)
@@ -222,39 +173,13 @@ void Renderer::prepareForRun()
 {   
     startTime = std::chrono::steady_clock::now();
     lastSecondTime = std::chrono::steady_clock::now();
+
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
 }
 
-void Renderer::updateCameraPosition()
-{
-    float deltaTime = (milliseconds - previousMillis) / 1000.0f;
-    float cameraSpeed = deltaTime * 10.0f;
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    {
-        camera.pos += cameraSpeed * camera.front;
-    }
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    {
-        camera.pos -= cameraSpeed * camera.front;
-    }
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    {
-        camera.pos += cameraSpeed * camera.right;
-    }
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    {
-        camera.pos -= cameraSpeed * camera.right;
-    }
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-    {
-        camera.pos += cameraSpeed * glm::vec3(0.0f, 1.0f, 0.0f);
-    }
-    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-    {
-        camera.pos -= cameraSpeed * glm::vec3(0.0f, 1.0f, 0.0f);
-    }
-}
-
-void Renderer::prepareForRender()
+void Renderer::prepareForFrame()
 {
     previousMillis = milliseconds;
     milliseconds = getMillisecondsSinceRunPreparation();
@@ -330,7 +255,7 @@ void Renderer::unprepareForDraw(uint32_t programId, const std::vector<uint32_t>&
     glBindVertexArray(0);
 }
 
-void Renderer::calculateFps()
+void Renderer::unprepareForFrame()
 {
     fps++;
     uint32_t currentSecMillis = getMillisecondsSinceTimePoint(lastSecondTime);
@@ -338,21 +263,9 @@ void Renderer::calculateFps()
     {
         leftOverMillis = currentSecMillis + leftOverMillis - 1000;
         lastSecondTime = std::chrono::steady_clock::now();
-        std::cout << "FPS: " << fps << std::endl;
+        std::cout << "FPS: " << fps << " Frame time: " << (1000.0f / fps) << "ms" << std::endl;
         fps = 0;
     }
-}
-
-void Renderer::updateGLFW()
-{
-    glfwSwapBuffers(window);
-    glfwPollEvents();
-    updateCameraPosition();
-}
-
-void Renderer::terminateGLFW()
-{
-    glfwTerminate();
 }
 
 void Renderer::setUniform1i(uint32_t programId, const std::string& name, int32_t value)
@@ -403,18 +316,9 @@ void Renderer::setUniformMatrix4fv(uint32_t programId, const std::string& name, 
     }
 }
 
-void Renderer::testGLM()
+uint32_t Renderer::getFrameTimeMilliseconds()
 {
-    glm::vec4 vector = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-    glm::mat4 trans = glm::mat4(1.0f);
-    trans = glm::translate(trans, glm::vec3(1.0f, 1.0f, 0.0f));
-    vector = trans * vector;
-    std::cout << "X: " << vector.x << " Y: " << vector.y << " Z: " << vector.z << std::endl;
-}
-
-bool Renderer::getWindowShouldClose()
-{
-    return glfwWindowShouldClose(window);
+    return milliseconds - previousMillis;
 }
 
 uint64_t Renderer::getMillisecondsSinceRunPreparation()
@@ -422,39 +326,8 @@ uint64_t Renderer::getMillisecondsSinceRunPreparation()
     return getMillisecondsSinceTimePoint(startTime);
 }
 
-void Renderer::mouseCallbackGLFW(GLFWwindow* window, double xPos, double yPos)
-{
-    Renderer* renderer = (Renderer*)glfwGetWindowUserPointer(window);
-    renderer->mouseCallback(window, xPos, yPos);
-}
-
-void Renderer::mouseCallback(GLFWwindow* window, double xPos, double yPos)
-{
-    float xOffset = xPos - lastX;
-    float yOffset = lastY - yPos; // Reversed because y coordinates range bottom up
-    lastX = xPos;
-    lastY = yPos;
-
-    float sensitivity = 0.1f;
-    xOffset *= sensitivity;
-    yOffset *= sensitivity;
-
-    float yaw = camera.getYaw();
-    float pitch = camera.getPitch();
-
-    yaw += xOffset;
-    pitch += yOffset;
-
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-    if (pitch < -89.0f)
-        pitch = -89.0f;
-
-    camera.updateOrientation(yaw, pitch);
-}
-
 // This code is from learnopengl.com
-void APIENTRY Renderer::debugOutputGLFW(GLenum source,
+void APIENTRY Renderer::debugOutputOpenGL(GLenum source,
     GLenum type,
     unsigned int id,
     GLenum severity,

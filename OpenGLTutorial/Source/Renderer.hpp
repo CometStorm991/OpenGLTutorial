@@ -21,58 +21,8 @@
 
 class Renderer
 {
-private:
-	// GLFW
-	GLFWwindow* window = nullptr;
-
-	std::unordered_map<uint32_t, Program> programMap;
-	std::unordered_map<uint32_t, Texture> textureMap;
-	uint32_t currentFramebuffer = 0;
-
-	glm::mat4 model;
-	glm::mat4 view;
-	glm::mat4 projection;
-	glm::mat4 mvp;
-
-	Camera& camera;
-
-	std::chrono::steady_clock::time_point startTime;
-	std::chrono::steady_clock::time_point lastSecondTime;
-	uint32_t milliseconds = 0;
-	uint32_t leftOverMillis = 0;
-	uint32_t fps = 0;
-	uint32_t previousMillis = 0;
-
-	float lastX = 0.0f;
-	float lastY = 0.0f;
-
-	GLFWwindow* initWindow();
-	void initOpenGL();
-
-	void updateCameraPosition();
-
-	static void mouseCallbackGLFW(GLFWwindow* window, double xPos, double yPos);
-	void mouseCallback(GLFWwindow* window, double xPos, double yPos);
-
-	uint32_t getGLTypeSize(GLenum type);
-
-	template <class ClockType>
-	uint64_t getMillisecondsSinceTimePoint(std::chrono::time_point<ClockType> start);
-
-	static void APIENTRY debugOutputGLFW(
-		GLenum source,
-		GLenum type,
-		unsigned int id,
-		GLenum severity,
-		GLsizei length,
-		const char* message,
-		const void* userParam
-	);
-
 public:
-	Renderer(Camera& camera);
-
-	void init();
+	Renderer();
 
 	// TODO: Add support for 2d array textures and cubemap stacks
 
@@ -89,7 +39,7 @@ public:
 	void addTexture(uint32_t& textureId, GLenum target);
 
 	void prepareForRun();
-	void prepareForRender();
+	void prepareForFrame();
 	void prepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds, uint32_t vaoId);
 	void prepareForDraw(uint32_t framebufferId, uint32_t programId, const std::vector<uint32_t>& textureIds, uint32_t vaoId);
 	void updateModelMatrix(const glm::mat4& model);
@@ -97,19 +47,49 @@ public:
 	void applyMvp(uint32_t programId, const std::string& modelName, const std::string& viewName, const std::string& projectionName);
 	void draw(unsigned int triangleCount);
 	void unprepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds);
-	void calculateFps();
-	void updateGLFW();
-	void terminateGLFW();
+	void unprepareForFrame();
 
 	void setUniform1i(uint32_t programId, const std::string& name, int32_t value);
 	void setUniform1f(uint32_t programId, const std::string& name, float value);
 	void setUniform3f(uint32_t programId, const std::string& name, const glm::vec3& value);
 	void setUniformMatrix4fv(uint32_t programId, const std::string& name, const glm::mat4& value);
 
-	void testGLM();
-
-	bool getWindowShouldClose();
+	uint32_t getFrameTimeMilliseconds();
 	uint64_t getMillisecondsSinceRunPreparation();
+private:
+	std::unordered_map<uint32_t, Program> programMap;
+	std::unordered_map<uint32_t, Texture> textureMap;
+	uint32_t currentFramebuffer = 0;
+
+	glm::mat4 model;
+	glm::mat4 view;
+	glm::mat4 projection;
+	glm::mat4 mvp;
+
+	std::chrono::steady_clock::time_point startTime;
+	std::chrono::steady_clock::time_point lastSecondTime;
+	uint32_t milliseconds = 0;
+	uint32_t leftOverMillis = 0;
+	uint32_t fps = 0;
+	uint32_t previousMillis = 0;
+
+	float lastX = 0.0f;
+	float lastY = 0.0f;
+
+	uint32_t getGLTypeSize(GLenum type);
+
+	template <class ClockType>
+	uint64_t getMillisecondsSinceTimePoint(std::chrono::time_point<ClockType> start);
+
+	static void APIENTRY debugOutputOpenGL(
+		GLenum source,
+		GLenum type,
+		unsigned int id,
+		GLenum severity,
+		GLsizei length,
+		const char* message,
+		const void* userParam
+	);
 };
 
 template <class ClockType>

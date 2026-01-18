@@ -22,7 +22,6 @@
 int main(void)
 {
     Application app;
-    app.init();
     app.prepare();
 
     /* Loop until the user closes the window */

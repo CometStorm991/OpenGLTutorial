@@ -28,7 +28,6 @@ private:
 public:
 	Application();
 
-	void init();
 	void prepare();
 	void run();
 	bool shouldEnd();

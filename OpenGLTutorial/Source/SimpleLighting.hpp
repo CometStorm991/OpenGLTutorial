@@ -3,17 +3,18 @@
 #include <cstdint>
 #include <vector>
 
+#include "CameraController.hpp"
 #include "Cube.hpp"
 #include "Camera.hpp"
 #include "Demo.hpp"
 #include "Renderer.hpp"
+#include "Window.hpp"
 
 class SimpleLighting : public Demo
 {
 public:
 	SimpleLighting();
 
-	void init() override;
 	void prepare() override;
 	void run() override;
 	bool shouldEnd() override;
@@ -21,8 +22,9 @@ public:
 private:
 	void addLightingInfo();
 
-	Renderer renderer;
-	Camera camera;
+	Window window{};
+	Renderer renderer{};
+	CameraController camController{};
 
 	uint32_t vaoId;
 	uint32_t programId;

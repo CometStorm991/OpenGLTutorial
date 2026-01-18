@@ -1,14 +1,8 @@
 #include "Skybox.hpp"
 
 Skybox::Skybox()
-	: renderer(Renderer(camera))
 {
 
-}
-
-void Skybox::init()
-{
-	renderer.init();
 }
 
 void Skybox::prepare()
@@ -20,7 +14,7 @@ void Skybox::prepare()
 	prepareReflectiveBox();
 	prepareSkybox();
 
-	camera.pos = glm::vec3(0.0f, 0.0f, 0.0f);
+	camController.setCameraPos(glm::vec3(0.0f, 0.0f, 0.0f));
 
 	renderer.prepareForRun();
 }
@@ -53,7 +47,7 @@ void Skybox::prepareBox()
 	boxTextureIds.push_back(texture1);
 
 	renderer.generateProgram(boxProgramId, "Shaders/LightingVS.glsl", "Shaders/SimpleLightingFS.glsl");
-	renderer.setUniform3f(boxProgramId, "viewPos", camera.pos);
+	renderer.setUniform3f(boxProgramId, "viewPos", camController.getCamera().pos);
 
 	renderer.setUniform1i(boxProgramId, "material.diffuse", 0);
 	renderer.setUniform1i(boxProgramId, "material.specular", 1);
@@ -118,7 +112,9 @@ void Skybox::prepareSkybox()
 
 void Skybox::run()
 {
-	renderer.prepareForRender();
+	renderer.prepareForFrame();
+	glm::mat4 view = camController.getCamera().getView();
+	glm::vec3 pos = camController.getCamera().pos;
 	
 	// -------- Box --------
 	{
@@ -132,10 +128,9 @@ void Skybox::run()
 		glm::mat4 model = glm::mat4(1.0f);
 		renderer.updateModelMatrix(model);
 		renderer.setUniformMatrix4fv(boxProgramId, "normalMatrix", glm::transpose(glm::inverse(model)));
-		camera.updateView();
-		renderer.updateViewMatrix(camera.view);
+		renderer.updateViewMatrix(view);
 		renderer.applyMvp(boxProgramId, "model", "view", "projection");
-		renderer.setUniform3f(boxProgramId, "viewPos", camera.pos);
+		renderer.setUniform3f(boxProgramId, "viewPos", pos);
 		renderer.draw(36);
 
 		renderer.unprepareForDraw(boxProgramId, boxTextureIds);
@@ -148,11 +143,10 @@ void Skybox::run()
 		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, -3.0f, 0.0f));
 		renderer.updateModelMatrix(model);
-		camera.updateView();
-		renderer.updateViewMatrix(camera.view);
+		renderer.updateViewMatrix(view);
 		renderer.applyMvp(reflectiveBoxProgramId, "model", "view", "projection");
 		renderer.setUniform1i(reflectiveBoxProgramId, "reflective", 1);
-		renderer.setUniform3f(reflectiveBoxProgramId, "cameraPos", camera.pos);
+		renderer.setUniform3f(reflectiveBoxProgramId, "cameraPos", pos);
 		renderer.draw(36);
 
 		
@@ -176,26 +170,25 @@ void Skybox::run()
 
 		glm::mat4 model = glm::mat4(1.0f);
 		renderer.updateModelMatrix(model);
-		camera.updateView();
-		camera.view = glm::mat4(glm::mat3(camera.view));
-		renderer.updateViewMatrix(camera.view);
+		glm::mat4 newView = glm::mat4(glm::mat3(view));
+		renderer.updateViewMatrix(newView);
 		renderer.applyMvp(skyboxProgramId, "", "view", "projection");
 		renderer.draw(36);
 
 		renderer.unprepareForDraw(skyboxProgramId, { skyboxTextureId });
 	}
 
-	
+	renderer.unprepareForFrame();
 
-	renderer.calculateFps();
-	renderer.updateGLFW();
+	window.updateGLFW();
+	camController.updateCamera(window.getInputState(), renderer.getFrameTimeMilliseconds());
 }
 
 bool Skybox::shouldEnd()
 { 
-	return renderer.getWindowShouldClose();
+	return window.getShouldClose();
 }
 void Skybox::terminate()
 {
-	renderer.terminateGLFW();
+	window.terminate();
 }
