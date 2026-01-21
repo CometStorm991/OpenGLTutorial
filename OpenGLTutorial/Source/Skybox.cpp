@@ -167,6 +167,7 @@ void Skybox::run()
 		renderer.prepareForDraw(skyboxProgramId, { skyboxTextureId }, skyboxVertexArrayId);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LEQUAL);
+		glDisable(GL_CULL_FACE);
 
 		glm::mat4 model = glm::mat4(1.0f);
 		renderer.updateModelMatrix(model);
