@@ -12,6 +12,7 @@
 #include "Cube.hpp"
 #include "Demo.hpp"
 #include "GettingStarted.hpp"
+#include "Instancing.hpp"
 #include "MultipleLighting.hpp"
 #include "Program.hpp"
 #include "Rearview.hpp"

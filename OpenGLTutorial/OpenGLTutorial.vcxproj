@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -122,18 +122,21 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>GLEW_STATIC;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\GLFW\include\;$(SolutionDir)Dependencies\GLEW\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Dev\OpenGLTutorial\Dependencies\GLM\include\;$(SolutionDir)Dependencies\GLFW\include\;$(SolutionDir)Dependencies\GLEW\include\;$(SolutionDir)Dependencies\STB\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\GLFW\lib-vc2022;C:\Dev\OpenGLTutorial\Dependencies\GLEW\lib\Release\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\GLFW\lib-vc2022;$(SolutionDir)Dependencies\GLEW\lib\Release\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>glfw3.lib;opengl32.lib;glew32s.lib;User32.lib;Gdi32.lib;Shell32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="Shaders\MetalBoxFS.glsl" />
+    <None Include="Shaders\MetalBoxVS.glsl" />
     <None Include="Shaders\QuadFS.glsl" />
     <None Include="Shaders\QuadVS.glsl" />
     <None Include="Shaders\ReflectionFS.glsl" />
@@ -154,6 +157,7 @@
     <ClCompile Include="Source\Cube.cpp" />
     <ClCompile Include="Source\FbAttachment.cpp" />
     <ClCompile Include="Source\GettingStarted.cpp" />
+    <ClCompile Include="Source\Instancing.cpp" />
     <ClCompile Include="Source\MultipleLighting.cpp" />
     <ClCompile Include="Source\Rearview.cpp" />
     <ClCompile Include="Source\Renderer.cpp" />
@@ -184,6 +188,7 @@
     <ClInclude Include="Source\FbAttachment.hpp" />
     <ClInclude Include="Source\GettingStarted.hpp" />
     <ClInclude Include="Source\InputState.hpp" />
+    <ClInclude Include="Source\Instancing.hpp" />
     <ClInclude Include="Source\MultipleLighting.hpp" />
     <ClInclude Include="Source\Rearview.hpp" />
     <ClInclude Include="Source\Renderer.hpp" />

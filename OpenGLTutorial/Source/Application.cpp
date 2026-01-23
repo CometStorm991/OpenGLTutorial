@@ -1,7 +1,7 @@
 #include "Application.hpp"
 
 Application::Application()
-    : demo(std::make_unique<Skybox>())
+    : demo(std::make_unique<Instancing>())
 {
 }
 

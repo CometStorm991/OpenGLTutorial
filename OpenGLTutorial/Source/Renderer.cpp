@@ -198,7 +198,12 @@ void Renderer::prepareForDraw(uint32_t framebufferId, uint32_t programId, const 
         currentFramebuffer = framebufferId;
     }
     
+    if (programMap.size() == 0)
+    {
+        std::cerr << "[Error]: No programs were generated" << std::endl;
+    }
     programMap.at(programId).use();
+
     for (unsigned int i = 0; i < textureIds.size(); i++)
     {
         uint32_t textureId = textureIds.at(i);
@@ -237,6 +242,11 @@ void Renderer::applyMvp(uint32_t programId, const std::string& modelName, const 
 void Renderer::draw(unsigned int triangleCount)
 {
     glDrawArrays(GL_TRIANGLES, 0, 36);
+}
+
+void Renderer::drawInstanced(unsigned int triangleCount, uint32_t instanceCount)
+{
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 36, instanceCount);
 }
 
 void Renderer::unprepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds)

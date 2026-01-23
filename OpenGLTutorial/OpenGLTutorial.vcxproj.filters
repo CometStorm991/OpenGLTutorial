@@ -75,6 +75,9 @@
     <ClCompile Include="Source\CameraController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Instancing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\SimpleLightingFS.glsl" />
@@ -91,6 +94,8 @@
     <None Include="Shaders\SkyboxVS.glsl" />
     <None Include="Shaders\ReflectionFS.glsl" />
     <None Include="Shaders\ReflectionVS.glsl" />
+    <None Include="Shaders\MetalBoxFS.glsl" />
+    <None Include="Shaders\MetalBoxVS.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Shader.hpp">
@@ -154,6 +159,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\CameraController.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Instancing.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

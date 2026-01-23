@@ -46,6 +46,7 @@ public:
 	void updateViewMatrix(const glm::mat4& view);
 	void applyMvp(uint32_t programId, const std::string& modelName, const std::string& viewName, const std::string& projectionName);
 	void draw(unsigned int triangleCount);
+	void drawInstanced(unsigned int triangleCount, uint32_t instanceCount);
 	void unprepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds);
 	void unprepareForFrame();
 
