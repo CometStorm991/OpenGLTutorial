@@ -137,6 +137,11 @@
   <ItemGroup>
     <None Include="Shaders\ALLightFS.glsl" />
     <None Include="Shaders\ALLightVS.glsl" />
+    <None Include="Shaders\DepthMapFS.glsl" />
+    <None Include="Shaders\DepthMapInstancedFS.glsl" />
+    <None Include="Shaders\DepthMapInstancedVS.glsl" />
+    <None Include="Shaders\DepthMapVS.glsl" />
+    <None Include="Shaders\DepthQuadFS.glsl" />
     <None Include="Shaders\MetalBoxFS.glsl" />
     <None Include="Shaders\MetalBoxVS.glsl" />
     <None Include="Shaders\QuadFS.glsl" />
@@ -177,6 +182,8 @@
     <ClCompile Include="Vendors\stb_image.cpp" />
     <None Include="Shaders\SkyboxFS.glsl" />
     <None Include="Shaders\SkyboxVS.glsl" />
+    <None Include="Shaders\TexDiffSpecFS.glsl" />
+    <None Include="Shaders\TexDiffSpecVS.glsl" />
     <None Include="Shaders\TexturedObjectFS.glsl" />
     <None Include="Shaders\TexturedObjectVS.glsl" />
   </ItemGroup>

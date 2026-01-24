@@ -38,6 +38,7 @@ public:
 	void generateFramebuffer(uint32_t& framebufferId, const std::vector<FbAttachment>& attachments);
 
 	void addTexture(uint32_t& textureId, GLenum target);
+	void addTexture(uint32_t& textureId, GLenum target, uint32_t textureUnit);
 
 	void prepareForRun();
 	void prepareForFrame();
@@ -50,6 +51,8 @@ public:
 	void drawInstanced(unsigned int triangleCount, uint32_t instanceCount);
 	void unprepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds);
 	void unprepareForFrame();
+
+	void bindFramebuffer(uint32_t framebufferId);
 
 	void setUniform1i(uint32_t programId, const std::string& name, int32_t value);
 	void setUniform1f(uint32_t programId, const std::string& name, float value);

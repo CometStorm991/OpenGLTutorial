@@ -172,6 +172,12 @@ void Renderer::addTexture(uint32_t& textureId, GLenum target)
     textureMap.insert({ textureId, texture });
 }
 
+void Renderer::addTexture(uint32_t& textureId, GLenum target, uint32_t textureUnit)
+{
+    Texture texture = Texture::ExternalTexture(textureId, target, textureUnit);
+    textureMap.insert({ textureId, texture });
+}
+
 uint32_t Renderer::getGLTypeSize(GLenum type)
 {
     switch (type)
@@ -290,6 +296,15 @@ void Renderer::unprepareForFrame()
         lastSecondTime = std::chrono::steady_clock::now();
         std::cout << "FPS: " << fps << " Frame time: " << (1000.0f / fps) << "ms" << std::endl;
         fps = 0;
+    }
+}
+
+void Renderer::bindFramebuffer(uint32_t framebufferId)
+{
+    if (currentFramebuffer != framebufferId)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, framebufferId);
+        currentFramebuffer = framebufferId;
     }
 }
 

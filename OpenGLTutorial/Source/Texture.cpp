@@ -103,6 +103,17 @@ Texture Texture::FramebufferTexture(uint32_t width, uint32_t height)
     return texture;
 }
 
+Texture Texture::ExternalTexture(uint32_t id, GLenum target, uint32_t textureUnit)
+{
+    Texture texture = Texture(target);
+    texture.textureType = TextureType::EXTERNAL_TEXTURE;
+    texture.id = id;
+    texture.textureUnit = textureUnit;
+    texture.isSetup = true;
+
+    return texture;
+}
+
 Texture Texture::ExternalTexture(uint32_t id, GLenum target)
 {
     Texture texture = Texture(target);

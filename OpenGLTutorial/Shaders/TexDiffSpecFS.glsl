@@ -13,7 +13,7 @@ uniform sampler2D depthMap;
 struct Material
 {
 	sampler2D diffuse;
-	float specular;
+	sampler2D specular;
 	float shininess;
 };
 uniform Material material;
@@ -74,10 +74,9 @@ float calculateShadow(vec4 fragPosLightSpace);
 vec3 calculatePointLight(vec3 normalizedNorm, vec3 normalizedViewDir)
 {
 	vec3 diffuseColor = vec3(texture(material.diffuse, texCoords));
-	vec3 specularColor = vec3(material.specular);
+	vec3 specularColor = vec3(texture(material.specular, texCoords));
 
 	vec3 normalizedLightDir = normalize(pointLight.position - fragPos);
-	vec3 normalizedHalfDir = normalize(normalizedLightDir + normalizedViewDir);
 
 	float distance = length(pointLight.position - fragPos);
 	float attenuation = 1.0 / (pointLight.constant + pointLight.linear * distance + pointLight.quadratic * distance * distance);
@@ -87,7 +86,8 @@ vec3 calculatePointLight(vec3 normalizedNorm, vec3 normalizedViewDir)
 	float diffuseAmount = max(dot(normalizedNorm, normalizedLightDir), 0.0f);
 	vec3 diffuse = diffuseAmount * diffuseColor * pointLight.diffuse;
 
-	float specularAmount = pow(max(dot(normalizedNorm, normalizedHalfDir), 0.0f), material.shininess);
+	vec3 reflectDir = reflect(-normalizedLightDir, normalizedNorm);
+	float specularAmount = pow(max(dot(normalizedViewDir, reflectDir), 0.0f), material.shininess);
 	vec3 specular = specularAmount * specularColor * pointLight.specular;
 
 	float shadow = calculateShadow(fragPosLightSpace);
@@ -114,7 +114,10 @@ void main()
 
 	vec3 result = vec3(0.0f);
 	result += calculatePointLight(normalizedNorm, normalizedViewDir);
+	//vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+	//projCoords = projCoords * 0.5f + 0.5f;
+	//result += vec3(projCoords.x > 0.35f ? 1.0f : 0.0f, 0.0f, 0.0f);
+	//result += vec3(calculateShadow(fragPosLightSpace));
 
 	fragColor = vec4(result, 1.0f);
-	//fragColor = vec4(0.5f, 0.0f, 1.0f, 1.0f);
 }

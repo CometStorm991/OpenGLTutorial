@@ -23,6 +23,7 @@ public:
 	static Texture FramebufferTexture(uint32_t width, uint32_t height);
 	// For textures that are managed externally
 	static Texture ExternalTexture(uint32_t id, GLenum target);
+	static Texture ExternalTexture(uint32_t id, GLenum target, uint32_t textureUnit);
 
 	void setup(const TextureSetup& textureSetup);
 	
