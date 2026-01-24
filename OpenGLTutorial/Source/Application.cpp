@@ -1,7 +1,7 @@
 #include "Application.hpp"
 
 Application::Application()
-    : demo(std::make_unique<Instancing>())
+    : demo(std::make_unique<AdvancedLighting>())
 {
 }
 

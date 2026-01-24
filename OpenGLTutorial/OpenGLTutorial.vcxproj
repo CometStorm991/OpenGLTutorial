@@ -135,6 +135,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="Shaders\ALLightFS.glsl" />
+    <None Include="Shaders\ALLightVS.glsl" />
     <None Include="Shaders\MetalBoxFS.glsl" />
     <None Include="Shaders\MetalBoxVS.glsl" />
     <None Include="Shaders\QuadFS.glsl" />
@@ -151,6 +153,7 @@
       <FileType>Document</FileType>
     </None>
     <None Include="Shaders\MultipleLightingFS.glsl" />
+    <ClCompile Include="Source\AdvancedLighting.cpp" />
     <ClCompile Include="Source\Application.cpp" />
     <ClCompile Include="Source\Camera.cpp" />
     <ClCompile Include="Source\CameraController.cpp" />
@@ -174,12 +177,15 @@
     <ClCompile Include="Vendors\stb_image.cpp" />
     <None Include="Shaders\SkyboxFS.glsl" />
     <None Include="Shaders\SkyboxVS.glsl" />
+    <None Include="Shaders\TexturedObjectFS.glsl" />
+    <None Include="Shaders\TexturedObjectVS.glsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\GettingStartedFS.glsl" />
     <None Include="Shaders\GettingStartedVS.glsl" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\AdvancedLighting.hpp" />
     <ClInclude Include="Source\Application.hpp" />
     <ClInclude Include="Source\Camera.hpp" />
     <ClInclude Include="Source\CameraController.hpp" />
@@ -226,6 +232,7 @@
     <Image Include="Resources\TutorialSkybox\right.jpg" />
     <Image Include="Resources\TutorialSkybox\top.jpg" />
     <Image Include="Resources\TutorialSpecularMap.png" />
+    <Image Include="Resources\TutorialWood.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

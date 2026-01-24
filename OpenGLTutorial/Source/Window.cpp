@@ -33,6 +33,8 @@ Window::Window()
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, Window::mouseCallbackGLFW);
+
+    glfwSwapInterval(1);
 }
 
 Window::~Window()
