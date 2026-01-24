@@ -128,7 +128,7 @@ void Texture::setup(const TextureSetup& textureSetup)
 
     glCreateTextures(target, 1, &id);
 
-    glTextureStorage2D(id, 1, GL_RGB8, width, height);
+    glTextureStorage2D(id, 1, textureSetup.internalFormat, width, height);
     switch (textureType)
     {
     case TextureType::RESOURCE_TEXTURE_CUBEMAP:

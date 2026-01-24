@@ -60,6 +60,21 @@ void Renderer::generateResourceTexture2D(uint32_t& textureId, const std::string&
     textureMap.insert({textureId, texture});
 }
 
+void Renderer::generateResourceTexture2D(uint32_t& textureId, const std::string& imagePath, bool flip, GLenum internalFormat, GLenum target, uint32_t textureUnit)
+{
+    Texture texture = Texture::ResourceTexture2D(imagePath, flip, target, textureUnit);
+    texture.setup({
+        false, internalFormat, {
+        {GL_TEXTURE_WRAP_S, GL_REPEAT},
+        {GL_TEXTURE_WRAP_T, GL_REPEAT},
+        {GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR},
+        {GL_TEXTURE_MAG_FILTER, GL_LINEAR}
+        } });
+
+    textureId = texture.id;
+    textureMap.insert({ textureId, texture });
+}
+
 void Renderer::generateResourceTextureCubemap(uint32_t& textureId, const std::vector<std::string>& imagePaths, bool flip, GLenum target, uint32_t textureUnit)
 {
     Texture texture = Texture::ResourceTextureCubemap(imagePaths, flip, target, textureUnit);

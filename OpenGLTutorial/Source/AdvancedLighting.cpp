@@ -10,13 +10,17 @@ void AdvancedLighting::prepare()
 	prepareFloor();
 	prepareLight();
 
-	camController.setCameraPos(glm::vec3(0.0f, 0.0f, 0.0f));
+	camController.setCameraPos(glm::vec3(-5.0f, 2.0f, 0.0f));
+	camController.setCameraOrientation(0.0f, 0.0f);
 
 	renderer.prepareForRun();
 
 	// [Warning]: Will break with deferred shading
 	glfwWindowHint(GLFW_SAMPLES, 4);
 	glEnable(GL_MULTISAMPLE);
+
+	// Gamma correction
+	glEnable(GL_FRAMEBUFFER_SRGB);
 }
 
 void AdvancedLighting::prepareFloor()
@@ -54,7 +58,7 @@ void AdvancedLighting::prepareFloor()
 	renderer.generateVertexArray(floorVaoId, vertexBuffer, 0, attribs);
 
 	uint32_t texture0;
-	renderer.generateResourceTexture2D(texture0, "Resources/TutorialWood.png", true, GL_TEXTURE_2D, 0);
+	renderer.generateResourceTexture2D(texture0, "Resources/TutorialWood.png", true, GL_SRGB8, GL_TEXTURE_2D, 0);
 	textureIds.clear();
 	textureIds.push_back(texture0);
 
@@ -69,10 +73,10 @@ void AdvancedLighting::prepareFloor()
 	renderer.setUniform3f(programId, "pointLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
 	renderer.setUniform3f(programId, "pointLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
 	renderer.setUniform1f(programId, "pointLight.constant", 1.0f);
-	renderer.setUniform1f(programId, "pointLight.linear", 0.045f);
-	renderer.setUniform1f(programId, "pointLight.quadratic", 0.0075f);
+	renderer.setUniform1f(programId, "pointLight.linear", 0.07f);
+	renderer.setUniform1f(programId, "pointLight.quadratic", 0.017f);
 
-	floorModel = glm::scale(floorModel, glm::vec3(20.0f, 1.0f, 20.0f));
+	floorModel = glm::scale(floorModel, glm::vec3(50.0f, 1.0f, 50.0f));
 	
 }
 
