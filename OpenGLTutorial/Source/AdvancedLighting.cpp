@@ -162,7 +162,10 @@ void AdvancedLighting::prepareShadows()
 	glTextureStorage2D(depthMapTexId, 1, GL_DEPTH_COMPONENT24, SHADOW_WIDTH, SHADOW_HEIGHT);
 	glTextureParameteri(depthMapTexId, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTextureParameteri(depthMapTexId, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTextureParameteri(depthMapTexId, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTextureParameteri(depthMapTexId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTextureParameteri(depthMapTexId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	float borderColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	glTextureParameterfv(depthMapTexId, GL_TEXTURE_BORDER_COLOR, borderColor);
 	renderer.addTexture(depthMapTexId, GL_TEXTURE_2D, depthMapTexUnit);
 
 	glCreateFramebuffers(1, &depthMapFbId);

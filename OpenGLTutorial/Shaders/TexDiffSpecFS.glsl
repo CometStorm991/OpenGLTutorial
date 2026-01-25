@@ -99,12 +99,26 @@ float calculateShadow(vec4 lightSpace)
 {
 	vec3 projCoords = lightSpace.xyz / lightSpace.w;
 	projCoords = projCoords * 0.5f + 0.5f;
-	float closestDepth = texture(depthMap, projCoords.xy).r;
 	float currentDepth = projCoords.z;
-	float bias = 0.005f;
-	float shadow = currentDepth - bias > closestDepth ? 1.0f : 0.0f;
+	if (currentDepth > 1.0f)
+	{
+		return 0.0f;
+	}
 
-	return shadow;
+
+	float shadow = 0.0f;
+	float bias = 0.005f;
+	vec2 texelSize = 1.0f / textureSize(depthMap, 0);
+	for (int x = -1; x < 2; x++)
+	{
+		for (int y = -1; y < 2; y++)
+		{
+			float closestDepth = texture(depthMap, projCoords.xy + vec2(x, y) * texelSize).r;
+			shadow += currentDepth - bias > closestDepth ? 1.0f : 0.0f;
+		}
+	}
+
+	return shadow / 9.0f;
 }
 
 void main()
