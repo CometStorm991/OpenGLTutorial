@@ -1,4 +1,4 @@
-#version 330 core
+#version 460 core
 
 in vec3 norm;
 in vec3 fragPos;
@@ -50,7 +50,10 @@ struct PointLight
 	float linear;
 	float quadratic;
 };
-uniform PointLight pointLight;
+layout(std430, binding = 0) buffer LightsBuf
+{
+	PointLight lights[];
+};
 
 struct SpotLight
 {
@@ -73,25 +76,31 @@ float calculateShadow(vec4 fragPosLightSpace);
 
 vec3 calculatePointLight(vec3 normalizedNorm, vec3 normalizedViewDir)
 {
-	vec3 diffuseColor = vec3(texture(material.diffuse, texCoords));
-	vec3 specularColor = vec3(material.specular);
+	vec3 result = vec3(0.0f, 0.0f, 0.0f);
 
-	vec3 normalizedLightDir = normalize(pointLight.position - fragPos);
-	vec3 normalizedHalfDir = normalize(normalizedLightDir + normalizedViewDir);
+	for (int i = 0; i < lights.length(); i++)
+	{
+		vec3 diffuseColor = vec3(texture(material.diffuse, texCoords));
+		vec3 specularColor = vec3(material.specular);
 
-	float distance = length(pointLight.position - fragPos);
-	float attenuation = 1.0 / (pointLight.constant + pointLight.linear * distance + pointLight.quadratic * distance * distance);
+		vec3 normalizedLightDir = normalize(lights[i].position - fragPos);
+		vec3 normalizedHalfDir = normalize(normalizedLightDir + normalizedViewDir);
 
-	vec3 ambient = diffuseColor * pointLight.ambient;
+		float distance = length(lights[i].position - fragPos);
+		float attenuation = 1.0f / (lights[i].constant + lights[i].linear * distance + lights[i].quadratic * distance * distance);
 
-	float diffuseAmount = max(dot(normalizedNorm, normalizedLightDir), 0.0f);
-	vec3 diffuse = diffuseAmount * diffuseColor * pointLight.diffuse;
+		vec3 ambient = diffuseColor * lights[i].ambient;
 
-	float specularAmount = pow(max(dot(normalizedNorm, normalizedHalfDir), 0.0f), material.shininess);
-	vec3 specular = specularAmount * specularColor * pointLight.specular;
+		float diffuseAmount = max(dot(normalizedNorm, normalizedLightDir), 0.0f);
+		vec3 diffuse = diffuseAmount * diffuseColor * lights[i].diffuse;
 
-	float shadow = calculateShadow(fragPosLightSpace);
-	vec3 result = (ambient + (1.0f - shadow) * (diffuse + specular)) * attenuation;
+		float specularAmount = pow(max(dot(normalizedNorm, normalizedHalfDir), 0.0f), material.shininess);
+		vec3 specular = specularAmount * specularColor * lights[i].specular;
+
+		float shadow = calculateShadow(fragPosLightSpace);
+		result += (ambient + (1.0f - shadow) * (diffuse + specular)) * attenuation;
+	}
+
 	return result;
 }
 
@@ -129,5 +138,4 @@ void main()
 	result += calculatePointLight(normalizedNorm, normalizedViewDir);
 
 	fragColor = vec4(result, 1.0f);
-	//fragColor = vec4(0.5f, 0.0f, 1.0f, 1.0f);
 }

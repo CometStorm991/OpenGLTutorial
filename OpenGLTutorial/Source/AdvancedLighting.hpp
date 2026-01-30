@@ -28,6 +28,20 @@ private:
 		glm::mat4 modelMat;
 	};
 
+	class Light {
+	public:
+		glm::vec3 color;
+		glm::mat4 modelMat;
+
+		glm::vec3 pos;
+		glm::vec3 ambient;
+		glm::vec3 diffuse;
+		glm::vec3 specular;
+		float constant;
+		float linear;
+		float quadratic;
+	};
+
 	const uint32_t SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 	const uint32_t SCREEN_WIDTH = 1920, SCREEN_HEIGHT = 1080;
 
@@ -57,6 +71,7 @@ private:
 	uint32_t floorCount = 0;
 	
 	uint32_t lightProgramId = 0;
+	uint32_t lightCount = 0;
 	glm::mat4 lightModel{1.0f};
 
 	uint32_t boxesProgramId = 0;
@@ -81,7 +96,7 @@ private:
 	void buildFloorCube(std::vector<Floor>& floors);
 	void prepareFloor(const std::vector<Floor>& floors);
 	void prepareBoxes();
-	void prepareLight();
+	void prepareLight(const std::vector<Light>& lights);
 	void prepareShadows();
 	void prepareCubemapShadows();
 
