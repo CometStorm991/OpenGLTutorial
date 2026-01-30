@@ -7,10 +7,21 @@ AdvancedLighting::AdvancedLighting()
 
 void AdvancedLighting::prepare()
 {
-	prepareFloor();
+	glm::mat4 floorModel = glm::mat4(1.0f);
+
+	floorModel = glm::scale(floorModel, glm::vec3(50.0f, 1.0f, 50.0f));
+
+	std::vector<Floor> floors = {
+		{10.0f, floorModel}
+	};
+	floorCount++;
+	buildFloorCube(floors);
+
+	prepareFloor(floors);
 	prepareBoxes();
 	prepareLight();
 	prepareShadows();
+	prepareCubemapShadows();
 	renderer.setUniformMatrix4fv(boxesProgramId, "lightSpaceMat", lightSpaceMat);
 	renderer.setUniform1i(boxesProgramId, "depthMap", depthMapTexUnit);
 	renderer.setUniformMatrix4fv(floorProgramId, "lightSpaceMat", lightSpaceMat);
@@ -30,25 +41,49 @@ void AdvancedLighting::prepare()
 	glEnable(GL_FRAMEBUFFER_SRGB);
 }
 
-void AdvancedLighting::prepareFloor()
+void AdvancedLighting::buildFloorCube(std::vector<Floor>& floors)
+{
+	float floorCubeWidth = floorCubeSize * 2.0f;
+	float floorCubeTexScale = floorCubeSize * 2.0f * (10.0f / 50.0f);
+
+	glm::mat4 top = glm::translate(glm::mat4{ 1.0f }, floorCubeOffset);
+	top = glm::translate(top, glm::vec3(0.0f, floorCubeSize, 0.0f));
+	top = glm::scale(top, glm::vec3(floorCubeWidth, floorCubeThickness, floorCubeWidth));
+
+	glm::mat4 bottom = glm::translate(glm::mat4{ 1.0f }, floorCubeOffset);
+	bottom = glm::translate(bottom, glm::vec3(0.0f, -floorCubeSize, 0.0f));
+	bottom = glm::scale(bottom, glm::vec3(floorCubeWidth, floorCubeThickness, floorCubeWidth));
+
+	glm::mat4 right = glm::translate(glm::mat4{ 1.0f }, floorCubeOffset);
+	right = glm::translate(right, glm::vec3(floorCubeSize, 0.0f, 0.0f));
+	right = glm::scale(right, glm::vec3(floorCubeThickness, floorCubeWidth, floorCubeWidth));
+
+	glm::mat4 left = glm::translate(glm::mat4{ 1.0f }, floorCubeOffset);
+	left = glm::translate(left, glm::vec3(-floorCubeSize, 0.0f, 0.0f));
+	left = glm::scale(left, glm::vec3(floorCubeThickness, floorCubeWidth, floorCubeWidth));
+
+	glm::mat4 front = glm::translate(glm::mat4{ 1.0f }, floorCubeOffset);
+	front = glm::translate(front, glm::vec3(0.0f, 0.0f, floorCubeSize));
+	front = glm::scale(front, glm::vec3(floorCubeWidth, floorCubeWidth, floorCubeThickness));
+
+	glm::mat4 back = glm::translate(glm::mat4{ 1.0f }, floorCubeOffset);
+	back = glm::translate(back, glm::vec3(0.0f, 0.0f, -floorCubeSize));
+	back = glm::scale(back, glm::vec3(floorCubeWidth, floorCubeWidth, floorCubeThickness));
+
+	floors.emplace_back(floorCubeTexScale, top);
+	floors.emplace_back(floorCubeTexScale, bottom);
+	floors.emplace_back(floorCubeTexScale, right);
+	floors.emplace_back(floorCubeTexScale, left);
+	floors.emplace_back(floorCubeTexScale, front);
+	floors.emplace_back(floorCubeTexScale, back);
+
+	floorCount += 6;
+}
+
+void AdvancedLighting::prepareFloor(const std::vector<Floor>& floors)
 {
 	std::vector<float> vertices;
 	Cube::generatePNT(vertices);
-
-	uint32_t floatsPerVertex = 8;
-
-	// If vertex float count is not divisible by floatsPerVertex
-	if (std::abs((float)(vertices.size() / floatsPerVertex) - ((float)vertices.size() / floatsPerVertex)) > 0.001f)
-	{
-		std::cerr << "[Error]: Vertex float count " << vertices.size() << " is not divisible by floatsPerVertex " << floatsPerVertex << std::endl;
-	}
-
-	uint32_t vertexCount = vertices.size() / floatsPerVertex;
-	for (uint32_t i = 0; i < vertexCount; i++)
-	{
-		vertices[i * floatsPerVertex + 6] *= 10.0f;
-		vertices[i * floatsPerVertex + 7] *= 10.0f;
-	}
 
 	uint32_t vertexBuffer;
 	renderer.generateVertexBuffer(vertexBuffer, vertices);
@@ -64,6 +99,38 @@ void AdvancedLighting::prepareFloor()
 
 	renderer.generateVertexArray(floorVaoId, vertexBuffer, 0, attribs);
 
+	// Array of structures to structure of arrays
+
+	uint32_t instBuffer;
+	uint32_t instBufferSize = floors.size() * sizeof(Floor);
+	glCreateBuffers(1, &instBuffer);
+	glNamedBufferStorage(instBuffer, instBufferSize, nullptr, GL_DYNAMIC_STORAGE_BIT);
+	for (uint32_t i = 0; i < floors.size(); i++)
+	{
+		glNamedBufferSubData(instBuffer, i * sizeof(Floor), sizeof(glm::mat4), glm::value_ptr(floors[i].modelMat));
+		glNamedBufferSubData(instBuffer, i * sizeof(Floor) + sizeof(glm::mat4), sizeof(float), &(floors[i].texScale));
+	}
+	glVertexArrayVertexBuffer(floorVaoId, 1, instBuffer, 0, sizeof(Floor));
+
+	// model matrix (aModel)
+	uint32_t startAttrib = 3;
+	for (uint32_t i = 0; i < 4; i++)
+	{
+		uint32_t attrib = startAttrib + i;
+
+		glEnableVertexArrayAttrib(floorVaoId, attrib);
+		glVertexArrayAttribFormat(floorVaoId, attrib, 4, GL_FLOAT, GL_FALSE, i * sizeof(glm::vec4));
+		glVertexArrayAttribBinding(floorVaoId, attrib, 1);
+	}
+
+	// Texture scaling (aTexScale)
+	startAttrib = 7;
+	glEnableVertexArrayAttrib(floorVaoId, startAttrib);
+	glVertexArrayAttribFormat(floorVaoId, startAttrib, 1, GL_FLOAT, GL_FALSE, sizeof(glm::mat4));
+	glVertexArrayAttribBinding(floorVaoId, startAttrib, 1);
+
+	glVertexArrayBindingDivisor(floorVaoId, 1, 1);
+
 	uint32_t texture0;
 	renderer.generateResourceTexture2D(texture0, "Resources/TutorialWood.png", true, GL_SRGB8, GL_TEXTURE_2D, 0);
 	floorTextureIds.clear();
@@ -75,8 +142,6 @@ void AdvancedLighting::prepareFloor()
 	renderer.setUniform1f(floorProgramId, "material.specular", 1.0f);
 	renderer.setUniform1f(floorProgramId, "material.shininess", 4.0f);
 	applyLightUniforms(floorProgramId);
-
-	floorModel = glm::scale(floorModel, glm::vec3(50.0f, 1.0f, 50.0f));
 }
 
 void AdvancedLighting::prepareBoxes()
@@ -216,6 +281,23 @@ void AdvancedLighting::prepareShadows()
 	renderer.setUniform1i(quadProgramId, "screenTexture", depthMapTexUnit);
 }
 
+void AdvancedLighting::prepareCubemapShadows()
+{
+	glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &depthCubemapTexId);
+	glTextureStorage2D(depthCubemapTexId, 1, GL_DEPTH_COMPONENT24, SHADOW_WIDTH, SHADOW_HEIGHT);
+	glTextureParameteri(depthCubemapTexId, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTextureParameteri(depthCubemapTexId, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTextureParameteri(depthCubemapTexId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTextureParameteri(depthCubemapTexId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTextureParameteri(depthCubemapTexId, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	renderer.addTexture(depthCubemapTexId, GL_TEXTURE_CUBE_MAP, depthCubemapTexUnit);
+
+	glCreateFramebuffers(1, &depthCubemapFbId);
+	glNamedFramebufferTexture(depthCubemapFbId, GL_DEPTH_ATTACHMENT, depthCubemapTexId, 0);
+	glNamedFramebufferDrawBuffer(depthCubemapFbId, GL_NONE);
+	glNamedFramebufferReadBuffer(depthCubemapFbId, GL_NONE);
+}
+
 void AdvancedLighting::applyLightUniforms(uint32_t programId)
 {
 	renderer.setUniform3f(programId, "pointLight.position", ptLightPos);
@@ -263,16 +345,14 @@ void AdvancedLighting::run()
 void AdvancedLighting::renderShadowMap()
 {
 	{
-		renderer.prepareForDraw(depthMapFbId, depthMapProgramId, {}, floorVaoId);
+		renderer.prepareForDraw(depthMapFbId, depthMapInstancedProgId, {}, floorVaoId);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 		glEnable(GL_CULL_FACE);
 
-		renderer.updateModelMatrix(floorModel);
-		renderer.applyMvp(depthMapProgramId, "model", "", "");
-		renderer.draw(36);
+		renderer.drawInstanced(36, floorCount);
 
-		renderer.unprepareForDraw(depthMapProgramId, floorTextureIds);
+		renderer.unprepareForDraw(depthMapInstancedProgId, floorTextureIds);
 	}
 
 	{
@@ -296,7 +376,45 @@ void AdvancedLighting::renderShadowMap()
 
 		renderer.drawInstanced(36, boxesCount);
 
-		renderer.unprepareForDraw(boxesProgramId, boxesTextureIds);
+		renderer.unprepareForDraw(depthMapInstancedProgId, boxesTextureIds);
+	}
+}
+
+void AdvancedLighting::renderShadowCubemap()
+{
+	{
+		renderer.prepareForDraw(depthCubemapFbId, depthMapInstancedProgId, {}, floorVaoId);
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
+		glEnable(GL_CULL_FACE);
+
+		renderer.drawInstanced(36, floorCount);
+
+		renderer.unprepareForDraw(depthMapInstancedProgId, floorTextureIds);
+	}
+
+	{
+		renderer.prepareForDraw(depthCubemapFbId, depthCubemapProgId, {}, lightVaoId);
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
+		glEnable(GL_CULL_FACE);
+
+		renderer.updateModelMatrix(lightModel);
+		renderer.applyMvp(depthCubemapProgId, "model", "", "");
+		renderer.draw(36);
+
+		renderer.unprepareForDraw(depthCubemapProgId, {});
+	}
+
+	{
+		renderer.prepareForDraw(depthCubemapFbId, depthCubemapProgId, {}, boxesVaoId);
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
+		glEnable(GL_CULL_FACE);
+
+		renderer.drawInstanced(36, boxesCount);
+
+		renderer.unprepareForDraw(depthCubemapProgId, boxesTextureIds);
 	}
 }
 
@@ -311,12 +429,10 @@ void AdvancedLighting::renderScene()
 		glDepthFunc(GL_LESS);
 		glEnable(GL_CULL_FACE);
 
-		renderer.updateModelMatrix(floorModel);
-		renderer.setUniformMatrix4fv(floorProgramId, "normalMatrix", glm::transpose(glm::inverse(floorModel)));
 		renderer.updateViewMatrix(view);
 		renderer.applyMvp(floorProgramId, "model", "view", "projection");
 		renderer.setUniform3f(floorProgramId, "viewPos", pos);
-		renderer.draw(36);
+		renderer.drawInstanced(36, floorCount);
 
 		renderer.unprepareForDraw(floorProgramId, floorTextureIds);
 	}

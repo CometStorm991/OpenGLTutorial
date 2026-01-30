@@ -22,6 +22,12 @@ private:
 	Renderer renderer{};
 	CameraController camController{};
 
+	class Floor {
+	public:
+		float texScale;
+		glm::mat4 modelMat;
+	};
+
 	const uint32_t SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 	const uint32_t SCREEN_WIDTH = 1920, SCREEN_HEIGHT = 1080;
 
@@ -40,10 +46,15 @@ private:
 	const uint32_t materialDiffuseTexUnit = 0;
 	const uint32_t materialSpecularTexUnit = 1;
 	const uint32_t depthMapTexUnit = 2;
+	const uint32_t depthCubemapTexUnit = 3;
 
 	uint32_t floorProgramId = 0;
 	std::vector<uint32_t> floorTextureIds{};
-	glm::mat4 floorModel{1.0f};
+
+	float floorCubeSize = 5.0f;
+	float floorCubeThickness = 1.0f;
+	glm::vec3 floorCubeOffset{ 15.0f, 12.0f, 0.0f };
+	uint32_t floorCount = 0;
 	
 	uint32_t lightProgramId = 0;
 	glm::mat4 lightModel{1.0f};
@@ -62,12 +73,20 @@ private:
 	uint32_t quadVaoId = 0;
 	uint32_t quadProgramId = 0;
 
-	void prepareFloor();
+	uint32_t depthCubemapTexId = 0;
+	uint32_t depthCubemapFbId = 0;
+	uint32_t depthCubemapProgId = 0;
+
+	
+	void buildFloorCube(std::vector<Floor>& floors);
+	void prepareFloor(const std::vector<Floor>& floors);
 	void prepareBoxes();
 	void prepareLight();
 	void prepareShadows();
+	void prepareCubemapShadows();
 
 	void renderShadowMap();
+	void renderShadowCubemap();
 	void renderScene();
 
 	void applyLightUniforms(uint32_t floorProgramId);
