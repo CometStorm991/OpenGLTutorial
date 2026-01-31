@@ -137,6 +137,9 @@
   <ItemGroup>
     <None Include="Shaders\ALLightFS.glsl" />
     <None Include="Shaders\ALLightVS.glsl" />
+    <None Include="Shaders\DepthCubemapFS.glsl" />
+    <None Include="Shaders\DepthCubemapGS.glsl" />
+    <None Include="Shaders\DepthCubemapVS.glsl" />
     <None Include="Shaders\DepthMapFS.glsl" />
     <None Include="Shaders\DepthMapInstancedFS.glsl" />
     <None Include="Shaders\DepthMapInstancedVS.glsl" />
@@ -208,6 +211,7 @@
     <ClInclude Include="Source\AttributeLayout.hpp" />
     <ClInclude Include="Source\Program.hpp" />
     <ClInclude Include="Source\Shader.hpp" />
+    <ClInclude Include="Source\ShaderInfo.hpp" />
     <ClInclude Include="Source\SimpleLighting.hpp" />
     <ClInclude Include="Source\Skybox.hpp" />
     <ClInclude Include="Source\Texture.hpp" />

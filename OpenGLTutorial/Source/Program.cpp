@@ -1,57 +1,40 @@
 #include "Program.hpp"
 
 Program::Program(const std::string& vertexShaderPath, const std::string& fragmentShaderPath)
-	:
-	vertexShaderPath(vertexShaderPath),
-	fragmentShaderPath(fragmentShaderPath),
-	vertexShader(Shader(GL_VERTEX_SHADER, "")),
-	fragmentShader(Shader(GL_FRAGMENT_SHADER, ""))
-	/*vertexShader(vertexShader), fragmentShader(fragmentShader), id(0), programLoaded(false), beingUsed(false)*/
 {
-	
+	shaderPaths.push_back(vertexShaderPath);
+	shaderPaths.push_back(fragmentShaderPath);
+
+	shaders.push_back(Shader(GL_VERTEX_SHADER, vertexShaderPath));
+	shaders.push_back(Shader(GL_FRAGMENT_SHADER, fragmentShaderPath));
+}
+
+Program::Program(const std::vector<ShaderInfo> shaderInfos)
+{
+	for (const ShaderInfo& shaderInfo : shaderInfos)
+	{
+		shaderPaths.push_back(shaderInfo.path);
+		shaders.emplace_back(Shader(shaderInfo.type, shaderInfo.path));
+	}
 }
 
 void Program::load()
 {
 	id = glCreateProgram();
 
-	/*bool allShadersLoaded = true;
-	if (!vertexShader->getShaderLoaded())
+	for (Shader& shader : shaders)
 	{
-		std::cout << "[Error] Vertex shader was not loaded" << std::endl;
-		allShadersLoaded = false;
+		shader.load();
+		glAttachShader(id, shader.getId());
 	}
-
-	if (!fragmentShader->getShaderLoaded())
-	{
-		std::cout << "[Error] Fragment shader was not loaded" << std::endl;
-		allShadersLoaded = false;
-	}
-	if (!allShadersLoaded)
-	{
-		return;
-	}*/
-
-	vertexShader = Shader(GL_VERTEX_SHADER, vertexShaderPath);
-	fragmentShader = Shader(GL_FRAGMENT_SHADER, fragmentShaderPath);
-	vertexShader.load();
-	fragmentShader.load();
-
-	/*uint32_t vertexShaderId = vertexShader->getId();
-	uint32_t fragmentShaderId = fragmentShader->getId();*/
-
-	uint32_t vertexShaderId = vertexShader.getId();
-	uint32_t fragmentShaderId = fragmentShader.getId();
-
-	glAttachShader(id, vertexShaderId);
-	glAttachShader(id, fragmentShaderId);
 	glLinkProgram(id);
 	glValidateProgram(id);
 
-	glDetachShader(id, vertexShaderId);
-	glDetachShader(id, fragmentShaderId);
-	glDeleteShader(vertexShaderId);
-	glDeleteShader(fragmentShaderId);
+	for (const Shader& shader : shaders)
+	{
+		glDetachShader(id, shader.getId());
+		glDeleteShader(shader.getId());
+	}
 
 	programLoaded = true;
 }

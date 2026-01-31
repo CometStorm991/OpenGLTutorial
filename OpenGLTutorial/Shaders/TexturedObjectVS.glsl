@@ -9,11 +9,9 @@ layout(location = 7) in float aTexScale;
 out vec3 norm;
 out vec3 fragPos;
 out vec2 texCoords;
-out vec4 fragPosLightSpace;
 
 uniform mat4 view;
 uniform mat4 projection;
-uniform mat4 lightSpaceMat;
 
 void main()
 {
@@ -22,5 +20,4 @@ void main()
 	norm = vec3(transpose(inverse(aModel)) * vec4(aNorm, 1.0f));
 	fragPos = vec3(aModel * vec4(aPos, 1.0f));
 	texCoords = aTexScale * aTexCoords;
-	fragPosLightSpace = lightSpaceMat * aModel * vec4(aPos, 1.0f);
 }

@@ -10,11 +10,9 @@ void AdvancedLighting::prepare()
 	// Floors
 	glm::mat4 floorModel = glm::mat4(1.0f);
 	floorModel = glm::scale(floorModel, glm::vec3{ 50.0f, 1.0f, 50.0f });
-	std::vector<Floor> floors = {
-		{10.0f, floorModel}
-	};
+	floors.emplace_back(10.0f, floorModel);
 	floorCount++;
-	buildFloorCube(floors);
+	buildFloorCube();
 
 	prepareFloor(floors);
 
@@ -22,59 +20,30 @@ void AdvancedLighting::prepare()
 	prepareBoxes();
 
 	// Lights
-	glm::mat4 lightModel = glm::mat4(1.0f);
-	lightModel = glm::translate(lightModel, glm::vec3{0.0f, 5.0f, 0.0f});
-	lightModel = glm::translate(lightModel, glm::vec3{ -0.5f, -0.5f, -0.5f });
-	lightModel = glm::scale(lightModel, glm::vec3{ 0.5f, 0.5f, 0.5f });
-	std::vector<Light> lights = {
-		{
-			{ 1.0f, 1.0f, 1.0f },
-			lightModel,
-			{ 0.0f, 5.0f, 0.0f },
-			{ 0.2f, 0.2f, 0.2f },
-			{ 0.5f, 0.5f, 0.5f },
-			{ 1.0f, 1.0f, 1.0f },
-			1.0f, 0.07f, 0.017f
-		}
-	};
-	lightCount = 1;
-
-	class GPULight {
-	public:
-		glm::vec4 pos;
-		glm::vec4 ambient;
-		glm::vec4 diffuse;
-		glm::vec4 specular;
-		glm::vec4 attentuation;
-	};
-	std::vector<GPULight> gpuLights;
-
-	uint32_t ssbId;
-	uint32_t lightSize = 5 * sizeof(glm::vec4);
-	uint32_t ssbSize = lights.size() * lightSize;
-	glCreateBuffers(1, &ssbId);
-	for (uint32_t i = 0; i < lights.size(); i++)
+	for (uint32_t i = 0; i < 8; i++)
 	{
-		gpuLights.push_back({
-			glm::vec4{ lights[i].pos, 0.0f },
-			glm::vec4{ lights[i].ambient, 0.0f },
-			glm::vec4{ lights[i].diffuse, 0.0f },
-			glm::vec4{ lights[i].specular, 0.0f },
-			glm::vec4{ lights[i].constant, lights[i].linear, lights[i].quadratic, 0.0f },
-			});
+		lights.emplace_back(
+			glm::vec3{ 1.0f, 1.0f, 1.0f },
+			glm::mat4{ 1.0f },
+			glm::vec3{ 0.0f, 5.0f, 0.0f },
+			glm::vec3{ 0.2f, 0.2f, 0.2f },
+			glm::vec3{ 0.5f, 0.5f, 0.5f },
+			glm::vec3{ 1.0f, 1.0f, 1.0f },
+			1.0f, 0.07f, 0.017f);
+		lightCount += 1;
 	}
-	glNamedBufferStorage(ssbId, ssbSize, gpuLights.data(), GL_DYNAMIC_STORAGE_BIT);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbId);
 
-	prepareLight(lights);
+	prepareLight();
 
-	prepareShadows();
+	// Light shadows (should be called only after prepareLight())
 	prepareCubemapShadows();
-	renderer.setUniformMatrix4fv(boxesProgramId, "lightSpaceMat", lightSpaceMat);
-	renderer.setUniform1i(boxesProgramId, "depthMap", depthMapTexUnit);
-	renderer.setUniformMatrix4fv(floorProgramId, "lightSpaceMat", lightSpaceMat);
-	renderer.setUniform1i(floorProgramId, "depthMap", depthMapTexUnit);
-	boxesTextureIds.push_back(depthMapTexId);
+
+	renderer.setUniform1i(floorVaoId, "depthCubemaps", depthCubemapTexUnit);
+	renderer.setUniform1i(boxesVaoId, "depthCubemaps", depthCubemapTexUnit);
+	floorTextureIds.push_back(depthCubemapTexId);
+	boxesTextureIds.push_back(depthCubemapTexId);
+	renderer.setUniform1f(floorVaoId, "farPlane", depthCubemapFar);
+	renderer.setUniform1f(boxesVaoId, "farPlane", depthCubemapFar);
 
 	camController.setCameraPos(glm::vec3(-5.0f, 2.0f, 0.0f));
 	camController.setCameraOrientation(0.0f, 0.0f);
@@ -89,7 +58,7 @@ void AdvancedLighting::prepare()
 	glEnable(GL_FRAMEBUFFER_SRGB);
 }
 
-void AdvancedLighting::buildFloorCube(std::vector<Floor>& floors)
+void AdvancedLighting::buildFloorCube()
 {
 	float floorCubeWidth = floorCubeSize * 2.0f;
 	float floorCubeTexScale = floorCubeSize * 2.0f * (10.0f / 50.0f);
@@ -124,7 +93,6 @@ void AdvancedLighting::buildFloorCube(std::vector<Floor>& floors)
 	floors.emplace_back(floorCubeTexScale, left);
 	floors.emplace_back(floorCubeTexScale, front);
 	floors.emplace_back(floorCubeTexScale, back);
-
 	floorCount += 6;
 }
 
@@ -250,7 +218,7 @@ void AdvancedLighting::prepareBoxes()
 	//applyLightUniforms(boxesProgramId);
 }
 
-void AdvancedLighting::prepareLight(const std::vector<Light>& lights)
+void AdvancedLighting::prepareLight()
 {
 	std::vector<float> vertices;
 	Cube::generateP(vertices);
@@ -269,11 +237,14 @@ void AdvancedLighting::prepareLight(const std::vector<Light>& lights)
 	uint32_t instBufferSize = lights.size() * instSize;
 	glCreateBuffers(1, &instBuffer);
 	glNamedBufferStorage(instBuffer, instBufferSize, nullptr, GL_DYNAMIC_STORAGE_BIT);
-	for (uint32_t i = 0; i < lights.size(); i++)
+	depthCubemapInstBufferId = instBuffer;
+	depthCubemapInstSize = instSize;
+	updateLightData();
+	/*for (uint32_t i = 0; i < lights.size(); i++)
 	{
 		glNamedBufferSubData(instBuffer, i * instSize, sizeof(glm::mat4), glm::value_ptr(lights[i].modelMat));
 		glNamedBufferSubData(instBuffer, i * instSize + sizeof(glm::mat4), sizeof(glm::vec3), &(lights[i].color));
-	}
+	}*/
 	glVertexArrayVertexBuffer(lightVaoId, 1, instBuffer, 0, instSize);
 
 	uint32_t startAttrib = 3;
@@ -294,94 +265,75 @@ void AdvancedLighting::prepareLight(const std::vector<Light>& lights)
 	glVertexArrayBindingDivisor(lightVaoId, 1, 1);
 
 	renderer.generateProgram(lightProgramId, "Shaders/ALLightVS.glsl", "Shaders/ALLightFS.glsl");
+
+	std::vector<GPULight> gpuLights;
+
+	lightSSBSize = lights.size() * lightSize;
+	glCreateBuffers(1, &lightSSBId);
+	for (uint32_t i = 0; i < lights.size(); i++)
+	{
+		gpuLights.push_back({
+			glm::vec4{ lights[i].pos, 0.0f },
+			glm::vec4{ lights[i].ambient, 0.0f },
+			glm::vec4{ lights[i].diffuse, 0.0f },
+			glm::vec4{ lights[i].specular, 0.0f },
+			glm::vec4{ lights[i].constant, lights[i].linear, lights[i].quadratic, 0.0f },
+			});
+	}
+	glNamedBufferStorage(lightSSBId, lightSSBSize, gpuLights.data(), GL_DYNAMIC_STORAGE_BIT);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, lightSSBId);
 }
 
-void AdvancedLighting::prepareShadows()
+void AdvancedLighting::updateLightData()
 {
-	glCreateTextures(GL_TEXTURE_2D, 1, &depthMapTexId);
-	glTextureStorage2D(depthMapTexId, 1, GL_DEPTH_COMPONENT24, SHADOW_WIDTH, SHADOW_HEIGHT);
-	glTextureParameteri(depthMapTexId, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTextureParameteri(depthMapTexId, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTextureParameteri(depthMapTexId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTextureParameteri(depthMapTexId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	float borderColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	glTextureParameterfv(depthMapTexId, GL_TEXTURE_BORDER_COLOR, borderColor);
-	renderer.addTexture(depthMapTexId, GL_TEXTURE_2D, depthMapTexUnit);
+	std::vector<GPULight> gpuLights;
+	lightSSBSize = lights.size() * lightSize;
 
-	glCreateFramebuffers(1, &depthMapFbId);
-	glNamedFramebufferTexture(depthMapFbId, GL_DEPTH_ATTACHMENT, depthMapTexId, 0);
-	glNamedFramebufferDrawBuffer(depthMapFbId, GL_NONE);
-	glNamedFramebufferReadBuffer(depthMapFbId, GL_NONE);
-
-	renderer.generateProgram(depthMapProgramId, "Shaders/DepthMapVS.glsl", "Shaders/DepthMapFS.glsl");
-	renderer.generateProgram(depthMapInstancedProgId, "Shaders/DepthMapInstancedVS.glsl", "Shaders/DepthMapInstancedFS.glsl");
-
-	glm::mat4 lightView = glm::lookAt(
-		ptLightPos,
-		glm::vec3(0.0f, 2.0f, -5.0f),
-		glm::vec3(0.0f, 1.0f, 0.0f));
-	float nearPlane = 1.0f, farPlane = 20.0f;
-	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
-	lightSpaceMat = lightProjection * lightView;
-	renderer.setUniformMatrix4fv(depthMapProgramId, "lightSpaceMat", lightSpaceMat);
-	renderer.setUniformMatrix4fv(depthMapInstancedProgId, "lightSpaceMat", lightSpaceMat);
-
-	std::vector<float> quadVertices =
+	for (uint32_t i = 0; i < lights.size(); i++)
 	{
-		 -1.0f,  0.6f, 0.0f, 0.0f,
-		 -0.6f,  0.6f, 1.0f, 0.0f,
-		 -1.0f,  1.0f, 0.0f, 1.0f,
-		 -0.6f,  1.0f, 1.0f, 1.0f,
-	};
-	std::vector<uint32_t> quadIndices =
-	{
-		0, 1, 2,
-		3, 2, 1,
-	};
+		glNamedBufferSubData(depthCubemapInstBufferId, i * depthCubemapInstSize, sizeof(glm::mat4), glm::value_ptr(lights[i].modelMat));
+		glNamedBufferSubData(depthCubemapInstBufferId, i * depthCubemapInstSize + sizeof(glm::mat4), sizeof(glm::vec3), &(lights[i].color));
 
-	uint32_t quadVertexBuffer;
-	renderer.generateVertexBuffer(quadVertexBuffer, quadVertices);
-	uint32_t quadIndexBuffer;
-	renderer.generateIndexBuffer(quadIndexBuffer, quadIndices);
-	AttributeLayout quadPosAttrib = AttributeLayout(2, GL_FLOAT);
-	AttributeLayout quadTexAttrib = AttributeLayout(2, GL_FLOAT);
-	std::vector<AttributeLayout> quadAttribs =
-	{
-		quadPosAttrib, quadTexAttrib
-	};
-
-	renderer.generateVertexArray(quadVaoId, quadVertexBuffer, quadIndexBuffer, quadAttribs);
-
-	renderer.generateProgram(quadProgramId, "Shaders/QuadVS.glsl", "Shaders/QuadFS.glsl");
-	renderer.setUniform1i(quadProgramId, "screenTexture", depthMapTexUnit);
+		
+		gpuLights.push_back({
+			glm::vec4{ lights[i].pos, 0.0f },
+			glm::vec4{ lights[i].ambient, 0.0f },
+			glm::vec4{ lights[i].diffuse, 0.0f },
+			glm::vec4{ lights[i].specular, 0.0f },
+			glm::vec4{ lights[i].constant, lights[i].linear, lights[i].quadratic, 0.0f },
+			});
+	}
+	glNamedBufferSubData(lightSSBId, 0, lightSSBSize, gpuLights.data());
 }
 
 void AdvancedLighting::prepareCubemapShadows()
 {
-	glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &depthCubemapTexId);
-	glTextureStorage2D(depthCubemapTexId, 1, GL_DEPTH_COMPONENT24, SHADOW_WIDTH, SHADOW_HEIGHT);
+	glCreateTextures(GL_TEXTURE_CUBE_MAP_ARRAY, 1, &depthCubemapTexId);
+	glTextureStorage3D(depthCubemapTexId, 1, GL_DEPTH_COMPONENT24, SHADOW_WIDTH, SHADOW_HEIGHT, 6 * depthCubemapMaxCount);
 	glTextureParameteri(depthCubemapTexId, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTextureParameteri(depthCubemapTexId, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTextureParameteri(depthCubemapTexId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTextureParameteri(depthCubemapTexId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTextureParameteri(depthCubemapTexId, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	renderer.addTexture(depthCubemapTexId, GL_TEXTURE_CUBE_MAP, depthCubemapTexUnit);
+	renderer.addTexture(depthCubemapTexId, GL_TEXTURE_CUBE_MAP_ARRAY, depthCubemapTexUnit);
 
 	glCreateFramebuffers(1, &depthCubemapFbId);
+	// Will need to replace depth attachment per light
 	glNamedFramebufferTexture(depthCubemapFbId, GL_DEPTH_ATTACHMENT, depthCubemapTexId, 0);
 	glNamedFramebufferDrawBuffer(depthCubemapFbId, GL_NONE);
 	glNamedFramebufferReadBuffer(depthCubemapFbId, GL_NONE);
-}
 
-void AdvancedLighting::applyLightUniforms(uint32_t programId)
-{
-	renderer.setUniform3f(programId, "pointLight.position", ptLightPos);
-	renderer.setUniform3f(programId, "pointLight.ambient", ptLightAmbient);
-	renderer.setUniform3f(programId, "pointLight.diffuse", ptLightDiffuse);
-	renderer.setUniform3f(programId, "pointLight.specular", ptLightSpecular);
-	renderer.setUniform1f(programId, "pointLight.constant", ptLightConstant);
-	renderer.setUniform1f(programId, "pointLight.linear", ptLightLinear);
-	renderer.setUniform1f(programId, "pointLight.quadratic", ptLightQuadratic);
+	renderer.generateProgram(depthCubemapProgId, {
+		{GL_VERTEX_SHADER, "Shaders/DepthCubemapVS.glsl"},
+		{GL_GEOMETRY_SHADER, "Shaders/DepthCubemapGS.glsl"},
+		{GL_FRAGMENT_SHADER, "Shaders/DepthCubemapFS.glsl"} });
+
+	if (glCheckNamedFramebufferStatus(depthCubemapFbId, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << "[Error] Framebuffer is not complete!" << std::endl;
+	}
+
+	renderer.setUniform1f(depthCubemapProgId, "farPlane", depthCubemapFar);
 }
 
 void AdvancedLighting::run()
@@ -392,24 +344,33 @@ void AdvancedLighting::run()
 	renderer.bindFramebuffer(0);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	renderer.bindFramebuffer(depthMapFbId);
+	renderer.bindFramebuffer(depthCubemapFbId);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
+	uint64_t milliseconds = renderer.getMillisecondsSinceRunPreparation();
+	float seconds = milliseconds / 1000.0f;
+	for (uint32_t i = 0; i < lights.size(); i++)
+	{
+		Light& light = lights[i];
+
+		float circleX = i / 1 % 2 == 0 ? 1.0f : 0.0f;
+		float circleY = i / 2 % 2 == 0 ? 1.0f : 0.0f;
+		float circleZ = i / 4 % 2 == 0 ? 1.0f : 0.0f;
+
+		light.pos = glm::vec3{ circleX * 5.0f * std::sinf(seconds), 5.0f + circleY * 2.0f * std::sinf(seconds), circleZ * 5.0f * std::sinf(seconds)};
+
+		glm::mat4 lightModel = glm::mat4(1.0f);
+		lightModel = glm::translate(lightModel, light.pos);
+		lightModel = glm::translate(lightModel, glm::vec3{ -0.5f, -0.5f, -0.5f });
+		lightModel = glm::scale(lightModel, glm::vec3{ 0.5f, 0.5f, 0.5f });
+		light.modelMat = lightModel;
+	}
+	updateLightData();
+
 	glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-	renderShadowMap();
+	renderShadowCubemap();
 	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 	renderScene();
-
-	glViewport(0, 0, SCREEN_HEIGHT, SCREEN_HEIGHT);
-	{
-		renderer.prepareForDraw(quadProgramId, { depthMapTexId }, quadVaoId);
-		glDisable(GL_DEPTH_TEST);
-
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-		renderer.unprepareForDraw(quadProgramId, { depthMapTexId });
-	}
-	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	renderer.unprepareForFrame();
 
@@ -417,75 +378,84 @@ void AdvancedLighting::run()
 	camController.updateCamera(window.getInputState(), renderer.getFrameTimeMilliseconds());
 }
 
-void AdvancedLighting::renderShadowMap()
-{
-	{
-		renderer.prepareForDraw(depthMapFbId, depthMapInstancedProgId, {}, floorVaoId);
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LESS);
-		glEnable(GL_CULL_FACE);
-
-		renderer.drawInstanced(36, floorCount);
-
-		renderer.unprepareForDraw(depthMapInstancedProgId, floorTextureIds);
-	}
-
-	{
-		renderer.prepareForDraw(depthMapFbId, depthMapInstancedProgId, {}, lightVaoId);
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LESS);
-		glEnable(GL_CULL_FACE);
-
-		renderer.drawInstanced(36, lightCount);
-
-		renderer.unprepareForDraw(depthMapInstancedProgId, {});
-	}
-
-	{
-		renderer.prepareForDraw(depthMapFbId, depthMapInstancedProgId, {}, boxesVaoId);
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LESS);
-		glEnable(GL_CULL_FACE);
-
-		renderer.drawInstanced(36, boxesCount);
-
-		renderer.unprepareForDraw(depthMapInstancedProgId, boxesTextureIds);
-	}
-}
-
 void AdvancedLighting::renderShadowCubemap()
 {
+	for (uint32_t i = 0; i < lights.size(); i++)
 	{
-		renderer.prepareForDraw(depthCubemapFbId, depthMapInstancedProgId, {}, floorVaoId);
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LESS);
-		glEnable(GL_CULL_FACE);
+		const Light& light = lights[i];
+		renderer.setUniform3f(depthCubemapProgId, "lightPos", light.pos);
+		renderer.setUniform1i(depthCubemapProgId, "lightIndex", i);
 
-		renderer.drawInstanced(36, floorCount);
+		glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), SHADOW_ASPECT, depthCubemapNear, depthCubemapFar);
+		const glm::vec3& lightPos = light.pos;
+		std::vector<glm::mat4> shadowTransforms{};
 
-		renderer.unprepareForDraw(depthMapInstancedProgId, floorTextureIds);
-	}
+		shadowTransforms.push_back(shadowProj *
+			glm::lookAt(lightPos,
+				lightPos + glm::vec3(1.0f, 0.0f, 0.0f),
+				glm::vec3(0.0f, -1.0f, 0.0f)));
 
-	{
-		renderer.prepareForDraw(depthCubemapFbId, depthMapInstancedProgId, {}, lightVaoId);
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LESS);
-		glEnable(GL_CULL_FACE);
+		shadowTransforms.push_back(shadowProj *
+			glm::lookAt(lightPos,
+				lightPos + glm::vec3(-1.0f, 0.0f, 0.0f),
+				glm::vec3(0.0f, -1.0f, 0.0f)));
 
-		renderer.drawInstanced(36, lightCount);
+		shadowTransforms.push_back(shadowProj *
+			glm::lookAt(lightPos,
+				lightPos + glm::vec3(0.0f, 1.0f, 0.0f),
+				glm::vec3(0.0f, 0.0f, 1.0f)));
 
-		renderer.unprepareForDraw(depthMapInstancedProgId, {});
-	}
+		shadowTransforms.push_back(shadowProj *
+			glm::lookAt(lightPos,
+				lightPos + glm::vec3(0.0f, -1.0f, 0.0f),
+				glm::vec3(0.0f, 0.0f, -1.0f)));
 
-	{
-		renderer.prepareForDraw(depthCubemapFbId, depthCubemapProgId, {}, boxesVaoId);
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LESS);
-		glEnable(GL_CULL_FACE);
+		shadowTransforms.push_back(shadowProj *
+			glm::lookAt(lightPos,
+				lightPos + glm::vec3(0.0f, 0.0f, 1.0f),
+				glm::vec3(0.0f, -1.0f, 0.0f)));
 
-		renderer.drawInstanced(36, boxesCount);
+		shadowTransforms.push_back(shadowProj *
+			glm::lookAt(lightPos,
+				lightPos + glm::vec3(0.0f, 0.0f, -1.0f),
+				glm::vec3(0.0f, -1.0f, 0.0f)));
 
-		renderer.unprepareForDraw(depthCubemapProgId, boxesTextureIds);
+		renderer.setUniformMatrix4fvArr(depthCubemapProgId, "shadowMatrices", 6, (float*)(shadowTransforms.data()));
+
+		{
+			renderer.prepareForDraw(depthCubemapFbId, depthCubemapProgId, {}, floorVaoId);
+			glEnable(GL_DEPTH_TEST);
+			glDepthFunc(GL_LESS);
+			glEnable(GL_CULL_FACE);
+
+			renderer.drawInstanced(36, floorCount);
+
+			renderer.unprepareForDraw(depthCubemapProgId, {});
+		}
+
+		/*
+		{
+			renderer.prepareForDraw(depthCubemapFbId, depthCubemapProgId, {}, lightVaoId);
+			glEnable(GL_DEPTH_TEST);
+			glDepthFunc(GL_LESS);
+			glEnable(GL_CULL_FACE);
+
+			renderer.drawInstanced(36, lightCount);
+
+			renderer.unprepareForDraw(depthCubemapProgId, {});
+		}
+		*/
+
+		{
+			renderer.prepareForDraw(depthCubemapFbId, depthCubemapProgId, {}, boxesVaoId);
+			glEnable(GL_DEPTH_TEST);
+			glDepthFunc(GL_LESS);
+			glEnable(GL_CULL_FACE);
+
+			renderer.drawInstanced(36, boxesCount);
+
+			renderer.unprepareForDraw(depthCubemapProgId, {});
+		}
 	}
 }
 

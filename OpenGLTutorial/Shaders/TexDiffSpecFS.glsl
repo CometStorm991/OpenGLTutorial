@@ -3,12 +3,12 @@
 in vec3 norm;
 in vec3 fragPos;
 in vec2 texCoords;
-in vec4 fragPosLightSpace;
 
 out vec4 fragColor;
 
 uniform vec3 viewPos;
-uniform sampler2D depthMap;
+uniform samplerCubeArray depthCubemaps;
+uniform float farPlane;
 
 struct Material
 {
@@ -72,7 +72,7 @@ struct SpotLight
 };
 //uniform SpotLight spotLight;
 
-float calculateShadow(vec4 fragPosLightSpace);
+float calculateShadow(vec3 fragPos, int lightIndex);
 
 vec3 calculatePointLight(vec3 normalizedNorm, vec3 normalizedViewDir)
 {
@@ -97,37 +97,24 @@ vec3 calculatePointLight(vec3 normalizedNorm, vec3 normalizedViewDir)
 		float specularAmount = pow(max(dot(normalizedNorm, normalizedHalfDir), 0.0f), material.shininess);
 		vec3 specular = specularAmount * specularColor * lights[i].specular;
 
-		float shadow = calculateShadow(fragPosLightSpace);
+		float shadow = calculateShadow(fragPos, i);
 		result += (ambient + (1.0f - shadow) * (diffuse + specular)) * attenuation;
 	}
 
 	return result;
 }
 
-float calculateShadow(vec4 lightSpace)
+float calculateShadow(vec3 fragPos, int lightIndex)
 {
-	vec3 projCoords = lightSpace.xyz / lightSpace.w;
-	projCoords = projCoords * 0.5f + 0.5f;
-	float currentDepth = projCoords.z;
-	if (currentDepth > 1.0f)
-	{
-		return 0.0f;
-	}
+	vec3 fragToLight = fragPos - lights[lightIndex].position;
+	float closestDepth = texture(depthCubemaps, vec4(fragToLight, lightIndex)).r;
+	closestDepth *= farPlane;
+	float currentDepth = length(fragToLight);
+	
+	float bias = 0.05f;
+	float shadow = currentDepth - bias > closestDepth ? 1.0f : 0.0f;
 
-
-	float shadow = 0.0f;
-	float bias = 0.005f;
-	vec2 texelSize = 1.0f / textureSize(depthMap, 0);
-	for (int x = -1; x < 2; x++)
-	{
-		for (int y = -1; y < 2; y++)
-		{
-			float closestDepth = texture(depthMap, projCoords.xy + vec2(x, y) * texelSize).r;
-			shadow += currentDepth - bias > closestDepth ? 1.0f : 0.0f;
-		}
-	}
-
-	return shadow / 9.0f;
+	return shadow;
 }
 
 void main()

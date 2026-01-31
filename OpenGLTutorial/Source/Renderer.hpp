@@ -17,6 +17,7 @@
 #include "FbAttachment.hpp"
 #include "Program.hpp"
 #include "Shader.hpp"
+#include "ShaderInfo.hpp"
 #include "Texture.hpp"
 
 class Renderer
@@ -27,6 +28,7 @@ public:
 	// TODO: Add support for 2d array textures and cubemap stacks
 
 	void generateProgram(uint32_t& programId, const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
+	void generateProgram(uint32_t& programId, const std::vector<ShaderInfo>& shaderInfos);
 	void generateVertexBuffer(uint32_t& vertexBuffer, const std::vector<float>& vertices);
 	void generateIndexBuffer(uint32_t& indexBuffer, const std::vector<uint32_t>& indices);
 	void generateResourceTexture2D(uint32_t& textureId, const std::string& imagePath, bool flip, GLenum target, uint32_t textureUnit);
@@ -58,6 +60,7 @@ public:
 	void setUniform1f(uint32_t programId, const std::string& name, float value);
 	void setUniform3f(uint32_t programId, const std::string& name, const glm::vec3& value);
 	void setUniformMatrix4fv(uint32_t programId, const std::string& name, const glm::mat4& value);
+	void setUniformMatrix4fvArr(uint32_t programId, const std::string& name, uint32_t count, const float* ptr);
 
 	uint32_t getFrameTimeMilliseconds();
 	uint64_t getMillisecondsSinceRunPreparation();

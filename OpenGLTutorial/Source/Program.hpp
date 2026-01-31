@@ -1,27 +1,25 @@
 #pragma once
 
+#include <vector>
+
 #include <GL/glew.h>
 
 #include "Shader.hpp"
+#include "ShaderInfo.hpp"
 
 class Program
 {
 private:
-	std::string vertexShaderPath;
-	std::string fragmentShaderPath;
+	std::vector<std::string> shaderPaths{};
+	std::vector<Shader> shaders{};
 
-	/*std::shared_ptr<Shader> vertexShader;
-	std::shared_ptr<Shader> fragmentShader;*/
+	uint32_t id = 0;
 
-	Shader vertexShader;
-	Shader fragmentShader;
-
-	uint32_t id;
-
-	bool programLoaded;
-	bool beingUsed;
+	bool programLoaded = false;
+	bool beingUsed = false;
 public:
 	Program(const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
+	Program(const std::vector<ShaderInfo> shaderInfos);
 
 	void load();
 

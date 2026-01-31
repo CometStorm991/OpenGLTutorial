@@ -110,6 +110,9 @@
     <None Include="Shaders\DepthMapInstancedFS.glsl" />
     <None Include="Shaders\DepthMapInstancedVS.glsl" />
     <None Include="Shaders\DepthQuadFS.glsl" />
+    <None Include="Shaders\DepthCubemapFS.glsl" />
+    <None Include="Shaders\DepthCubemapVS.glsl" />
+    <None Include="Shaders\DepthCubemapGS.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Shader.hpp">
@@ -179,6 +182,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\AdvancedLighting.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ShaderInfo.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

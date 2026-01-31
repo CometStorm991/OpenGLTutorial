@@ -33,6 +33,17 @@ void Renderer::generateProgram(uint32_t& programId, const std::string& vertexSha
     program.unuse();
 }
 
+void Renderer::generateProgram(uint32_t& programId, const std::vector<ShaderInfo>& shaderInfos)
+{
+    Program program = Program(shaderInfos);
+    program.load();
+
+    programId = program.getId();
+    programMap.insert({ programId, program });
+
+    program.unuse();
+}
+
 void Renderer::generateVertexBuffer(uint32_t& vertexBuffer, const std::vector<float>& vertices)
 {
     glCreateBuffers(1, &vertexBuffer);
@@ -350,6 +361,18 @@ void Renderer::setUniformMatrix4fv(uint32_t programId, const std::string& name, 
     bool wasUsed = program.getBeingUsed();
     program.use();
     glUniformMatrix4fv(glGetUniformLocation(program.getId(), name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
+    if (!wasUsed)
+    {
+        program.unuse();
+    }
+}
+
+void Renderer::setUniformMatrix4fvArr(uint32_t programId, const std::string& name, uint32_t count, const float* ptr)
+{
+    Program program = programMap.at(programId);
+    bool wasUsed = program.getBeingUsed();
+    program.use();
+    glUniformMatrix4fv(glGetUniformLocation(program.getId(), name.c_str()), count, GL_FALSE, ptr);
     if (!wasUsed)
     {
         program.unuse();
