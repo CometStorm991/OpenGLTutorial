@@ -258,5 +258,11 @@
     <Image Include="Resources\TutorialWood.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Resources\TutorialBrickWallDiffuse.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\TutorialBrickWallNormal.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

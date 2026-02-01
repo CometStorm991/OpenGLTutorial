@@ -81,6 +81,11 @@ private:
 	std::vector<uint32_t> boxesTextureIds{};
 	uint32_t boxesCount = 3;
 
+	uint32_t wallProgramId = 0;
+	uint32_t wallVaoId = 0;
+	std::vector<uint32_t> wallTextureIds{};
+	uint32_t wallCount = 0;
+
 	uint32_t depthMapFbId = 0;
 	uint32_t depthMapTexId = 0;
 	
@@ -94,7 +99,7 @@ private:
 	uint32_t depthCubemapTexId = 0;
 	uint32_t depthCubemapFbId = 0;
 	uint32_t depthCubemapProgId = 0;
-	uint32_t depthCubemapMaxCount = 10;
+	uint32_t depthCubemapMaxCount = 8;
 	float depthCubemapNear = 1.0f;
 	float depthCubemapFar = 25.0f;
 	uint32_t depthCubemapInstBufferId = 0;
@@ -103,6 +108,8 @@ private:
 	void buildFloorCube();
 	void prepareFloor(const std::vector<Floor>& floors);
 	void prepareBoxes();
+	void prepareWalls();
+	uint32_t addToData(std::vector<float>& vertices, const std::vector<float>& data, uint32_t oldStride, uint32_t componentCount);
 	void prepareLight();
 	void updateLightData();
 	void prepareCubemapShadows();

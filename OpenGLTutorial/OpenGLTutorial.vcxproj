@@ -235,6 +235,8 @@
     <Image Include="Resources\DaylightBoxFaces\DaylightBoxRight.bmp" />
     <Image Include="Resources\DaylightBoxFaces\DaylightBoxTop.bmp" />
     <Image Include="Resources\NeutronStar.jpg" />
+    <Image Include="Resources\TutorialBrickWallDiffuse.jpg" />
+    <Image Include="Resources\TutorialBrickWallNormal.jpg" />
     <Image Include="Resources\TutorialDiffuseMap.png" />
     <Image Include="Resources\TutorialSkybox\back.jpg" />
     <Image Include="Resources\TutorialSkybox\bottom.jpg" />

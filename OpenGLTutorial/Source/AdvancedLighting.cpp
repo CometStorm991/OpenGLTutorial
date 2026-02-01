@@ -218,6 +218,38 @@ void AdvancedLighting::prepareBoxes()
 	//applyLightUniforms(boxesProgramId);
 }
 
+void AdvancedLighting::prepareWalls()
+{
+	std::vector<float> vertices;
+	Cube::generatePT(vertices);
+
+	uint32_t vertexBuffer;
+	renderer.generateVertexBuffer(vertexBuffer, vertices);
+}
+
+uint32_t AdvancedLighting::addToData(std::vector<float>& vertices, const std::vector<float>& data, uint32_t oldFloatStride, uint32_t componentCount)
+{
+	float truncVertexCount = (float)(vertices.size() / oldFloatStride);
+	float exactVertexCount = (float)(vertices.size()) / (float)(oldFloatStride);
+	if (std::abs(exactVertexCount - truncVertexCount) > 0.001f)
+	{
+		std::cerr << "[Error]: Vertex float count and stride are incompatible.\n";
+		std::cerr << "Exact vertex count " << exactVertexCount << " does not match trunc vertex count " << truncVertexCount << "\n";
+	}
+	uint32_t vertexCount = vertices.size() / oldFloatStride;
+	uint32_t newFloatStride = oldFloatStride + componentCount;
+
+	for (uint32_t i = 0; i < vertexCount; i++)
+	{
+		for (uint32_t j = 0; j < componentCount; j++)
+		{
+			vertices.insert(vertices.begin() + (i * newFloatStride + j), data[i * componentCount + j]);
+		}
+	}
+
+	return newFloatStride;
+}
+
 void AdvancedLighting::prepareLight()
 {
 	std::vector<float> vertices;
