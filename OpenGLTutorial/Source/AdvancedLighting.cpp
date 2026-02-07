@@ -385,11 +385,10 @@ void AdvancedLighting::run()
 	{
 		Light& light = lights[i];
 
-		float circleX = i / 1 % 2 == 0 ? 1.0f : 0.0f;
-		float circleY = i / 2 % 2 == 0 ? 1.0f : 0.0f;
-		float circleZ = i / 4 % 2 == 0 ? 1.0f : 0.0f;
+		float circleRadius = i + 1.0f;
+		float circleSpeed = (i + 1) * 0.5f;
 
-		light.pos = glm::vec3{ circleX * 5.0f * std::sinf(seconds), 5.0f + circleY * 2.0f * std::sinf(seconds), circleZ * 5.0f * std::sinf(seconds)};
+		light.pos = glm::vec3{ circleRadius * std::sinf(seconds * circleSpeed), 5.0f, circleRadius * std::cosf(seconds * circleSpeed) };
 
 		glm::mat4 lightModel = glm::mat4(1.0f);
 		lightModel = glm::translate(lightModel, light.pos);
