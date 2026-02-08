@@ -7,6 +7,9 @@ Program::Program(const std::string& vertexShaderPath, const std::string& fragmen
 
 	shaders.push_back(Shader(GL_VERTEX_SHADER, vertexShaderPath));
 	shaders.push_back(Shader(GL_FRAGMENT_SHADER, fragmentShaderPath));
+
+	headers.push_back("");
+	headers.push_back("");
 }
 
 Program::Program(const std::vector<ShaderInfo> shaderInfos)
@@ -15,6 +18,7 @@ Program::Program(const std::vector<ShaderInfo> shaderInfos)
 	{
 		shaderPaths.push_back(shaderInfo.path);
 		shaders.emplace_back(Shader(shaderInfo.type, shaderInfo.path));
+		headers.push_back(shaderInfo.header);
 	}
 }
 
@@ -22,9 +26,11 @@ void Program::load()
 {
 	id = glCreateProgram();
 
-	for (Shader& shader : shaders)
+	for (int i = 0; i < shaders.size(); i++)
 	{
-		shader.load();
+		Shader& shader = shaders[i];
+
+		shader.load(headers[i]);
 		glAttachShader(id, shader.getId());
 	}
 	glLinkProgram(id);

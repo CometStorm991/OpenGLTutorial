@@ -12,6 +12,7 @@ class Program
 private:
 	std::vector<std::string> shaderPaths{};
 	std::vector<Shader> shaders{};
+	std::vector<std::string> headers{};
 
 	uint32_t id = 0;
 

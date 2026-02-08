@@ -1,8 +1,8 @@
-#version 460 core
-
 in vec3 norm;
 in vec3 fragPos;
 in vec2 texCoords;
+in vec3 tang;
+in vec3 bi;
 
 out vec4 fragColor;
 
@@ -13,6 +13,7 @@ uniform float farPlane;
 struct Material
 {
 	sampler2D diffuse;
+	sampler2D normal;
 	float specular;
 	float shininess;
 };
@@ -120,11 +121,17 @@ float calculateShadow(vec3 fragPos, int lightIndex)
 
 void main()
 {
-	vec3 normalizedNorm = normalize(norm);
+	//vec3 normalizedNorm = normalize(norm);
+	vec3 normalizedNorm = texture(material.normal, texCoords).xyz;
+	normalizedNorm = normalizedNorm * 2.0f - 1.0f;
+	mat3 tbn = mat3(normalize(tang), normalize(bi), normalize(norm));
+	normalizedNorm = normalize(tbn * normalizedNorm);
+
 	vec3 normalizedViewDir = normalize(viewPos - fragPos);
 
 	vec3 result = vec3(0.0f);
 	result += calculatePointLight(normalizedNorm, normalizedViewDir);
 
 	fragColor = vec4(result, 1.0f);
+	//fragColor = vec4(normalize(tang), 1.0f);
 }

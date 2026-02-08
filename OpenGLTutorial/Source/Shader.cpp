@@ -7,10 +7,15 @@ Shader::Shader(GLenum shaderType, const std::string& filePath)
 
 void Shader::load()
 {
+    load("");
+}
+
+void Shader::load(const std::string& header)
+{
     id = glCreateShader(shaderType);
 
     // Reading shader code from file
-    std::string source;
+    std::string source = header + "\n";
     std::ifstream file(filePath);
     if (!file.good())
     {

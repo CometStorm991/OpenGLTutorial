@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cmath>
+#include <thread>
+#include <chrono>
 
 #include "CameraController.hpp"
 #include "Cube.hpp"
@@ -57,6 +59,7 @@ private:
 	const uint32_t materialDiffuseTexUnit = 0;
 	const uint32_t materialSpecularTexUnit = 1;
 	const uint32_t depthCubemapTexUnit = 2;
+	const uint32_t materialNormalTexUnit = 3;
 
 	uint32_t floorProgramId = 0;
 	uint32_t floorVaoId = 0;
@@ -109,6 +112,7 @@ private:
 	void prepareFloor(const std::vector<Floor>& floors);
 	void prepareBoxes();
 	void prepareWalls();
+	void testAddToData();
 	uint32_t addToData(std::vector<float>& vertices, const std::vector<float>& data, uint32_t oldStride, uint32_t componentCount);
 	void prepareLight();
 	void updateLightData();

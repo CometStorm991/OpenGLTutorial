@@ -20,6 +20,7 @@ public:
 	Shader(GLenum shaderType, const std::string& filePath);
 
 	void load();
+	void load(const std::string& header);
 
 	bool getShaderLoaded() const;
 	uint32_t getId() const;

@@ -148,6 +148,68 @@ void Renderer::generateVertexArray(uint32_t& vaoId, uint32_t vertexBuffer, uint3
     }
 }
 
+void Renderer::createVertexArray(uint32_t& vaoId, uint32_t vertexBuffer, uint32_t indexBuffer, std::vector<AttributeLayout>& attribs)
+{
+    glCreateVertexArrays(1, &vaoId);
+
+    uint32_t vertexSize = 0;
+    for (unsigned int i = 0; i < attribs.size(); i++)
+    {
+        AttributeLayout attrib = attribs.at(i);
+        uint32_t typeSize = getGLTypeSize(attrib.type);
+
+        vertexSize += attrib.count * typeSize;
+    }
+
+    glVertexArrayVertexBuffer(vaoId, 0, vertexBuffer, 0, vertexSize);
+    if (indexBuffer != 0)
+    {
+        glVertexArrayElementBuffer(vaoId, indexBuffer);
+    }
+
+    unsigned int offset = 0;
+    for (unsigned int i = 0; i < attribs.size(); i++)
+    {
+        AttributeLayout attrib = attribs.at(i);
+        uint32_t typeSize = getGLTypeSize(attrib.type);
+
+        glEnableVertexArrayAttrib(vaoId, attrib.layoutIndex);
+        glVertexArrayAttribFormat(vaoId, attrib.layoutIndex, attrib.count, attrib.type, GL_FALSE, offset);
+        glVertexArrayAttribBinding(vaoId, attrib.layoutIndex, 0);
+
+        offset += attrib.count * typeSize;
+    }
+}
+
+void Renderer::addInstToVertexArray(uint32_t vaoId, uint32_t buffer, std::vector<AttributeLayout>& attribs)
+{
+    uint32_t vertexSize = 0;
+    for (unsigned int i = 0; i < attribs.size(); i++)
+    {
+        AttributeLayout attrib = attribs.at(i);
+        uint32_t typeSize = getGLTypeSize(attrib.type);
+
+        vertexSize += attrib.count * typeSize;
+    }
+
+    glVertexArrayVertexBuffer(vaoId, 1, buffer, 0, vertexSize);
+
+    unsigned int offset = 0;
+    for (unsigned int i = 0; i < attribs.size(); i++)
+    {
+        AttributeLayout attrib = attribs.at(i);
+        uint32_t typeSize = getGLTypeSize(attrib.type);
+
+        glEnableVertexArrayAttrib(vaoId, attrib.layoutIndex);
+        glVertexArrayAttribFormat(vaoId, attrib.layoutIndex, attrib.count, attrib.type, GL_FALSE, offset);
+        glVertexArrayAttribBinding(vaoId, attrib.layoutIndex, 1);
+
+        offset += attrib.count * typeSize;
+    }
+
+    glVertexArrayBindingDivisor(vaoId, 1, 1);
+}
+
 void Renderer::generateRenderbuffer(uint32_t& renderbufferId, uint32_t width, uint32_t height)
 {
     glCreateRenderbuffers(1, &renderbufferId);
