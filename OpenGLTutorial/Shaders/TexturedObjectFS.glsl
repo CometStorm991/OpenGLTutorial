@@ -133,5 +133,5 @@ void main()
 	result += calculatePointLight(normalizedNorm, normalizedViewDir);
 
 	fragColor = vec4(result, 1.0f);
-	//fragColor = vec4(normalize(tang), 1.0f);
+	//fragColor = vec4(normalizedNorm, 1.0f);
 }

@@ -153,11 +153,18 @@ void AdvancedLighting::prepareFloor(const std::vector<Floor>& floors)
 		bitangentData.insert(bitangentData.end(), bitangentPtr, bitangentPtr + 3);
 		bitangentData.insert(bitangentData.end(), bitangentPtr, bitangentPtr + 3);
 		bitangentData.insert(bitangentData.end(), bitangentPtr, bitangentPtr + 3);
-
-		std::cout << tangent.x << ", " << tangent.y << ", " << tangent.z << std::endl;
 	}
 	stride = addToData(vertices, tangentData, stride, 3);
 	stride = addToData(vertices, bitangentData, stride, 3);
+
+	for (int i = 0; i < 36; i++)
+	{
+		for (int j = 0; j < 14; j++)
+		{
+			std::cout << vertices[i * 14 + j] << ", ";
+		}
+		std::cout << "\n";
+	}
 
 	uint32_t vertexBuffer;
 	renderer.generateVertexBuffer(vertexBuffer, vertices);
@@ -205,7 +212,7 @@ void AdvancedLighting::prepareFloor(const std::vector<Floor>& floors)
 	uint32_t texture0;
 	renderer.generateResourceTexture2D(texture0, "Resources/TutorialBrickWallDiffuse.jpg", true, GL_SRGB8, GL_TEXTURE_2D, materialDiffuseTexUnit);
 	uint32_t texture1;
-	renderer.generateResourceTexture2D(texture1, "Resources/TutorialBrickWallNormal.jpg", true, GL_SRGB8, GL_TEXTURE_2D, materialNormalTexUnit);
+	renderer.generateResourceTexture2D(texture1, "Resources/TutorialBrickWallNormal.jpg", false, GL_RGB8, GL_TEXTURE_2D, materialNormalTexUnit);
 	floorTextureIds.clear();
 	floorTextureIds.push_back(texture0);
 	floorTextureIds.push_back(texture1);

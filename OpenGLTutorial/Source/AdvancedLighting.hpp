@@ -104,7 +104,7 @@ private:
 	uint32_t depthCubemapProgId = 0;
 	uint32_t depthCubemapMaxCount = 8;
 	float depthCubemapNear = 1.0f;
-	float depthCubemapFar = 25.0f;
+	float depthCubemapFar = 50.0f;
 	uint32_t depthCubemapInstBufferId = 0;
 	uint32_t depthCubemapInstSize = 0;
 	
