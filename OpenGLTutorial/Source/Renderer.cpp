@@ -372,6 +372,19 @@ void Renderer::unprepareForFrame()
     }
 }
 
+void Renderer::unprepareForFrame(float exposure)
+{
+    fps++;
+    uint32_t currentSecMillis = getMillisecondsSinceTimePoint(lastSecondTime);
+    if (currentSecMillis + leftOverMillis > 1000)
+    {
+        leftOverMillis = currentSecMillis + leftOverMillis - 1000;
+        lastSecondTime = std::chrono::steady_clock::now();
+        std::cout << "FPS: " << fps << " Frame time: " << (1000.0f / fps) << "ms Exposure: " << exposure << std::endl;
+        fps = 0;
+    }
+}
+
 void Renderer::bindFramebuffer(uint32_t framebufferId)
 {
     if (currentFramebuffer != framebufferId)

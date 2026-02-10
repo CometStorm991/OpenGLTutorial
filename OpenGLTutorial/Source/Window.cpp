@@ -75,6 +75,8 @@ void Window::recordKeypresses()
     inputState.a = glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS;
     inputState.q = glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS;
     inputState.e = glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS;
+    inputState.z = glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS;
+    inputState.x = glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS;
 }
 
 const InputState& Window::getInputState()

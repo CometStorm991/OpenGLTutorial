@@ -55,6 +55,7 @@ public:
 	void drawInstanced(unsigned int triangleCount, uint32_t instanceCount);
 	void unprepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds);
 	void unprepareForFrame();
+	void unprepareForFrame(float exposure);
 
 	void bindFramebuffer(uint32_t framebufferId);
 

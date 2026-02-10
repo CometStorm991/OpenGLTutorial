@@ -44,13 +44,31 @@ void CameraController::updateCamera(const InputState& inputState, uint32_t milli
     {
         camera.pos -= cameraSpeed * camera.right;
     }
-    if (inputState.q)
+    if (inputState.e)
     {
         camera.pos += cameraSpeed * glm::vec3(0.0f, 1.0f, 0.0f);
     }
-    if (inputState.e)
+    if (inputState.q)
     {
         camera.pos -= cameraSpeed * glm::vec3(0.0f, 1.0f, 0.0f);
+    }
+    
+    if (inputState.z)
+    {
+        
+        camera.exposure -= cameraSpeed;
+        if (camera.exposure < 0.0f)
+        {
+            camera.exposure = 0.0f;
+        }
+    }
+    if (inputState.x)
+    {
+        camera.exposure += cameraSpeed;
+        if (camera.exposure > 100.0f)
+        {
+            camera.exposure = 100.0f;
+        }
     }
 }
 

@@ -19,6 +19,8 @@ public:
 	const glm::vec3 up{ 0.0f, 1.0f, 0.0f };
 	glm::vec3 right = glm::normalize(glm::cross(front, up));
 
+	float exposure = 1.0f;
+
 	void updateOrientation(float yaw, float pitch);
 	glm::mat4 getView() const;
 };

@@ -99,6 +99,7 @@ vec3 calculatePointLight(vec3 normalizedNorm, vec3 normalizedViewDir)
 		vec3 specular = specularAmount * specularColor * lights[i].specular;
 
 		float shadow = calculateShadow(fragPos, i);
+		//shadow = 0.0f;
 
 		result += (ambient + (1.0f - shadow) * (diffuse + specular)) * attenuation;
 	}

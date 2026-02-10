@@ -13,6 +13,7 @@ void AdvancedLighting::prepare()
 	floors.emplace_back(10.0f, floorModel);
 	floorCount++;
 	buildFloorCube();
+	buildCorridor();
 
 	prepareFloor(floors);
 
@@ -27,17 +28,75 @@ void AdvancedLighting::prepare()
 			glm::mat4{ 1.0f },
 			glm::vec3{ 0.0f, 5.0f, 0.0f },
 			glm::vec3{ 0.2f, 0.2f, 0.2f },
+			glm::vec3{ 2.0f, 2.0f, 2.0f },
 			glm::vec3{ 0.5f, 0.5f, 0.5f },
-			glm::vec3{ 1.0f, 1.0f, 1.0f },
-			1.0f, 0.07f, 0.017f);
+			1.0f, 0.09f, 0.032f);
 		lightCount += 1;
 	}
+
+	glm::vec3 corridorPos = corridorOffset + glm::vec3{ floorCubeSize * 2.0f * corridorFactor / 2.0f - 1.0f, 0.0f, 0.0f };
+	glm::mat4 corridorLightModel = glm::translate(glm::mat4{ 1.0f }, corridorPos);
+	corridorLightModel = glm::scale(corridorLightModel, glm::vec3{ 1.0f, floorCubeSize * 2.0f, floorCubeSize * 2.0f});
+	corridorLightModel = glm::translate(corridorLightModel, glm::vec3{ -0.5f, -0.5f, -0.5f });
+	corridorLightModel = glm::scale(glm::mat4{ 1.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f });
+	lights.emplace_back(
+		glm::vec3{ 1.0f, 1.0f, 1.0f },
+		corridorLightModel,
+		corridorPos,
+		glm::vec3{ 0.2f, 0.2f, 0.2f },
+		glm::vec3{ 1000.0f, 1000.0f, 1000.0f },
+		glm::vec3{ 10.0f, 10.0f, 10.0f },
+		1.0f, 0.22f, 0.20f);
+	lightCount += 1;
 
 	prepareLight();
 
 	// Light shadows (should be called only after prepareLight())
 	prepareCubemapShadows();
 
+	uint32_t hdrTextureId;
+	glCreateTextures(GL_TEXTURE_2D, 1, &hdrTextureId);
+	glTextureStorage2D(hdrTextureId, 1, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT);
+	renderer.addTexture(hdrTextureId, GL_TEXTURE_2D, hdrTexUnit);
+
+	uint32_t rbId;
+	renderer.generateRenderbuffer(rbId, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+	renderer.generateFramebuffer(hdrFbId, {
+		{ GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, hdrTextureId },
+		{ GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbId }, });
+
+	std::vector<float> quadVertices =
+	{
+		 -1.0f,  -1.0f, 0.0f, 0.0f,
+		 1.0f,  -1.0f, 1.0f, 0.0f,
+		 -1.0f,  1.0f, 0.0f, 1.0f,
+		 1.0f,  1.0f, 1.0f, 1.0f,
+	};
+	std::vector<uint32_t> quadIndices =
+	{
+		0, 1, 2,
+		3, 2, 1,
+	};
+
+	uint32_t quadVertexBuffer;
+	renderer.generateVertexBuffer(quadVertexBuffer, quadVertices);
+	uint32_t quadIndexBuffer;
+	renderer.generateIndexBuffer(quadIndexBuffer, quadIndices);
+	AttributeLayout quadPosAttrib = AttributeLayout(2, GL_FLOAT);
+	AttributeLayout quadTexAttrib = AttributeLayout(2, GL_FLOAT);
+	std::vector<AttributeLayout> quadAttribs =
+	{
+		quadPosAttrib, quadTexAttrib
+	};
+
+	renderer.generateVertexArray(quadVaoId, quadVertexBuffer, quadIndexBuffer, quadAttribs);
+
+	quadTextureIds.clear();
+	quadTextureIds.push_back(hdrTextureId);
+
+	renderer.generateProgram(quadProgramId, "Shaders/HdrVS.glsl", "Shaders/HdrFS.glsl");
+	renderer.setUniform1i(quadProgramId, "screenTexture", hdrTexUnit);
 
 	renderer.setUniform1i(floorVaoId, "depthCubemaps", depthCubemapTexUnit);
 	renderer.setUniform1i(boxesVaoId, "depthCubemaps", depthCubemapTexUnit);
@@ -87,6 +146,44 @@ void AdvancedLighting::buildFloorCube()
 	glm::mat4 back = glm::translate(glm::mat4{ 1.0f }, floorCubeOffset);
 	back = glm::translate(back, glm::vec3(0.0f, 0.0f, -floorCubeSize));
 	back = glm::scale(back, glm::vec3(floorCubeWidth, floorCubeWidth, floorCubeThickness));
+
+	floors.emplace_back(floorCubeTexScale, top);
+	floors.emplace_back(floorCubeTexScale, bottom);
+	floors.emplace_back(floorCubeTexScale, right);
+	floors.emplace_back(floorCubeTexScale, left);
+	floors.emplace_back(floorCubeTexScale, front);
+	floors.emplace_back(floorCubeTexScale, back);
+	floorCount += 6;
+}
+
+void AdvancedLighting::buildCorridor()
+{
+	float floorCubeWidth = floorCubeSize * 2.0f;
+	float floorCubeTexScale = floorCubeSize * 2.0f * (10.0f / 50.0f);
+
+	glm::mat4 top = glm::translate(glm::mat4{ 1.0f }, corridorOffset);
+	top = glm::translate(top, glm::vec3(0.0f, floorCubeSize, 0.0f));
+	top = glm::scale(top, glm::vec3(floorCubeWidth * corridorFactor, floorCubeThickness, floorCubeWidth));
+
+	glm::mat4 bottom = glm::translate(glm::mat4{ 1.0f }, corridorOffset);
+	bottom = glm::translate(bottom, glm::vec3(0.0f, -floorCubeSize, 0.0f));
+	bottom = glm::scale(bottom, glm::vec3(floorCubeWidth * corridorFactor, floorCubeThickness, floorCubeWidth));
+
+	glm::mat4 right = glm::translate(glm::mat4{ 1.0f }, corridorOffset + glm::vec3{ floorCubeWidth * corridorFactor / 2.0f - 5.0f, 0.0f, 0.0f });
+	right = glm::translate(right, glm::vec3(floorCubeSize, 0.0f, 0.0f));
+	right = glm::scale(right, glm::vec3(floorCubeThickness, floorCubeWidth, floorCubeWidth));
+
+	glm::mat4 left = glm::translate(glm::mat4{ 1.0f }, corridorOffset - glm::vec3{ floorCubeWidth * corridorFactor / 2.0f - 5.0f, 0.0f, 0.0f });
+	left = glm::translate(left, glm::vec3(-floorCubeSize, 0.0f, 0.0f));
+	left = glm::scale(left, glm::vec3(floorCubeThickness, floorCubeWidth, floorCubeWidth));
+
+	glm::mat4 front = glm::translate(glm::mat4{ 1.0f }, corridorOffset);
+	front = glm::translate(front, glm::vec3(0.0f, 0.0f, floorCubeSize));
+	front = glm::scale(front, glm::vec3(floorCubeWidth * corridorFactor, floorCubeWidth, floorCubeThickness));
+
+	glm::mat4 back = glm::translate(glm::mat4{ 1.0f }, corridorOffset);
+	back = glm::translate(back, glm::vec3(0.0f, 0.0f, -floorCubeSize));
+	back = glm::scale(back, glm::vec3(floorCubeWidth * corridorFactor, floorCubeWidth, floorCubeThickness));
 
 	floors.emplace_back(floorCubeTexScale, top);
 	floors.emplace_back(floorCubeTexScale, bottom);
@@ -210,7 +307,7 @@ void AdvancedLighting::prepareFloor(const std::vector<Floor>& floors)
 	renderer.addInstToVertexArray(floorVaoId, instBuffer, instAttribs);
 
 	uint32_t texture0;
-	renderer.generateResourceTexture2D(texture0, "Resources/TutorialBrickWallDiffuse.jpg", true, GL_SRGB8, GL_TEXTURE_2D, materialDiffuseTexUnit);
+	renderer.generateResourceTexture2D(texture0, "Resources/TutorialBrickWallDiffuse.jpg", false, GL_SRGB8, GL_TEXTURE_2D, materialDiffuseTexUnit);
 	uint32_t texture1;
 	renderer.generateResourceTexture2D(texture1, "Resources/TutorialBrickWallNormal.jpg", false, GL_RGB8, GL_TEXTURE_2D, materialNormalTexUnit);
 	floorTextureIds.clear();
@@ -578,12 +675,15 @@ void AdvancedLighting::run()
 	renderer.bindFramebuffer(0);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	renderer.bindFramebuffer(hdrFbId);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	renderer.bindFramebuffer(depthCubemapFbId);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	uint64_t milliseconds = renderer.getMillisecondsSinceRunPreparation();
 	float seconds = milliseconds / 1000.0f;
-	for (uint32_t i = 0; i < lights.size(); i++)
+	for (uint32_t i = 0; i < std::min((int)lights.size(), 8); i++)
 	{
 		Light& light = lights[i];
 
@@ -605,7 +705,7 @@ void AdvancedLighting::run()
 	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 	renderScene();
 
-	renderer.unprepareForFrame();
+	renderer.unprepareForFrame(camController.getCamera().exposure);
 
 	window.updateGLFW();
 	camController.updateCamera(window.getInputState(), renderer.getFrameTimeMilliseconds());
@@ -668,19 +768,6 @@ void AdvancedLighting::renderShadowCubemap()
 			renderer.unprepareForDraw(depthCubemapProgId, {});
 		}
 
-		/*
-		{
-			renderer.prepareForDraw(depthCubemapFbId, depthCubemapProgId, {}, lightVaoId);
-			glEnable(GL_DEPTH_TEST);
-			glDepthFunc(GL_LESS);
-			glEnable(GL_CULL_FACE);
-
-			renderer.drawInstanced(36, lightCount);
-
-			renderer.unprepareForDraw(depthCubemapProgId, {});
-		}
-		*/
-
 		{
 			renderer.prepareForDraw(depthCubemapFbId, depthCubemapProgId, {}, boxesVaoId);
 			glEnable(GL_DEPTH_TEST);
@@ -698,9 +785,10 @@ void AdvancedLighting::renderScene()
 {
 	glm::mat4 view = camController.getCamera().getView();
 	glm::vec3 pos = camController.getCamera().pos;
+	float exposure = camController.getCamera().exposure;
 
 	{
-		renderer.prepareForDraw(floorProgramId, floorTextureIds, floorVaoId);
+		renderer.prepareForDraw(hdrFbId, floorProgramId, floorTextureIds, floorVaoId);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 		glEnable(GL_CULL_FACE);
@@ -714,7 +802,7 @@ void AdvancedLighting::renderScene()
 	}
 
 	{
-		renderer.prepareForDraw(lightProgramId, {}, lightVaoId);
+		renderer.prepareForDraw(hdrFbId, lightProgramId, {}, lightVaoId);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 		glEnable(GL_CULL_FACE);
@@ -728,7 +816,7 @@ void AdvancedLighting::renderScene()
 	}
 
 	{
-		renderer.prepareForDraw(boxesProgramId, boxesTextureIds, boxesVaoId);
+		renderer.prepareForDraw(hdrFbId, boxesProgramId, boxesTextureIds, boxesVaoId);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 		glEnable(GL_CULL_FACE);
@@ -739,6 +827,17 @@ void AdvancedLighting::renderScene()
 		renderer.drawInstanced(36, boxesCount);
 
 		renderer.unprepareForDraw(boxesProgramId, boxesTextureIds);
+	}
+
+	{
+		renderer.prepareForDraw(quadProgramId, quadTextureIds, quadVaoId);
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
+
+		renderer.setUniform1f(quadProgramId, "exposure", exposure);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+		renderer.unprepareForDraw(quadProgramId, quadTextureIds);
 	}
 }
 

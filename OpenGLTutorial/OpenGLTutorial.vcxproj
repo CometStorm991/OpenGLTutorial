@@ -145,6 +145,8 @@
     <None Include="Shaders\DepthMapInstancedVS.glsl" />
     <None Include="Shaders\DepthMapVS.glsl" />
     <None Include="Shaders\DepthQuadFS.glsl" />
+    <None Include="Shaders\HdrFS.glsl" />
+    <None Include="Shaders\HdrVS.glsl" />
     <None Include="Shaders\MetalBoxFS.glsl" />
     <None Include="Shaders\MetalBoxVS.glsl" />
     <None Include="Shaders\QuadFS.glsl" />

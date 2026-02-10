@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <thread>
 #include <chrono>
@@ -60,6 +61,7 @@ private:
 	const uint32_t materialSpecularTexUnit = 1;
 	const uint32_t depthCubemapTexUnit = 2;
 	const uint32_t materialNormalTexUnit = 3;
+	const uint32_t hdrTexUnit = 4;
 
 	uint32_t floorProgramId = 0;
 	uint32_t floorVaoId = 0;
@@ -67,6 +69,8 @@ private:
 	float floorCubeSize = 5.0f;
 	float floorCubeThickness = 1.0f;
 	glm::vec3 floorCubeOffset{ 15.0f, 12.0f, 0.0f };
+	glm::vec3 corridorOffset{ 0.0f, 12.0f, 20.0f };
+	float corridorFactor = 10.0f;
 	uint32_t floorCount = 0;
 	std::vector<Floor> floors{};
 	
@@ -98,17 +102,21 @@ private:
 
 	uint32_t quadVaoId = 0;
 	uint32_t quadProgramId = 0;
+	std::vector<uint32_t> quadTextureIds{};
 
 	uint32_t depthCubemapTexId = 0;
 	uint32_t depthCubemapFbId = 0;
 	uint32_t depthCubemapProgId = 0;
-	uint32_t depthCubemapMaxCount = 8;
+	uint32_t depthCubemapMaxCount = 9;
 	float depthCubemapNear = 1.0f;
 	float depthCubemapFar = 50.0f;
 	uint32_t depthCubemapInstBufferId = 0;
 	uint32_t depthCubemapInstSize = 0;
+
+	uint32_t hdrFbId = 0;
 	
 	void buildFloorCube();
+	void buildCorridor();
 	void prepareFloor(const std::vector<Floor>& floors);
 	void prepareBoxes();
 	void prepareWalls();

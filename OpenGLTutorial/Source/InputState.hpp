@@ -13,4 +13,6 @@ struct InputState
 	bool a = false;
 	bool q = false;
 	bool e = false;
+	bool z = false;
+	bool x = false;
 };

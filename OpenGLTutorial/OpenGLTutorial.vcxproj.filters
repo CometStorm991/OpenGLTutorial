@@ -113,6 +113,8 @@
     <None Include="Shaders\DepthCubemapFS.glsl" />
     <None Include="Shaders\DepthCubemapVS.glsl" />
     <None Include="Shaders\DepthCubemapGS.glsl" />
+    <None Include="Shaders\HdrFS.glsl" />
+    <None Include="Shaders\HdrVS.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Shader.hpp">
