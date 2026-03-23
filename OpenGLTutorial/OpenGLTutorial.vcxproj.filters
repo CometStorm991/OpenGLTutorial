@@ -81,6 +81,9 @@
     <ClCompile Include="Source\AdvancedLighting.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Deferred.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\SimpleLightingFS.glsl" />
@@ -115,6 +118,8 @@
     <None Include="Shaders\DepthCubemapGS.glsl" />
     <None Include="Shaders\HdrFS.glsl" />
     <None Include="Shaders\HdrVS.glsl" />
+    <None Include="Shaders\Deferred\SceneBoxVS.glsl" />
+    <None Include="Shaders\Deferred\SceneBoxFS.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Shader.hpp">
@@ -187,6 +192,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\ShaderInfo.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Deferred.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

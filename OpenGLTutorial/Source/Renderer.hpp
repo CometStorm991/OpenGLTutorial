@@ -25,7 +25,7 @@ class Renderer
 public:
 	Renderer();
 
-	// TODO: Add support for 2d array textures and cubemap stacks
+	uint32_t addToData(std::vector<float>& vertices, const std::vector<float>& data, uint32_t oldFloatStride, uint32_t componentCount);
 
 	void generateProgram(uint32_t& programId, const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
 	void generateProgram(uint32_t& programId, const std::vector<ShaderInfo>& shaderInfos);

@@ -22,6 +22,35 @@ Renderer::Renderer()
     }
 }
 
+uint32_t Renderer::addToData(std::vector<float>& vertices, const std::vector<float>& data, uint32_t oldFloatStride, uint32_t componentCount)
+{
+    if (oldFloatStride == 0)
+    {
+        vertices = data;
+        return componentCount;
+    }
+
+    float truncVertexCount = (float)(vertices.size() / oldFloatStride);
+    float exactVertexCount = (float)(vertices.size()) / (float)(oldFloatStride);
+    if (std::abs(exactVertexCount - truncVertexCount) > 0.001f)
+    {
+        std::cerr << "[Error]: Vertex float count and stride are incompatible.\n";
+        std::cerr << "Exact vertex count " << exactVertexCount << " does not match trunc vertex count " << truncVertexCount << "\n";
+    }
+    uint32_t vertexCount = vertices.size() / oldFloatStride;
+    uint32_t newFloatStride = oldFloatStride + componentCount;
+
+    for (uint32_t i = 0; i < vertexCount; i++)
+    {
+        for (uint32_t j = 0; j < componentCount; j++)
+        {
+            vertices.insert(vertices.begin() + (i * newFloatStride + oldFloatStride + j), data[i * componentCount + j]);
+        }
+    }
+
+    return newFloatStride;
+}
+
 void Renderer::generateProgram(uint32_t& programId, const std::string& vertexShaderPath, const std::string& fragmentShaderPath)
 {
     Program program = Program(vertexShaderPath, fragmentShaderPath);

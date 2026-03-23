@@ -29,7 +29,7 @@ void AdvancedLighting::prepare()
 			glm::vec3{ 0.0f, 5.0f, 0.0f },
 			glm::vec3{ 0.2f, 0.2f, 0.2f },
 			glm::vec3{ 2.0f, 2.0f, 2.0f },
-			glm::vec3{ 0.5f, 0.5f, 0.5f },
+			glm::vec3{ 1.0f, 1.0f, 1.0f },
 			1.0f, 0.09f, 0.032f);
 		lightCount += 1;
 	}
@@ -394,133 +394,6 @@ void AdvancedLighting::prepareWalls()
 
 	uint32_t vertexBuffer;
 	renderer.generateVertexBuffer(vertexBuffer, vertices);
-}
-
-void AdvancedLighting::testAddToData()
-{
-	uint32_t stride = 0;
-
-	std::vector<float> vertices{};
-
-	std::vector<float> cubeVertices = {
-		// +Z face (front)
-		0.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-
-		0.0f, 0.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-		0.0f, 1.0f, 1.0f,
-
-		// -Z face (back)
-		1.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-
-		1.0f, 0.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-
-		// -X face (left)
-		0.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 1.0f,
-
-		0.0f, 0.0f, 0.0f,
-		0.0f, 1.0f, 1.0f,
-		0.0f, 1.0f, 0.0f,
-
-		// +X face (right)
-		1.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-
-		1.0f, 0.0f, 1.0f,
-		1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 1.0f,
-
-		// +Y face (top)
-		0.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 0.0f,
-
-		0.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-
-		// -Y face (bottom)
-		0.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 1.0f,
-
-		0.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,
-	};
-	
-	addToData(vertices, cubeVertices, stride, 3);
-	stride += 3;
-
-	std::vector<float> cubeNormals = {
-		// +X face
-		 1.0f,  0.0f,  0.0f,
-		 1.0f,  0.0f,  0.0f,
-		 1.0f,  0.0f,  0.0f,
-		 1.0f,  0.0f,  0.0f,
-		 1.0f,  0.0f,  0.0f,
-		 1.0f,  0.0f,  0.0f,
-
-		 // -X face
-		 -1.0f,  0.0f,  0.0f,
-		 -1.0f,  0.0f,  0.0f,
-		 -1.0f,  0.0f,  0.0f,
-		 -1.0f,  0.0f,  0.0f,
-		 -1.0f,  0.0f,  0.0f,
-		 -1.0f,  0.0f,  0.0f,
-
-		 // +Y face
-		  0.0f,  1.0f,  0.0f,
-		  0.0f,  1.0f,  0.0f,
-		  0.0f,  1.0f,  0.0f,
-		  0.0f,  1.0f,  0.0f,
-		  0.0f,  1.0f,  0.0f,
-		  0.0f,  1.0f,  0.0f,
-
-		  // -Y face
-		   0.0f, -1.0f,  0.0f,
-		   0.0f, -1.0f,  0.0f,
-		   0.0f, -1.0f,  0.0f,
-		   0.0f, -1.0f,  0.0f,
-		   0.0f, -1.0f,  0.0f,
-		   0.0f, -1.0f,  0.0f,
-
-		   // +Z face
-			0.0f,  0.0f,  1.0f,
-			0.0f,  0.0f,  1.0f,
-			0.0f,  0.0f,  1.0f,
-			0.0f,  0.0f,  1.0f,
-			0.0f,  0.0f,  1.0f,
-			0.0f,  0.0f,  1.0f,
-
-			// -Z face
-			 0.0f,  0.0f, -1.0f,
-			 0.0f,  0.0f, -1.0f,
-			 0.0f,  0.0f, -1.0f,
-			 0.0f,  0.0f, -1.0f,
-			 0.0f,  0.0f, -1.0f,
-			 0.0f,  0.0f, -1.0f
-	};
-	addToData(vertices, cubeNormals, stride, 3);
-	stride += 3;
-
-	for (int i = 0; i < 36; i++)
-	{
-		for (int j = 0; j < stride; j++)
-		{
-			std::cout << vertices[i * stride + j] << ", ";
-		}
-		std::cout << "\n";
-	}
 }
 
 uint32_t AdvancedLighting::addToData(std::vector<float>& vertices, const std::vector<float>& data, uint32_t oldFloatStride, uint32_t componentCount)

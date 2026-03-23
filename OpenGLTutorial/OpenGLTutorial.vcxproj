@@ -137,6 +137,8 @@
   <ItemGroup>
     <None Include="Shaders\ALLightFS.glsl" />
     <None Include="Shaders\ALLightVS.glsl" />
+    <None Include="Shaders\Deferred\SceneBoxVS.glsl" />
+    <None Include="Shaders\Deferred\SceneBoxFS.glsl" />
     <None Include="Shaders\DepthCubemapFS.glsl" />
     <None Include="Shaders\DepthCubemapGS.glsl" />
     <None Include="Shaders\DepthCubemapVS.glsl" />
@@ -168,6 +170,7 @@
     <ClCompile Include="Source\Camera.cpp" />
     <ClCompile Include="Source\CameraController.cpp" />
     <ClCompile Include="Source\Cube.cpp" />
+    <ClCompile Include="Source\Deferred.cpp" />
     <ClCompile Include="Source\FbAttachment.cpp" />
     <ClCompile Include="Source\GettingStarted.cpp" />
     <ClCompile Include="Source\Instancing.cpp" />
@@ -202,6 +205,7 @@
     <ClInclude Include="Source\Camera.hpp" />
     <ClInclude Include="Source\CameraController.hpp" />
     <ClInclude Include="Source\Cube.hpp" />
+    <ClInclude Include="Source\Deferred.hpp" />
     <ClInclude Include="Source\Demo.hpp" />
     <ClInclude Include="Source\FbAttachment.hpp" />
     <ClInclude Include="Source\GettingStarted.hpp" />
