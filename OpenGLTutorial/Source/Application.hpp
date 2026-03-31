@@ -12,6 +12,7 @@
 #include "AttributeLayout.hpp"
 #include "Cube.hpp"
 #include "Demo.hpp"
+#include "Deferred.hpp"
 #include "GettingStarted.hpp"
 #include "Instancing.hpp"
 #include "MultipleLighting.hpp"

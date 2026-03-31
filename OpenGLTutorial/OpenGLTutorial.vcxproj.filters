@@ -120,6 +120,9 @@
     <None Include="Shaders\HdrVS.glsl" />
     <None Include="Shaders\Deferred\SceneBoxVS.glsl" />
     <None Include="Shaders\Deferred\SceneBoxFS.glsl" />
+    <None Include="Shaders\Deferred\SceneBoxFSOld.glsl" />
+    <None Include="Shaders\Deferred\DebugQuadFS.glsl" />
+    <None Include="Shaders\Deferred\DebugQuadVS.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Shader.hpp">

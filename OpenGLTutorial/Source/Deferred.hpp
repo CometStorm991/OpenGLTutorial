@@ -48,21 +48,30 @@ private:
 		glm::vec4 attentuation;
 	};
 
-	uint32_t cubeVaoId;
-	uint32_t cubeInstBufferId;
+	uint32_t cubeVaoId = 0;
+	uint32_t cubeInstBufferId = 0;
 	std::vector<uint32_t> cubeTextureIds{};
-	uint32_t cubeProgramId;
+	uint32_t cubeProgramId = 0;
 	const uint32_t cubeCount = 100;
-	std::vector<glm::vec3> cubePositions, cubeRotationSpeeds;
+	std::vector<glm::vec3> cubePositions{}, cubeRotationSpeeds{};
 
-	uint32_t lightVaoId;
+	uint32_t posTexId = 0;
+	uint32_t normTexId = 0;
+	uint32_t diffSpecTexId = 0;
+
+	uint32_t lightVaoId = 0;
 	const uint32_t lightCount = 20;
 	std::vector<Light> lights{};
-	std::vector<float> lightPositions;
-	uint32_t lightSSBId;
+	std::vector<float> lightPositions{};
+	uint32_t lightSSBId = 0;
 	uint32_t gpuLightSize = 5 * sizeof(glm::vec4);
+
+	uint32_t debugQuadProgId = 0;
+	uint32_t debugQuadVaoId = 0;
+	std::vector<uint32_t> debugQuadTexIds{};
 
 	void prepareCube();
 	void updateSceneBoxData(uint64_t milliseconds);
 	void prepareLight();
+	void prepareDebugQuad();
 };

@@ -36,7 +36,7 @@ public:
 	void generateResourceTextureCubemap(uint32_t& textureId, const std::vector<std::string>& imagePaths, bool flip, GLenum target, uint32_t textureUnit);
 	void generateFramebufferTexture(uint32_t& textureId, uint32_t width, uint32_t height);
 	void generateVertexArray(uint32_t& vao, uint32_t vertexBuffer, uint32_t indexBuffer, std::vector<AttributeLayout>& attribs);
-	void createVertexArray(uint32_t& vaoId, uint32_t vertexBuffer, uint32_t indexBuffer, std::vector<AttributeLayout>& attribs);
+	void createVertexArray(uint32_t& vaoId, uint32_t vertexBuffer, uint32_t indexBuffer, const std::vector<AttributeLayout>& attribs);
 	void addInstToVertexArray(uint32_t vaoId, uint32_t buffer, std::vector<AttributeLayout>& attribs);
 	void generateRenderbuffer(uint32_t& renderbufferId, uint32_t width, uint32_t height);
 	void generateFramebuffer(uint32_t& framebufferId, const std::vector<FbAttachment>& attachments);

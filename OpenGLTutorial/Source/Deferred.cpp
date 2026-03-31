@@ -10,6 +10,29 @@ void Deferred::prepare()
 	prepareCube();
 	prepareLight();
 
+	// Position
+	glCreateTextures(GL_TEXTURE_2D, 1, &posTexId);
+	glTextureStorage2D(posTexId, 1, GL_RGBA16F, window.width, window.height);
+
+	// Normal
+	glCreateTextures(GL_TEXTURE_2D, 1, &normTexId);
+	glTextureStorage2D(normTexId, 1, GL_RGBA16F, window.width, window.height);
+
+	// Diffuse + specular
+	glCreateTextures(GL_TEXTURE_2D, 1, &diffSpecTexId);
+	glTextureStorage2D(diffSpecTexId, 1, GL_RGBA16F, window.width, window.height);
+
+	uint32_t geoFbId;
+	renderer.generateFramebuffer(geoFbId, {
+		{ GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, posTexId },
+		{ GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, posTexId }, 
+		{ GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, posTexId }, });
+
+	uint32_t attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	glNamedFramebufferDrawBuffers(geoFbId, 3, attachments);
+
+	prepareDebugQuad();
+
 	renderer.prepareForRun();
 }
 
@@ -44,7 +67,7 @@ void Deferred::prepareCube()
 	cubeTextureIds.push_back(texture0);
 	cubeTextureIds.push_back(texture1);
 
-	renderer.generateProgram(cubeProgramId, "Shaders/LightingVS.glsl", "Shaders/MultipleLightingFS.glsl");
+	renderer.generateProgram(cubeProgramId, "Shaders/Deferred/SceneBoxVS.glsl", "Shaders/Deferred/SceneBoxFS.glsl");
 
 	cubePositions = std::vector<glm::vec3>();
 	cubePositions.reserve(cubeCount);
@@ -186,6 +209,39 @@ void Deferred::prepareLight()
 	renderer.addInstToVertexArray(lightVaoId, instBuffer, instAttribs);
 }
 
+void Deferred::prepareDebugQuad()
+{
+	std::vector<float> posQuadVerts = {
+		0.0f,  0.0f, 0.0f, 0.0f,
+		1.0f,  0.0f, 1.0f, 0.0f,
+		0.0f,  1.0f, 0.0f, 1.0f,
+		1.0f,  1.0f, 1.0f, 1.0f,
+	};
+
+	std::vector<uint32_t> quadIndices = {
+		0, 1, 2,
+		3, 2, 1,
+	};
+
+	uint32_t vertBufId;
+	renderer.generateVertexBuffer(vertBufId, posQuadVerts);
+
+	std::vector<AttributeLayout> attribs = {
+	};
+
+	renderer.createVertexArray(debugQuadVaoId, vertBufId, 0, {
+		{ 2, GL_FLOAT, 0 },
+		{ 2, GL_FLOAT, 1 }, });
+
+	renderer.generateProgram(debugQuadProgId, {
+		{ GL_VERTEX_SHADER, "Shaders/Deferred/DebugQuadVS.glsl" }, 
+		{ GL_FRAGMENT_SHADER, "Shaders/Deferred/DebugQuadFS.glsl" }, });
+
+	renderer.addTexture(posTexId, GL_TEXTURE_2D, 0);
+	renderer.setUniform1i(debugQuadProgId, "screenTexture", 0);
+	debugQuadTexIds = { posTexId };
+}
+
 void Deferred::run()
 {
 	renderer.prepareForFrame();
@@ -213,9 +269,11 @@ void Deferred::run()
 	}
 
 	{
-		//renderer.prepareForDraw(lightProgramId, cubeTextureIds, cubeVaoId);
+		renderer.prepareForDraw(debugQuadProgId, debugQuadTexIds, debugQuadVaoId);
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
 
-		renderer.unprepareForDraw(cubeProgramId, cubeTextureIds);
+		renderer.unprepareForDraw(debugQuadProgId, debugQuadTexIds);
 	}
 }
 

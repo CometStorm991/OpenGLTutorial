@@ -177,7 +177,7 @@ void Renderer::generateVertexArray(uint32_t& vaoId, uint32_t vertexBuffer, uint3
     }
 }
 
-void Renderer::createVertexArray(uint32_t& vaoId, uint32_t vertexBuffer, uint32_t indexBuffer, std::vector<AttributeLayout>& attribs)
+void Renderer::createVertexArray(uint32_t& vaoId, uint32_t vertexBuffer, uint32_t indexBuffer, const std::vector<AttributeLayout>& attribs)
 {
     glCreateVertexArrays(1, &vaoId);
 

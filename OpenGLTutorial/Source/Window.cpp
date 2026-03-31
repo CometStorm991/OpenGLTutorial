@@ -12,7 +12,7 @@ Window::Window()
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(1920, 1080, "Hello World", NULL, NULL);
+    window = glfwCreateWindow(width, height, "Hello World", NULL, NULL);
     if (!window)
     {
         glfwTerminate();

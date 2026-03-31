@@ -23,6 +23,9 @@ public:
 
 	const InputState& getInputState();
 	static void mouseCallbackGLFW(GLFWwindow* window, double posX, double posY);
+
+	const uint32_t width = 1920;
+	const uint32_t height = 1080;
 private:
 	GLFWwindow* window = nullptr;
 	InputState inputState{};
