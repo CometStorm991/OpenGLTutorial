@@ -210,7 +210,7 @@ void Renderer::createVertexArray(uint32_t& vaoId, uint32_t vertexBuffer, uint32_
     }
 }
 
-void Renderer::addInstToVertexArray(uint32_t vaoId, uint32_t buffer, std::vector<AttributeLayout>& attribs)
+void Renderer::addInstToVertexArray(uint32_t vaoId, uint32_t buffer, const std::vector<AttributeLayout>& attribs)
 {
     uint32_t vertexSize = 0;
     for (unsigned int i = 0; i < attribs.size(); i++)
@@ -364,12 +364,12 @@ void Renderer::applyMvp(uint32_t programId, const std::string& modelName, const 
 
 void Renderer::draw(unsigned int triangleCount)
 {
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glDrawArrays(GL_TRIANGLES, 0, triangleCount);
 }
 
 void Renderer::drawInstanced(unsigned int triangleCount, uint32_t instanceCount)
 {
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 36, instanceCount);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, triangleCount, instanceCount);
 }
 
 void Renderer::unprepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds)

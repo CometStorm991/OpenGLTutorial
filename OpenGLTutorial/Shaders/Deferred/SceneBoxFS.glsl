@@ -6,7 +6,7 @@ in vec2 texCoords;
 
 layout (location = 0) out vec3 gPos;
 layout (location = 1) out vec3 gNorm;
-layout (location = 2) out vec3 gDiffSpec;
+layout (location = 2) out vec4 gDiffSpec;
 
 uniform vec3 viewPos;
 
@@ -25,7 +25,7 @@ void main()
 	vec3 normalizedNorm = normalize(norm);
 	gNorm = normalizedNorm;
 
-	gDiffSpec.rgb = texture(material.diffuse, texCoords);
+	gDiffSpec.rgb = texture(material.diffuse, texCoords).rgb;
 
-	gDiffSpec.a = texture(material.specular, texCoords);
+	gDiffSpec.a = texture(material.specular, texCoords).r;
 }

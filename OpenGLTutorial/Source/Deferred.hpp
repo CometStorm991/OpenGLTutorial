@@ -66,6 +66,8 @@ private:
 	uint32_t lightSSBId = 0;
 	uint32_t gpuLightSize = 5 * sizeof(glm::vec4);
 
+	uint32_t geoFbId = 0;
+
 	uint32_t debugQuadProgId = 0;
 	uint32_t debugQuadVaoId = 0;
 	std::vector<uint32_t> debugQuadTexIds{};

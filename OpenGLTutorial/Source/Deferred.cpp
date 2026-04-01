@@ -22,14 +22,22 @@ void Deferred::prepare()
 	glCreateTextures(GL_TEXTURE_2D, 1, &diffSpecTexId);
 	glTextureStorage2D(diffSpecTexId, 1, GL_RGBA16F, window.width, window.height);
 
-	uint32_t geoFbId;
+	uint32_t rendBufId;
+	renderer.generateRenderbuffer(rendBufId, window.width, window.height);
+
 	renderer.generateFramebuffer(geoFbId, {
 		{ GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, posTexId },
-		{ GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, posTexId }, 
-		{ GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, posTexId }, });
+		{ GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normTexId }, 
+		{ GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, diffSpecTexId },
+		{ GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rendBufId }, });
 
 	uint32_t attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 	glNamedFramebufferDrawBuffers(geoFbId, 3, attachments);
+
+	if (glCheckNamedFramebufferStatus(geoFbId, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << "[Error] Framebuffer is not complete!" << std::endl;
+	}
 
 	prepareDebugQuad();
 
@@ -68,6 +76,9 @@ void Deferred::prepareCube()
 	cubeTextureIds.push_back(texture1);
 
 	renderer.generateProgram(cubeProgramId, "Shaders/Deferred/SceneBoxVS.glsl", "Shaders/Deferred/SceneBoxFS.glsl");
+	renderer.setUniform1i(cubeProgramId, "material.diffuse", 0);
+	renderer.setUniform1i(cubeProgramId, "material.specular", 1);
+	renderer.setUniform1f(cubeProgramId, "material.shininess", 32.0f);
 
 	cubePositions = std::vector<glm::vec3>();
 	cubePositions.reserve(cubeCount);
@@ -198,48 +209,69 @@ void Deferred::prepareLight()
 
 	instStride = renderer.addToData(instData, lightPositions, instStride, 3);
 
-	uint32_t instBuffer;
-	renderer.generateVertexBuffer(instBuffer, instData);
+	//uint32_t instBuffer;
+	//renderer.generateVertexBuffer(instBuffer, instData);
 
-	std::vector<AttributeLayout> instAttribs = {
-		{3, GL_FLOAT, 1},
-		{3, GL_FLOAT, 2}
-	};
+	//std::vector<AttributeLayout> instAttribs = {
+	//	{3, GL_FLOAT, 1},
+	//	{3, GL_FLOAT, 2}
+	//};
 
-	renderer.addInstToVertexArray(lightVaoId, instBuffer, instAttribs);
+	//renderer.addInstToVertexArray(lightVaoId, instBuffer, instAttribs);
 }
 
 void Deferred::prepareDebugQuad()
 {
 	std::vector<float> posQuadVerts = {
-		0.0f,  0.0f, 0.0f, 0.0f,
-		1.0f,  0.0f, 1.0f, 0.0f,
-		0.0f,  1.0f, 0.0f, 1.0f,
-		1.0f,  1.0f, 1.0f, 1.0f,
+		0.0f, 0.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
 	};
 
-	std::vector<uint32_t> quadIndices = {
+	std::vector<uint32_t> posQuadIndices = {
 		0, 1, 2,
 		3, 2, 1,
+	};
+
+	std::vector<float> posQuadInst = {
+		-1.0f,  0.0f, 0.0f,
+		 0.0f,  0.0f, 1.0f,
+		-1.0f, -1.0f, 2.0f,
+		 0.0f, -1.0f, 3.0f,
 	};
 
 	uint32_t vertBufId;
 	renderer.generateVertexBuffer(vertBufId, posQuadVerts);
 
-	std::vector<AttributeLayout> attribs = {
-	};
+	uint32_t indexBufId;
+	renderer.generateIndexBuffer(indexBufId, posQuadIndices);
 
-	renderer.createVertexArray(debugQuadVaoId, vertBufId, 0, {
+	uint32_t instBufId;
+	glCreateBuffers(1, &instBufId);
+	glNamedBufferStorage(instBufId, posQuadInst.size() * sizeof(float), nullptr, GL_DYNAMIC_STORAGE_BIT);
+	glNamedBufferSubData(instBufId, 0, posQuadInst.size() * sizeof(float), posQuadInst.data());
+
+	renderer.createVertexArray(debugQuadVaoId, vertBufId, indexBufId, {
 		{ 2, GL_FLOAT, 0 },
 		{ 2, GL_FLOAT, 1 }, });
+
+	renderer.addInstToVertexArray(debugQuadVaoId, instBufId, {
+		{ 2, GL_FLOAT, 2 },
+		{ 1, GL_FLOAT, 3 }, });
 
 	renderer.generateProgram(debugQuadProgId, {
 		{ GL_VERTEX_SHADER, "Shaders/Deferred/DebugQuadVS.glsl" }, 
 		{ GL_FRAGMENT_SHADER, "Shaders/Deferred/DebugQuadFS.glsl" }, });
 
 	renderer.addTexture(posTexId, GL_TEXTURE_2D, 0);
-	renderer.setUniform1i(debugQuadProgId, "screenTexture", 0);
-	debugQuadTexIds = { posTexId };
+	renderer.addTexture(normTexId, GL_TEXTURE_2D, 1);
+	renderer.addTexture(diffSpecTexId, GL_TEXTURE_2D, 2);
+	renderer.setUniform1i(debugQuadProgId, "screenTexture[0]", 0);
+	renderer.setUniform1i(debugQuadProgId, "screenTexture[1]", 1);
+	renderer.setUniform1i(debugQuadProgId, "screenTexture[2]", 2);
+	renderer.setUniform1i(debugQuadProgId, "screenTexture[3]", 2);
+	debugQuadTexIds = { posTexId, normTexId, diffSpecTexId };
 }
 
 void Deferred::run()
@@ -247,6 +279,9 @@ void Deferred::run()
 	renderer.prepareForFrame();
 
 	renderer.bindFramebuffer(0);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	renderer.bindFramebuffer(geoFbId);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -257,7 +292,7 @@ void Deferred::run()
 	glm::mat4 view = camera.getView();
 
 	{
-		renderer.prepareForDraw(cubeProgramId, cubeTextureIds, cubeVaoId);
+		renderer.prepareForDraw(geoFbId, cubeProgramId, cubeTextureIds, cubeVaoId);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 		glEnable(GL_CULL_FACE);
@@ -265,24 +300,33 @@ void Deferred::run()
 		renderer.updateViewMatrix(view);
 		renderer.applyMvp(cubeProgramId, "", "view", "projection");
 		renderer.setUniform3f(cubeProgramId, "viewPos", camera.pos);
+		renderer.drawInstanced(36, cubeCount);
+
 		renderer.unprepareForDraw(cubeProgramId, cubeTextureIds);
 	}
 
 	{
-		renderer.prepareForDraw(debugQuadProgId, debugQuadTexIds, debugQuadVaoId);
+		renderer.prepareForDraw(0, debugQuadProgId, debugQuadTexIds, debugQuadVaoId);
 		glDisable(GL_DEPTH_TEST);
 		glDisable(GL_CULL_FACE);
 
+		glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, 4);
+
 		renderer.unprepareForDraw(debugQuadProgId, debugQuadTexIds);
 	}
+
+	renderer.unprepareForFrame();
+
+	window.updateGLFW();
+	camController.updateCamera(window.getInputState(), renderer.getFrameTimeMilliseconds());
 }
 
 bool Deferred::shouldEnd()
 {
-	return false;
+	return window.getShouldClose();
 }
 
 void Deferred::terminate()
 {
-
+	window.terminate();
 }
