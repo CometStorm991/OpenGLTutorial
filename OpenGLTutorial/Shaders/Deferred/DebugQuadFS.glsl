@@ -11,10 +11,10 @@ void main()
 {
 	color = texture(screenTexture[texSampIndex], textureCoords);
     switch (texSampIndex) {
-        case 2:
+        case 2u:
             color = vec4(texture(screenTexture[texSampIndex], textureCoords).rgb, 1.0f);
             break;
-        case 3:
+        case 3u:
             float spec = texture(screenTexture[texSampIndex], textureCoords).a;
             color = vec4(spec, spec, spec, 1.0f);
             break;
