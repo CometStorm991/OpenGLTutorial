@@ -145,15 +145,18 @@ void Deferred::prepareLight()
 	std::vector<float> vertices;
 	uint32_t stride = 0;
 
-	stride = renderer.addToData(vertices, Cube::fillP(), stride, 3);
+	stride = renderer.addToData(vertices, Isocahedron::fillP(), stride, 3);
+	stride = renderer.addToData(vertices, Isocahedron::fillN(), stride, 3);
 
 	uint32_t vertexBuffer;
 	renderer.generateVertexBuffer(vertexBuffer, vertices);
 
 	AttributeLayout posAttrib{ 3, GL_FLOAT, 0 };
+	AttributeLayout normAttrib{ 3, GL_FLOAT, 1 };
 
 	std::vector<AttributeLayout> attribs = std::vector<AttributeLayout>();
 	attribs.push_back(posAttrib);
+	attribs.push_back(normAttrib);
 
 	renderer.generateVertexArray(lightVaoId, vertexBuffer, 0, attribs);
 
@@ -225,10 +228,10 @@ void Deferred::prepareLight()
 	renderer.generateVertexBuffer(instBuffer, instData);
 
 	std::vector<AttributeLayout> instAttribs = {
-		{4, GL_FLOAT, 1},
 		{4, GL_FLOAT, 2},
 		{4, GL_FLOAT, 3},
-		{4, GL_FLOAT, 4}
+		{4, GL_FLOAT, 4},
+		{4, GL_FLOAT, 5}
 	};
 
 	renderer.addInstToVertexArray(lightVaoId, instBuffer, instAttribs);
@@ -330,7 +333,7 @@ void Deferred::run()
 		);
 		renderer.updateViewMatrix(view);
 		renderer.applyMvp(lightProgramId, "", "view", "projection");
-		renderer.drawInstanced(36, lightCount);
+		renderer.drawInstanced(60, lightCount);
 
 		renderer.unprepareForDraw(lightProgramId, {});
 	}

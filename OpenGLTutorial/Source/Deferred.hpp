@@ -6,6 +6,7 @@
 #include "CameraController.hpp"
 #include "Cube.hpp"
 #include "Demo.hpp"
+#include "Isocahedron.hpp"
 #include "Renderer.hpp"
 #include "Window.hpp"
 

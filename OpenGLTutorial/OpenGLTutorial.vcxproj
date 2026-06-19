@@ -179,6 +179,7 @@
     <ClCompile Include="Source\FbAttachment.cpp" />
     <ClCompile Include="Source\GettingStarted.cpp" />
     <ClCompile Include="Source\Instancing.cpp" />
+    <ClCompile Include="Source\Isocahedron.cpp" />
     <ClCompile Include="Source\MultipleLighting.cpp" />
     <ClCompile Include="Source\Rearview.cpp" />
     <ClCompile Include="Source\Renderer.cpp" />
@@ -216,6 +217,7 @@
     <ClInclude Include="Source\GettingStarted.hpp" />
     <ClInclude Include="Source\InputState.hpp" />
     <ClInclude Include="Source\Instancing.hpp" />
+    <ClInclude Include="Source\Isocahedron.hpp" />
     <ClInclude Include="Source\MultipleLighting.hpp" />
     <ClInclude Include="Source\Rearview.hpp" />
     <ClInclude Include="Source\Renderer.hpp" />
