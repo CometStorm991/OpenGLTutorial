@@ -88,7 +88,7 @@ void Deferred::prepareCube()
 		float x = posDistrib(randomEngine);
 		float y = posDistrib(randomEngine);
 		float z = posDistrib(randomEngine);
-		cubePositions.push_back(glm::vec3{x, y, z});
+		cubePositions.push_back(glm::vec3{ x, y, z });
 	}
 
 	cubeRotationSpeeds = std::vector<glm::vec3>();
@@ -99,7 +99,7 @@ void Deferred::prepareCube()
 		float x = speedDistrib(randomEngine);
 		float y = speedDistrib(randomEngine);
 		float z = speedDistrib(randomEngine);
-		cubeRotationSpeeds.push_back(glm::vec3{x, y, z});
+		cubeRotationSpeeds.push_back(glm::vec3{ x, y, z });
 	}
 
 	glCreateBuffers(1, &cubeInstBufferId);
@@ -157,8 +157,8 @@ void Deferred::prepareLight()
 
 	renderer.generateVertexArray(lightVaoId, vertexBuffer, 0, attribs);
 
-	lightPositions = std::vector<float>();
-	lightPositions.reserve(lightCount);
+	renderer.generateProgram(lightProgramId, "Shaders/Deferred/LightBoxVS.glsl", "Shaders/Deferred/LightBoxFS.glsl");
+
 	std::uniform_real_distribution<float> colorDistrib{ 0.0f, 1.0f };
 	std::uniform_real_distribution<float> posDistrib{ -10.0f, 10.0f };
 	for (unsigned int i = 0; i < lightCount; i++)
@@ -175,7 +175,9 @@ void Deferred::prepareLight()
 			posDistrib(randomEngine),
 		};
 
-		glm::mat4 model = glm::translate(glm::mat4{1.0f}, pos);
+		glm::mat4 modelMat = glm::mat4{ 1.0f };
+		modelMat = glm::translate(modelMat, pos);
+		modelMat = glm::scale(modelMat, glm::vec3{ 0.5f, 0.5f, 0.5f });
 
 		glm::vec3 ambient = 0.2f * color;
 		glm::vec3 diffuse = color;
@@ -185,7 +187,7 @@ void Deferred::prepareLight()
 		float linear = 0.22f;
 		float quadratic = 0.20f;
 
-		lights.emplace_back(color, model, pos, ambient, diffuse, specular, constant, linear, quadratic);
+		lights.emplace_back(color, modelMat, pos, ambient, diffuse, specular, constant, linear, quadratic);
 	}
 
 	uint32_t lightSSBSize = lights.size() * gpuLightSize;
@@ -204,20 +206,32 @@ void Deferred::prepareLight()
 	glNamedBufferStorage(lightSSBId, lightSSBSize, gpuLights.data(), GL_DYNAMIC_STORAGE_BIT);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, lightSSBId);
 
+	// -------------------------------------------------------------------------------------------------------
+
+	lightModelData = std::vector<float>{};
+	lightModelData.reserve(lightCount * 16);
+	for (uint32_t i = 0; i < lights.size(); i++)
+	{
+		const float* modelPtr = glm::value_ptr(lights[i].modelMat);
+		lightModelData.insert(lightModelData.end(), modelPtr, modelPtr + 16);
+	}
+
 	std::vector<float> instData;
 	uint32_t instStride = 0;
 
-	instStride = renderer.addToData(instData, lightPositions, instStride, 3);
+	instStride = renderer.addToData(instData, lightModelData, instStride, 16);
 
-	//uint32_t instBuffer;
-	//renderer.generateVertexBuffer(instBuffer, instData);
+	uint32_t instBuffer;
+	renderer.generateVertexBuffer(instBuffer, instData);
 
-	//std::vector<AttributeLayout> instAttribs = {
-	//	{3, GL_FLOAT, 1},
-	//	{3, GL_FLOAT, 2}
-	//};
+	std::vector<AttributeLayout> instAttribs = {
+		{4, GL_FLOAT, 1},
+		{4, GL_FLOAT, 2},
+		{4, GL_FLOAT, 3},
+		{4, GL_FLOAT, 4}
+	};
 
-	//renderer.addInstToVertexArray(lightVaoId, instBuffer, instAttribs);
+	renderer.addInstToVertexArray(lightVaoId, instBuffer, instAttribs);
 }
 
 void Deferred::prepareDebugQuad()
@@ -303,6 +317,22 @@ void Deferred::run()
 		renderer.drawInstanced(36, cubeCount);
 
 		renderer.unprepareForDraw(cubeProgramId, cubeTextureIds);
+	}
+
+	{
+		renderer.prepareForDraw(geoFbId, lightProgramId, {}, lightVaoId); // geoFbId only for testing, should be using fb 0 for deferred rendering
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
+		glEnable(GL_CULL_FACE);
+
+		glBlitNamedFramebuffer(
+			geoFbId, 0, 0, 0, window.width, window.height, 0, 0, window.width, window.height, GL_DEPTH_BUFFER_BIT, GL_NEAREST
+		);
+		renderer.updateViewMatrix(view);
+		renderer.applyMvp(lightProgramId, "", "view", "projection");
+		renderer.drawInstanced(36, lightCount);
+
+		renderer.unprepareForDraw(lightProgramId, {});
 	}
 
 	{

@@ -60,9 +60,10 @@ private:
 	uint32_t diffSpecTexId = 0;
 
 	uint32_t lightVaoId = 0;
-	const uint32_t lightCount = 20;
+	const uint32_t lightCount = 50;
 	std::vector<Light> lights{};
-	std::vector<float> lightPositions{};
+	std::vector<float> lightModelData{};
+	uint32_t lightProgramId = 0;
 	uint32_t lightSSBId = 0;
 	uint32_t gpuLightSize = 5 * sizeof(glm::vec4);
 

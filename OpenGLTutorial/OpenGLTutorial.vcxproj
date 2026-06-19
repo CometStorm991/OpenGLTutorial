@@ -137,6 +137,8 @@
   <ItemGroup>
     <None Include="Shaders\ALLightFS.glsl" />
     <None Include="Shaders\ALLightVS.glsl" />
+    <None Include="Shaders\Deferred\LightBoxFS.glsl" />
+    <None Include="Shaders\Deferred\LightBoxVS.glsl" />
     <None Include="Shaders\Deferred\DebugQuadFS.glsl" />
     <None Include="Shaders\Deferred\DebugQuadVS.glsl" />
     <None Include="Shaders\Deferred\SceneBoxFSOld.glsl" />

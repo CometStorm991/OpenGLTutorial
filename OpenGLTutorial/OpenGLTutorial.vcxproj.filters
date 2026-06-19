@@ -123,6 +123,8 @@
     <None Include="Shaders\Deferred\SceneBoxFSOld.glsl" />
     <None Include="Shaders\Deferred\DebugQuadFS.glsl" />
     <None Include="Shaders\Deferred\DebugQuadVS.glsl" />
+    <None Include="Shaders\Deferred\LightBoxVS.glsl" />
+    <None Include="Shaders\Deferred\LightBoxFS.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Shader.hpp">
