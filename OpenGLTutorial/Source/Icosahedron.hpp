@@ -7,7 +7,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
-class Isocahedron
+class Icosahedron
 {
 public:
 	static std::vector<float> fillP(uint32_t subdivisions);

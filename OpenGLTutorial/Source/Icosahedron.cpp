@@ -1,12 +1,12 @@
-#include "Isocahedron.hpp"
+#include "Icosahedron.hpp"
 
-std::vector<float> Isocahedron::fillP(uint32_t subdivisions)
+std::vector<float> Icosahedron::fillP(uint32_t subdivisions)
 {
 	std::vector<Triangle> mesh = generateMesh(subdivisions);
 	return flatten(mesh);
 }
 
-std::vector<float> Isocahedron::fillN(uint32_t subdivisions)
+std::vector<float> Icosahedron::fillN(uint32_t subdivisions)
 {
 	std::vector<Triangle> mesh = generateMesh(subdivisions);
 
@@ -31,7 +31,7 @@ std::vector<float> Isocahedron::fillN(uint32_t subdivisions)
 	return flatten(norms);
 }
 
-std::vector<Isocahedron::Triangle> Isocahedron::generateMesh(uint32_t subdivisions)
+std::vector<Icosahedron::Triangle> Icosahedron::generateMesh(uint32_t subdivisions)
 {
 	std::vector<Triangle> mesh = generateInitIsoc();
 	projectOntoSphere(mesh);
@@ -45,7 +45,7 @@ std::vector<Isocahedron::Triangle> Isocahedron::generateMesh(uint32_t subdivisio
 	return mesh;
 }
 
-std::vector<Isocahedron::Triangle> Isocahedron::generateInitIsoc()
+std::vector<Icosahedron::Triangle> Icosahedron::generateInitIsoc()
 {
 	float phi = (1.0f + sqrt(5.0f)) * 0.5f; // golden ratio
 	float a = 1.0f;
@@ -94,7 +94,7 @@ std::vector<Isocahedron::Triangle> Isocahedron::generateInitIsoc()
 	return mesh;
 }
 
-void Isocahedron::subdivide(std::vector<Triangle>& mesh)
+void Icosahedron::subdivide(std::vector<Triangle>& mesh)
 {
 	std::vector<Triangle> originalMesh = mesh;
 	std::vector<Triangle> newMesh{};
@@ -124,7 +124,7 @@ void Isocahedron::subdivide(std::vector<Triangle>& mesh)
 	mesh = newMesh;
 }
 
-void Isocahedron::projectOntoSphere(std::vector<Triangle>& mesh)
+void Icosahedron::projectOntoSphere(std::vector<Triangle>& mesh)
 {
 	for (uint32_t i = 0; i < mesh.size(); i++)
 	{
@@ -136,14 +136,14 @@ void Isocahedron::projectOntoSphere(std::vector<Triangle>& mesh)
 	}
 }
 
-std::vector<float> Isocahedron::flatten(std::vector<Triangle>& mesh)
+std::vector<float> Icosahedron::flatten(std::vector<Triangle>& mesh)
 {
 	const float* ptr = glm::value_ptr(mesh[0].verts[0]);
 	std::vector<float> flattened{ ptr, ptr + 3 * mesh[0].verts.size() * mesh.size() };
 	return flattened;
 }
 
-//std::vector<float> Isocahedron::Triangle::flatten()
+//std::vector<float> Icosahedron::Triangle::flatten()
 //{
 //	const float* ptr = glm::value_ptr(verts[0]);
 //	std::vector<float> flattened{ ptr, ptr + 3 * verts.size() };

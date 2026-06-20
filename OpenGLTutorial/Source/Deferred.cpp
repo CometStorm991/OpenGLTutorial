@@ -145,8 +145,8 @@ void Deferred::prepareLight()
 	std::vector<float> vertices;
 	uint32_t stride = 0;
 
-	stride = renderer.addToData(vertices, Isocahedron::fillP(subdivisions), stride, 3);
-	stride = renderer.addToData(vertices, Isocahedron::fillN(subdivisions), stride, 3);
+	stride = renderer.addToData(vertices, Icosahedron::fillP(subdivisions), stride, 3);
+	stride = renderer.addToData(vertices, Icosahedron::fillN(subdivisions), stride, 3);
 
 	uint32_t vertexBuffer;
 	renderer.generateVertexBuffer(vertexBuffer, vertices);

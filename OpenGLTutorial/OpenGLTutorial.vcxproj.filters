@@ -84,7 +84,7 @@
     <ClCompile Include="Source\Deferred.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Isocahedron.cpp">
+    <ClCompile Include="Source\Icosahedron.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -205,7 +205,7 @@
     <ClInclude Include="Source\Deferred.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Isocahedron.hpp">
+    <ClInclude Include="Source\Icosahedron.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
