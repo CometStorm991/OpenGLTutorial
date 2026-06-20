@@ -67,6 +67,7 @@ private:
 	uint32_t lightProgramId = 0;
 	uint32_t lightSSBId = 0;
 	uint32_t gpuLightSize = 5 * sizeof(glm::vec4);
+	uint32_t subdivisions = 4;
 
 	uint32_t geoFbId = 0;
 

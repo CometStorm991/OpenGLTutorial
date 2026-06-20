@@ -145,8 +145,8 @@ void Deferred::prepareLight()
 	std::vector<float> vertices;
 	uint32_t stride = 0;
 
-	stride = renderer.addToData(vertices, Isocahedron::fillP(), stride, 3);
-	stride = renderer.addToData(vertices, Isocahedron::fillN(), stride, 3);
+	stride = renderer.addToData(vertices, Isocahedron::fillP(subdivisions), stride, 3);
+	stride = renderer.addToData(vertices, Isocahedron::fillN(subdivisions), stride, 3);
 
 	uint32_t vertexBuffer;
 	renderer.generateVertexBuffer(vertexBuffer, vertices);
@@ -333,7 +333,7 @@ void Deferred::run()
 		);
 		renderer.updateViewMatrix(view);
 		renderer.applyMvp(lightProgramId, "", "view", "projection");
-		renderer.drawInstanced(60, lightCount);
+		renderer.drawInstanced(60 * static_cast<uint32_t>(std::powf(4, subdivisions)), lightCount);
 
 		renderer.unprepareForDraw(lightProgramId, {});
 	}

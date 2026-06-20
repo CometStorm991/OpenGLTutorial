@@ -1,18 +1,14 @@
 #include "Isocahedron.hpp"
 
-std::vector<float> Isocahedron::fillP()
+std::vector<float> Isocahedron::fillP(uint32_t subdivisions)
 {
-	std::vector<Triangle> mesh = generateInitIsoc();
-
-	projectOntoSphere(mesh);
-
+	std::vector<Triangle> mesh = generateMesh(subdivisions);
 	return flatten(mesh);
 }
 
-std::vector<float> Isocahedron::fillN()
+std::vector<float> Isocahedron::fillN(uint32_t subdivisions)
 {
-	std::vector<Triangle> mesh = generateInitIsoc();
-	projectOntoSphere(mesh);
+	std::vector<Triangle> mesh = generateMesh(subdivisions);
 
 	std::vector<Triangle> norms{};
 	norms.reserve(mesh.size());
@@ -33,6 +29,20 @@ std::vector<float> Isocahedron::fillN()
 	}
 
 	return flatten(norms);
+}
+
+std::vector<Isocahedron::Triangle> Isocahedron::generateMesh(uint32_t subdivisions)
+{
+	std::vector<Triangle> mesh = generateInitIsoc();
+	projectOntoSphere(mesh);
+
+	for (uint32_t i = 0; i < subdivisions; i++)
+	{
+		subdivide(mesh);
+		projectOntoSphere(mesh);
+	}
+
+	return mesh;
 }
 
 std::vector<Isocahedron::Triangle> Isocahedron::generateInitIsoc()
@@ -82,6 +92,36 @@ std::vector<Isocahedron::Triangle> Isocahedron::generateInitIsoc()
 	};
 
 	return mesh;
+}
+
+void Isocahedron::subdivide(std::vector<Triangle>& mesh)
+{
+	std::vector<Triangle> originalMesh = mesh;
+	std::vector<Triangle> newMesh{};
+	for (uint32_t i = 0; i < mesh.size(); i++)
+	{
+		Triangle& tri = originalMesh[i];
+		
+		std::array<glm::vec3, 6> newPoints =
+		{
+			tri.verts[0], tri.verts[1], tri.verts[2],
+			(tri.verts[0] + tri.verts[1]) / 2.0f,
+			(tri.verts[0] + tri.verts[2]) / 2.0f,
+			(tri.verts[1] + tri.verts[2]) / 2.0f,
+		};
+
+		std::array<Triangle, 4> newTris =
+		{
+			Triangle{newPoints[3], newPoints[4], newPoints[0]},
+			Triangle{newPoints[5], newPoints[3], newPoints[1]},
+			Triangle{newPoints[4], newPoints[5], newPoints[2]},
+			Triangle{newPoints[5], newPoints[4], newPoints[3]},
+		};
+
+		newMesh.insert(newMesh.end(), newTris.begin(), newTris.end());
+	}
+
+	mesh = newMesh;
 }
 
 void Isocahedron::projectOntoSphere(std::vector<Triangle>& mesh)
