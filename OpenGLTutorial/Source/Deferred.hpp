@@ -53,7 +53,7 @@ private:
 	uint32_t cubeInstBufferId = 0;
 	std::vector<uint32_t> cubeTextureIds{};
 	uint32_t cubeProgramId = 0;
-	const uint32_t cubeCount = 800;
+	const uint32_t cubeCount = 1600;
 	std::vector<glm::vec3> cubePositions{}, cubeRotationSpeeds{};
 
 	uint32_t posTexId = 0;
@@ -64,7 +64,7 @@ private:
 	uint32_t diffSpecTexUnit = 2;
 
 	uint32_t lightVaoId = 0;
-	const uint32_t lightCount = 400;
+	const uint32_t lightCount = 800;
 	std::vector<Light> lights{};
 	std::vector<float> lightModelData{};
 	uint32_t lightProgramId = 0;

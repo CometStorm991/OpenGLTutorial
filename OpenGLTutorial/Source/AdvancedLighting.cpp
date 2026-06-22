@@ -97,13 +97,13 @@ void AdvancedLighting::prepare()
 
 	renderer.generateProgram(quadProgramId, "Shaders/HdrVS.glsl", "Shaders/HdrFS.glsl");
 	renderer.setUniform1i(quadProgramId, "screenTexture", hdrTexUnit);
-
-	renderer.setUniform1i(floorVaoId, "depthCubemaps", depthCubemapTexUnit);
-	renderer.setUniform1i(boxesVaoId, "depthCubemaps", depthCubemapTexUnit);
+	
+	renderer.setUniform1i(floorProgramId, "depthCubemaps", depthCubemapTexUnit);
+	renderer.setUniform1i(boxesProgramId, "depthCubemaps", depthCubemapTexUnit);
 	floorTextureIds.push_back(depthCubemapTexId);
 	boxesTextureIds.push_back(depthCubemapTexId);
-	renderer.setUniform1f(floorVaoId, "farPlane", depthCubemapFar);
-	renderer.setUniform1f(boxesVaoId, "farPlane", depthCubemapFar);
+	renderer.setUniform1f(floorProgramId, "farPlane", depthCubemapFar);
+	renderer.setUniform1f(boxesProgramId, "farPlane", depthCubemapFar);
 
 	camController.setCameraPos(glm::vec3(-5.0f, 2.0f, 0.0f));
 	camController.setCameraOrientation(0.0f, 0.0f);

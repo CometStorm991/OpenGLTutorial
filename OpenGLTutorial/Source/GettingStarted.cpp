@@ -62,9 +62,10 @@ void GettingStarted::addCubeVertices(std::vector<uint32_t>& textureIds, uint32_t
     renderer.generateVertexArray(vao, vertexBuffer, 0, attribs);
 
     uint32_t texture0;
-    renderer.generateResourceTexture2D(texture0, "Resources/NeutronStar.jpg", true, GL_TEXTURE_2D, 0);
+    renderer.generateResourceTexture2D(texture0, "Resources/NeutronStar.jpg", true, GL_SRGB8, GL_TEXTURE_2D, 0);
     uint32_t texture1;
-    renderer.generateResourceTexture2D(texture1, "Resources/ArchLinux.jpeg", true, GL_TEXTURE_2D, 0);
+    renderer.generateResourceTexture2D(texture1, "Resources/ArchLinux.jpeg", true, GL_SRGB8, GL_TEXTURE_2D, 0);
+    glEnable(GL_FRAMEBUFFER_SRGB); // Gamma correction added a long time after completing Getting Started for backwards compatibility
     textureIds.clear();
     textureIds.push_back(texture0);
     textureIds.push_back(texture1);

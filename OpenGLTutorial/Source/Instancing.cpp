@@ -107,7 +107,7 @@ void Instancing::run()
 		renderer.applyMvp(metalBoxProgramId, "", "view", "projection");
 		renderer.setUniform1f(metalBoxProgramId, "time", milliseconds / 1000.0f);
 		renderer.setUniform3f(metalBoxProgramId, "viewPos", pos);
-		renderer.drawInstanced(36, 1500);
+		renderer.drawInstanced(36, 150000);
 
 		renderer.unprepareForDraw(metalBoxProgramId, {});
 	}
