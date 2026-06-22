@@ -144,6 +144,8 @@
     <None Include="Shaders\Deferred\SceneBoxFSOld.glsl" />
     <None Include="Shaders\Deferred\SceneBoxVS.glsl" />
     <None Include="Shaders\Deferred\SceneBoxFS.glsl" />
+    <None Include="Shaders\Deferred\StencilFS.glsl" />
+    <None Include="Shaders\Deferred\StencilVS.glsl" />
     <None Include="Shaders\Deferred\VolumeFS.glsl" />
     <None Include="Shaders\Deferred\VolumeVS.glsl" />
     <None Include="Shaders\DepthCubemapFS.glsl" />

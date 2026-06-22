@@ -30,6 +30,7 @@ void Deferred::prepare()
 		{ GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normTexId }, 
 		{ GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, diffSpecTexId },
 		{ GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rendBufId }, });
+	//glNamedFramebufferRenderbuffer(0, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rendBufId);
 
 	uint32_t attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 	glNamedFramebufferDrawBuffers(geoFbId, 3, attachments);
@@ -43,7 +44,6 @@ void Deferred::prepare()
 	renderer.addTexture(normTexId, GL_TEXTURE_2D, normTexUnit);
 	renderer.addTexture(diffSpecTexId, GL_TEXTURE_2D, diffSpecTexUnit);
 	
-
 	prepareVolume();
 	prepareDebugQuad();
 
@@ -88,7 +88,7 @@ void Deferred::prepareCube()
 
 	cubePositions = std::vector<glm::vec3>();
 	cubePositions.reserve(cubeCount);
-	std::uniform_real_distribution<float> posDistrib = std::uniform_real_distribution<float>(-10.0f, 10.0f);
+	std::uniform_real_distribution<float> posDistrib = std::uniform_real_distribution<float>(-20.0f, 20.0f);
 	for (unsigned int i = 0; i < cubeCount; i++)
 	{
 		float x = posDistrib(randomEngine);
@@ -169,7 +169,7 @@ void Deferred::prepareLight()
 	renderer.generateProgram(lightProgramId, "Shaders/Deferred/LightBoxVS.glsl", "Shaders/Deferred/LightBoxFS.glsl");
 
 	std::uniform_real_distribution<float> colorDistrib{ 0.0f, 1.0f };
-	std::uniform_real_distribution<float> posDistrib{ -10.0f, 10.0f };
+	std::uniform_real_distribution<float> posDistrib{ -20.0f, 20.0f };
 	for (unsigned int i = 0; i < lightCount; i++)
 	{
 		glm::vec3 color{
@@ -262,11 +262,16 @@ void Deferred::prepareVolume()
 	renderer.generateVertexArray(volumeVaoId, vertexBuffer, 0, attribs);
 
 	renderer.generateProgram(volumeProgramId, "Shaders/Deferred/VolumeVS.glsl", "Shaders/Deferred/VolumeFS.glsl");
+	renderer.generateProgram(stencilProgramId, {
+		{GL_VERTEX_SHADER, "Shaders/Deferred/StencilVS.glsl"},
+		{GL_FRAGMENT_SHADER, "Shaders/Deferred/StencilFS.glsl"} });
 
 	renderer.setUniform1i(volumeProgramId, "posSamp", posTexUnit);
 	renderer.setUniform1i(volumeProgramId, "normSamp", normTexUnit);
 	renderer.setUniform1i(volumeProgramId, "albedoSpecSamp", diffSpecTexUnit);
 	volumeTexIds = { posTexId, normTexId, diffSpecTexId };
+
+	std::cout << posTexId;
 
 	renderer.setUniform2f(volumeProgramId, "screenDims", glm::vec2{ window.width, window.height });
 
@@ -276,6 +281,7 @@ void Deferred::prepareVolume()
 	{
 		glm::mat4 model = glm::mat4{ 1.0f };
 		float radius = getLightVolumeRadius(lights[i]);
+		model = glm::translate(model, lights[i].pos);
 		model = glm::scale(model, glm::vec3{radius});
 		const float* modelPtr = glm::value_ptr(model);
 		volumeModelData.insert(volumeModelData.end(), modelPtr, modelPtr + 16);
@@ -368,11 +374,21 @@ void Deferred::run()
 	renderer.prepareForFrame();
 
 	renderer.bindFramebuffer(0);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_STENCIL_TEST);
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDepthMask(GL_TRUE);
+	glStencilMask(0xFF);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	renderer.bindFramebuffer(geoFbId);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_STENCIL_TEST);
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDepthMask(GL_TRUE);
+	glStencilMask(0xFF);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	// Gamma correction
 	glEnable(GL_FRAMEBUFFER_SRGB);
 
@@ -387,8 +403,11 @@ void Deferred::run()
 		renderer.prepareForDraw(geoFbId, cubeProgramId, cubeTextureIds, cubeVaoId);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
-		glEnable(GL_CULL_FACE);
+		glDepthMask(GL_TRUE);
+		glDisable(GL_STENCIL_TEST);
 		glDisable(GL_BLEND);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
 
 		renderer.updateViewMatrix(view);
 		renderer.applyMvp(cubeProgramId, "", "view", "projection");
@@ -399,11 +418,40 @@ void Deferred::run()
 	}
 
 	{
+		renderer.prepareForDraw(geoFbId, stencilProgramId, {}, volumeVaoId);
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
+		glDepthMask(GL_FALSE);
+		glEnable(GL_STENCIL_TEST);
+		glStencilFunc(GL_ALWAYS, 0, 0x00);
+		glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
+		glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
+		glStencilMask(0xFF);
+		glDisable(GL_BLEND);
+		glDisable(GL_CULL_FACE);
+
+		renderer.updateViewMatrix(view);
+		renderer.applyMvp(stencilProgramId, "", "view", "projection");
+		renderer.drawInstanced(60 * static_cast<uint32_t>(std::powf(4, volumeModelSubs)), lightCount);
+
+		renderer.unprepareForDraw(stencilProgramId, {});
+	}
+
+	{
 		renderer.prepareForDraw(0, volumeProgramId, volumeTexIds, volumeVaoId);
 		glDisable(GL_DEPTH_TEST);
+		glEnable(GL_STENCIL_TEST);
+		glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
+		glStencilMask(0x00);
 		glEnable(GL_BLEND);
 		glBlendEquation(GL_FUNC_ADD);
 		glBlendFunc(GL_ONE, GL_ONE);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
+
+		glBlitNamedFramebuffer(
+			geoFbId, 0, 0, 0, window.width, window.height, 0, 0, window.width, window.height, GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST
+		);
 
 		renderer.updateViewMatrix(view);
 		renderer.applyMvp(volumeProgramId, "", "view", "projection");
@@ -417,12 +465,12 @@ void Deferred::run()
 		renderer.prepareForDraw(0, lightProgramId, {}, lightVaoId); // geoFbId only for testing, should be using fb 0 for deferred rendering
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
-		glEnable(GL_CULL_FACE);
+		glDepthMask(GL_TRUE);
+		glDisable(GL_STENCIL_TEST);
 		glDisable(GL_BLEND);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
 
-		glBlitNamedFramebuffer(
-			geoFbId, 0, 0, 0, window.width, window.height, 0, 0, window.width, window.height, GL_DEPTH_BUFFER_BIT, GL_NEAREST
-		);
 		renderer.updateViewMatrix(view);
 		renderer.applyMvp(lightProgramId, "", "view", "projection");
 		renderer.drawInstanced(60 * static_cast<uint32_t>(std::powf(4, lightModelSubs)), lightCount);

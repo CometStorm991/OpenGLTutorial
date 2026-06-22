@@ -61,5 +61,5 @@ void main()
     {
         //fragColor = vec4(screenFragPos, 1.0f, 1.0f);
     }
-	//fragColor = vec4((ambient + diffuse + specular), 1.0f);
+	//fragColor = vec4(diffuseColor, 1.0f);
 }

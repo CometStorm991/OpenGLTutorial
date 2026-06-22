@@ -15,7 +15,7 @@ void Shader::load(const std::string& header)
     id = glCreateShader(shaderType);
 
     // Reading shader code from file
-    std::string source = header + "\n";
+    std::string source = header.size() == 0 ? "" : header + "\n";
     std::ifstream file(filePath);
     if (!file.good())
     {
