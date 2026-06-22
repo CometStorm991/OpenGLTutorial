@@ -59,6 +59,9 @@ private:
 	uint32_t posTexId = 0;
 	uint32_t normTexId = 0;
 	uint32_t diffSpecTexId = 0;
+	uint32_t posTexUnit = 0;
+	uint32_t normTexUnit = 1;
+	uint32_t diffSpecTexUnit = 2;
 
 	uint32_t lightVaoId = 0;
 	const uint32_t lightCount = 50;
@@ -67,7 +70,13 @@ private:
 	uint32_t lightProgramId = 0;
 	uint32_t lightSSBId = 0;
 	uint32_t gpuLightSize = 5 * sizeof(glm::vec4);
-	uint32_t subdivisions = 4;
+	uint32_t lightModelSubs = 4;
+
+	uint32_t volumeVaoId = 0;
+	uint32_t volumeProgramId = 0;
+	std::vector<uint32_t> volumeTexIds{};
+	uint32_t volumeModelSubs = 1;
+	std::vector<float> volumeModelData{};
 
 	uint32_t geoFbId = 0;
 
@@ -78,5 +87,8 @@ private:
 	void prepareCube();
 	void updateSceneBoxData(uint64_t milliseconds);
 	void prepareLight();
+	void prepareVolume();
 	void prepareDebugQuad();
+
+	float getLightVolumeRadius(const Light& light);
 };

@@ -39,6 +39,12 @@ void Deferred::prepare()
 		std::cout << "[Error] Framebuffer is not complete!" << std::endl;
 	}
 
+	renderer.addTexture(posTexId, GL_TEXTURE_2D, posTexUnit);
+	renderer.addTexture(normTexId, GL_TEXTURE_2D, normTexUnit);
+	renderer.addTexture(diffSpecTexId, GL_TEXTURE_2D, diffSpecTexUnit);
+	
+
+	prepareVolume();
 	prepareDebugQuad();
 
 	renderer.prepareForRun();
@@ -145,8 +151,8 @@ void Deferred::prepareLight()
 	std::vector<float> vertices;
 	uint32_t stride = 0;
 
-	stride = renderer.addToData(vertices, Icosahedron::fillP(subdivisions), stride, 3);
-	stride = renderer.addToData(vertices, Icosahedron::fillN(subdivisions), stride, 3);
+	stride = renderer.addToData(vertices, Icosahedron::fillP(lightModelSubs), stride, 3);
+	stride = renderer.addToData(vertices, Icosahedron::fillN(lightModelSubs), stride, 3);
 
 	uint32_t vertexBuffer;
 	renderer.generateVertexBuffer(vertexBuffer, vertices);
@@ -184,7 +190,8 @@ void Deferred::prepareLight()
 
 		glm::vec3 ambient = 0.2f * color;
 		glm::vec3 diffuse = color;
-		glm::vec3 specular{ 1.0f, 1.0f, 1.0f };
+		//glm::vec3 specular{ 1.0f, 1.0f, 1.0f };
+		glm::vec3 specular = color;
 
 		float constant = 1.0f;
 		float linear = 0.22f;
@@ -237,6 +244,73 @@ void Deferred::prepareLight()
 	renderer.addInstToVertexArray(lightVaoId, instBuffer, instAttribs);
 }
 
+void Deferred::prepareVolume()
+{
+	std::vector<float> vertices;
+	uint32_t stride = 0;
+
+	stride = renderer.addToData(vertices, Icosahedron::fillP(volumeModelSubs), stride, 3);
+
+	uint32_t vertexBuffer;
+	renderer.generateVertexBuffer(vertexBuffer, vertices);
+
+	AttributeLayout posAttrib{ 3, GL_FLOAT, 0 };
+
+	std::vector<AttributeLayout> attribs = std::vector<AttributeLayout>();
+	attribs.push_back(posAttrib);
+
+	renderer.generateVertexArray(volumeVaoId, vertexBuffer, 0, attribs);
+
+	renderer.generateProgram(volumeProgramId, "Shaders/Deferred/VolumeVS.glsl", "Shaders/Deferred/VolumeFS.glsl");
+
+	renderer.setUniform1i(volumeProgramId, "posSamp", posTexUnit);
+	renderer.setUniform1i(volumeProgramId, "normSamp", normTexUnit);
+	renderer.setUniform1i(volumeProgramId, "albedoSpecSamp", diffSpecTexUnit);
+	volumeTexIds = { posTexId, normTexId, diffSpecTexId };
+
+	renderer.setUniform2f(volumeProgramId, "screenDims", glm::vec2{ window.width, window.height });
+
+	volumeModelData = std::vector<float>{};
+	volumeModelData.reserve(lightCount * 16);
+	for (uint32_t i = 0; i < lights.size(); i++)
+	{
+		glm::mat4 model = glm::mat4{ 1.0f };
+		float radius = getLightVolumeRadius(lights[i]);
+		model = glm::scale(model, glm::vec3{radius});
+		const float* modelPtr = glm::value_ptr(model);
+		volumeModelData.insert(volumeModelData.end(), modelPtr, modelPtr + 16);
+	}
+
+	std::vector<float> instData;
+	uint32_t instStride = 0;
+
+	instStride = renderer.addToData(instData, volumeModelData, instStride, 16);
+
+	uint32_t instBuffer;
+	renderer.generateVertexBuffer(instBuffer, instData);
+
+	std::vector<AttributeLayout> instAttribs = {
+		{4, GL_FLOAT, 1},
+		{4, GL_FLOAT, 2},
+		{4, GL_FLOAT, 3},
+		{4, GL_FLOAT, 4}
+	};
+
+	renderer.addInstToVertexArray(volumeVaoId, instBuffer, instAttribs);
+
+	renderer.setUniform1f(volumeProgramId, "materialShininess", 4.0f);
+}
+
+float Deferred::getLightVolumeRadius(const Light& light)
+{
+	const float kc = light.constant;
+	const float kl = light.linear;
+	const float kq = light.quadratic;
+	const float iMax = std::fmaxf(std::fmaxf(light.color.r, light.color.g), light.color.b);
+	const float sqrtDiscrim = std::sqrtf(kl * kl - 4.0 * kq * (kc - iMax * 256.0f / 5.0f));
+	return (-kl + sqrtDiscrim) / (2.0f * kq);
+}
+
 void Deferred::prepareDebugQuad()
 {
 	std::vector<float> posQuadVerts = {
@@ -281,13 +355,11 @@ void Deferred::prepareDebugQuad()
 		{ GL_VERTEX_SHADER, "Shaders/Deferred/DebugQuadVS.glsl" }, 
 		{ GL_FRAGMENT_SHADER, "Shaders/Deferred/DebugQuadFS.glsl" }, });
 
-	renderer.addTexture(posTexId, GL_TEXTURE_2D, 0);
-	renderer.addTexture(normTexId, GL_TEXTURE_2D, 1);
-	renderer.addTexture(diffSpecTexId, GL_TEXTURE_2D, 2);
-	renderer.setUniform1i(debugQuadProgId, "screenTexture[0]", 0);
-	renderer.setUniform1i(debugQuadProgId, "screenTexture[1]", 1);
-	renderer.setUniform1i(debugQuadProgId, "screenTexture[2]", 2);
-	renderer.setUniform1i(debugQuadProgId, "screenTexture[3]", 2);
+	
+	renderer.setUniform1i(debugQuadProgId, "screenTexture[0]", posTexUnit);
+	renderer.setUniform1i(debugQuadProgId, "screenTexture[1]", normTexUnit);
+	renderer.setUniform1i(debugQuadProgId, "screenTexture[2]", diffSpecTexUnit);
+	renderer.setUniform1i(debugQuadProgId, "screenTexture[3]", diffSpecTexUnit);
 	debugQuadTexIds = { posTexId, normTexId, diffSpecTexId };
 }
 
@@ -301,18 +373,22 @@ void Deferred::run()
 	renderer.bindFramebuffer(geoFbId);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// Gamma correction
+	glEnable(GL_FRAMEBUFFER_SRGB);
 
 	uint64_t milliseconds = renderer.getMillisecondsSinceRunPreparation();
 	updateSceneBoxData(milliseconds);
 
 	Camera camera = camController.getCamera();
 	glm::mat4 view = camera.getView();
+	glm::vec3 pos = camController.getCamera().pos;
 
 	{
 		renderer.prepareForDraw(geoFbId, cubeProgramId, cubeTextureIds, cubeVaoId);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 		glEnable(GL_CULL_FACE);
+		glDisable(GL_BLEND);
 
 		renderer.updateViewMatrix(view);
 		renderer.applyMvp(cubeProgramId, "", "view", "projection");
@@ -323,30 +399,46 @@ void Deferred::run()
 	}
 
 	{
-		renderer.prepareForDraw(geoFbId, lightProgramId, {}, lightVaoId); // geoFbId only for testing, should be using fb 0 for deferred rendering
+		renderer.prepareForDraw(0, volumeProgramId, volumeTexIds, volumeVaoId);
+		glDisable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glBlendEquation(GL_FUNC_ADD);
+		glBlendFunc(GL_ONE, GL_ONE);
+
+		renderer.updateViewMatrix(view);
+		renderer.applyMvp(volumeProgramId, "", "view", "projection");
+		renderer.setUniform3f(volumeProgramId, "viewPos", pos);
+		renderer.drawInstanced(60 * static_cast<uint32_t>(std::powf(4, volumeModelSubs)), lightCount);
+
+		renderer.unprepareForDraw(volumeProgramId, volumeTexIds);
+	}
+
+	{
+		renderer.prepareForDraw(0, lightProgramId, {}, lightVaoId); // geoFbId only for testing, should be using fb 0 for deferred rendering
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 		glEnable(GL_CULL_FACE);
+		glDisable(GL_BLEND);
 
 		glBlitNamedFramebuffer(
 			geoFbId, 0, 0, 0, window.width, window.height, 0, 0, window.width, window.height, GL_DEPTH_BUFFER_BIT, GL_NEAREST
 		);
 		renderer.updateViewMatrix(view);
 		renderer.applyMvp(lightProgramId, "", "view", "projection");
-		renderer.drawInstanced(60 * static_cast<uint32_t>(std::powf(4, subdivisions)), lightCount);
+		renderer.drawInstanced(60 * static_cast<uint32_t>(std::powf(4, lightModelSubs)), lightCount);
 
 		renderer.unprepareForDraw(lightProgramId, {});
 	}
 
-	{
-		renderer.prepareForDraw(0, debugQuadProgId, debugQuadTexIds, debugQuadVaoId);
-		glDisable(GL_DEPTH_TEST);
-		glDisable(GL_CULL_FACE);
+	//{
+	//	renderer.prepareForDraw(0, debugQuadProgId, debugQuadTexIds, debugQuadVaoId);
+	//	glDisable(GL_DEPTH_TEST);
+	//	glDisable(GL_CULL_FACE);
 
-		glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, 4);
+	//	glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, 4);
 
-		renderer.unprepareForDraw(debugQuadProgId, debugQuadTexIds);
-	}
+	//	renderer.unprepareForDraw(debugQuadProgId, debugQuadTexIds);
+	//}
 
 	renderer.unprepareForFrame();
 

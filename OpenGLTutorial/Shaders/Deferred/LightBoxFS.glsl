@@ -25,7 +25,6 @@ layout(std430, binding = 0) buffer LightsBuf
 void main()
 {
 	vec3 posNorm = vNorm * 0.5f + 0.5f;
-	vec3 avg = lights[vInstanceId].diffuse * 0.0f + posNorm * 1.0f;
+	vec3 avg = lights[vInstanceId].diffuse * 0.7f + posNorm * 0.3f;
 	fragColor = vec4(avg, 1.0f);
-	//fragColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 }
