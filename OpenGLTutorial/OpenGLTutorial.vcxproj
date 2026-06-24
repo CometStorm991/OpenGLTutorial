@@ -111,7 +111,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\GLFW\lib-vc2022;$(SolutionDir)Dependencies\GLEW\lib\Release\x64;$(SolutionDir)Dependencies\Assimp\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;glew32s.lib;User32.lib;Gdi32.lib;Shell32.lib</AdditionalDependencies>
+      <AdditionalDependencies>assimp-vc145-mtd.lib;glfw3.lib;opengl32.lib;glew32s.lib;User32.lib;Gdi32.lib;Shell32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -131,7 +131,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\GLFW\lib-vc2022;$(SolutionDir)Dependencies\GLEW\lib\Release\x64;$(SolutionDir)Dependencies\Assimp\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>assimp-v145-mtd.lib;glfw3.lib;opengl32.lib;glew32s.lib;User32.lib;Gdi32.lib;Shell32.lib</AdditionalDependencies>
+      <AdditionalDependencies>assimp-vc145-mtd.lib;glfw3.lib;opengl32.lib;glew32s.lib;User32.lib;Gdi32.lib;Shell32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -184,6 +184,7 @@
     <ClCompile Include="Source\GettingStarted.cpp" />
     <ClCompile Include="Source\Instancing.cpp" />
     <ClCompile Include="Source\Icosahedron.cpp" />
+    <ClCompile Include="Source\Mesh.cpp" />
     <ClCompile Include="Source\MultipleLighting.cpp" />
     <ClCompile Include="Source\Rearview.cpp" />
     <ClCompile Include="Source\Renderer.cpp" />
@@ -222,6 +223,9 @@
     <ClInclude Include="Source\InputState.hpp" />
     <ClInclude Include="Source\Instancing.hpp" />
     <ClInclude Include="Source\Icosahedron.hpp" />
+    <ClInclude Include="Source\Mesh.hpp" />
+    <ClInclude Include="Source\MeshTexture.hpp" />
+    <ClInclude Include="Source\MeshVertex.hpp" />
     <ClInclude Include="Source\MultipleLighting.hpp" />
     <ClInclude Include="Source\Rearview.hpp" />
     <ClInclude Include="Source\Renderer.hpp" />
