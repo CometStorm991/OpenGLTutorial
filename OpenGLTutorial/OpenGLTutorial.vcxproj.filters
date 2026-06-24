@@ -130,6 +130,8 @@
     <None Include="Shaders\Deferred\LightBoxFS.glsl" />
     <None Include="Shaders\Deferred\VolumeFS.glsl" />
     <None Include="Shaders\Deferred\VolumeVS.glsl" />
+    <None Include="Shaders\Deferred\StencilFS.glsl" />
+    <None Include="Shaders\Deferred\StencilVS.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Shader.hpp">
