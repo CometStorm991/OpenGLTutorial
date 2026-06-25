@@ -60,6 +60,8 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 		{
 			vertex.texCoords = glm::vec2{ 0.0f, 0.0f };
 		}
+
+		vertices.push_back(vertex);
 	}
 
 	for (uint32_t i = 0; i < mesh->mNumFaces; i++)
@@ -107,10 +109,11 @@ uint32_t Model::textureFromFile(const std::string& path, const std::string& dire
 
 	int width, height, channelCount;
 	stbi_set_flip_vertically_on_load(false);
-	unsigned char* data = stbi_load((directory + path).c_str(), &width, &height, &channelCount, 0);
+	unsigned char* data = stbi_load((directory + "/" +  path).c_str(), &width, &height, &channelCount, 0);
 	if (!data)
 	{
-		std::cout << "[Error] Failed to load texture" << path << std::endl;
+		std::cout << "[Error] Failed to load texture " << (directory + path) << std::endl;
+		std::cout << "Directory: " << directory << " Path: " << path << std::endl;
 		std::cout << stbi_failure_reason() << std::endl;
 	}
 
@@ -124,17 +127,35 @@ uint32_t Model::textureFromFile(const std::string& path, const std::string& dire
 	}
 
 	GLenum internalFormat;
+	GLenum pixelFormat;
 	switch (channelCount)
 	{
 	case 3:
 		internalFormat = meshTextureType == MeshTextureType::DIFFUSE ? GL_SRGB8 : GL_RGB8;
+		pixelFormat = GL_RGB;
 		break;
 	case 4:
 	default:
 		internalFormat = meshTextureType == MeshTextureType::DIFFUSE ? GL_SRGB8_ALPHA8 : GL_RGBA8;
+		pixelFormat = GL_RGB8;
 		break;
 	}
+	
 	glTextureStorage2D(id, 1, internalFormat, width, height);
+	glTextureSubImage2D(id, 0, 0, 0, width, height, pixelFormat, GL_UNSIGNED_BYTE, data);
+
+	stbi_image_free(data);
+
+	std::vector<TextureParameter> textureParameters = {
+		{GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE},
+		{GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE},
+		{GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR},
+		{GL_TEXTURE_MAG_FILTER, GL_LINEAR}
+	};
+	for (TextureParameter textureParameter : textureParameters)
+	{
+		glTextureParameteri(id, textureParameter.getParameter(), textureParameter.getArgument());
+	}
 
 	uint32_t textureUnit = meshTextureType == MeshTextureType::DIFFUSE ? 0 : 1;  // RELIES on only 1 diffuse/specular samplers
 	renderer.addTexture(id, GL_TEXTURE_2D, textureUnit);

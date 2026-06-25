@@ -195,6 +195,7 @@
     <ClCompile Include="Source\Shader.cpp" />
     <ClCompile Include="Source\SimpleLighting.cpp" />
     <ClCompile Include="Source\Skybox.cpp" />
+    <ClCompile Include="Source\SSAO.cpp" />
     <ClCompile Include="Source\Texture.cpp" />
     <ClCompile Include="Source\TextureParameter.cpp" />
     <ClCompile Include="Source\TextureSetup.cpp" />
@@ -202,6 +203,8 @@
     <ClCompile Include="Vendors\stb_image.cpp" />
     <None Include="Shaders\SkyboxFS.glsl" />
     <None Include="Shaders\SkyboxVS.glsl" />
+    <None Include="Shaders\SSAO\ModelFS.glsl" />
+    <None Include="Shaders\SSAO\ModelVS.glsl" />
     <None Include="Shaders\TexDiffSpecFS.glsl" />
     <None Include="Shaders\TexDiffSpecVS.glsl" />
     <None Include="Shaders\TexturedObjectFS.glsl" />
@@ -237,6 +240,7 @@
     <ClInclude Include="Source\ShaderInfo.hpp" />
     <ClInclude Include="Source\SimpleLighting.hpp" />
     <ClInclude Include="Source\Skybox.hpp" />
+    <ClInclude Include="Source\SSAO.hpp" />
     <ClInclude Include="Source\Texture.hpp" />
     <ClInclude Include="Source\TextureParameter.hpp" />
     <ClInclude Include="Source\TextureSetup.hpp" />

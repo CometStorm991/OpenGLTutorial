@@ -1,7 +1,7 @@
 #include "Application.hpp"
 
 Application::Application()
-    : demo(std::make_unique<Deferred>())
+    : demo(std::make_unique<SSAO>())
 {
 }
 

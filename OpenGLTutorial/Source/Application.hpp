@@ -22,6 +22,7 @@
 #include "Shader.hpp"
 #include "SimpleLighting.hpp"
 #include "Skybox.hpp"
+#include "SSAO.hpp"
 
 class Application
 {

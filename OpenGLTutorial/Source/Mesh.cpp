@@ -12,9 +12,7 @@ void Mesh::setupMesh()
 	std::vector<float> floatVertices{ vertexPtr, vertexPtr + 8 * vertices.size() }; // Relies on Vertex being 3, 3, 2 floats
 	renderer.generateVertexBuffer(vertexBufferId, floatVertices);
 
-	const uint32_t* indexPtr = reinterpret_cast<uint32_t*>(indices.data());
-	std::vector<uint32_t> uintIndices{ indexPtr, indexPtr + 8 * indices.size() };
-	renderer.generateIndexBuffer(indexBufferId, uintIndices);
+	renderer.generateIndexBuffer(indexBufferId, indices);
 
 	AttributeLayout posAttrib{ 3, GL_FLOAT, 0 };
 	AttributeLayout normAttrib{ 3, GL_FLOAT, 1 };
@@ -30,8 +28,8 @@ void Mesh::setupMesh()
 
 void Mesh::draw(uint32_t programId, const glm::mat4& view, const glm::vec3 pos)
 {
-	renderer.setUniform1i(programId, "material.diffuseSamp", 0); // RELIES on only 1 diffuse/specular samplers
-	renderer.setUniform1i(programId, "material.specularSamp", 1);
+	renderer.setUniform1i(programId, "material.diffuse", 0); // RELIES on only 1 diffuse/specular samplers
+	renderer.setUniform1i(programId, "material.specular", 1);
 
 	std::vector<uint32_t> textureIds;
 	textureIds.reserve(textures.size());

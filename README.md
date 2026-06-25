@@ -122,4 +122,6 @@
 </tr>
 </table>
 
+## Credits
 Skybox texture from [KIIRA](https://opengameart.org/content/sky-box-sunny-day) used under [CC-BY 3.0](https://creativecommons.org/licenses/by/3.0/)
+Person model used under the Free3D Personal Use License, download link [here](https://free3d.com/3d-model/091_aya-3dsmax-2020-189298.html)
