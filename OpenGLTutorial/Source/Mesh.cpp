@@ -30,7 +30,7 @@ void Mesh::setupMesh()
 
 void Mesh::draw(uint32_t programId, const glm::mat4& view, const glm::vec3 pos)
 {
-	renderer.setUniform1i(programId, "material.diffuseSamp", 0);
+	renderer.setUniform1i(programId, "material.diffuseSamp", 0); // RELIES on only 1 diffuse/specular samplers
 	renderer.setUniform1i(programId, "material.specularSamp", 1);
 
 	std::vector<uint32_t> textureIds;
@@ -49,6 +49,8 @@ void Mesh::draw(uint32_t programId, const glm::mat4& view, const glm::vec3 pos)
 		glDisable(GL_BLEND);
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
+		// Gamma correction
+		glEnable(GL_FRAMEBUFFER_SRGB);
 
 		renderer.updateViewMatrix(view);
 		renderer.applyMvp(programId, "", "view", "projection");
