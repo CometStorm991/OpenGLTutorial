@@ -87,7 +87,6 @@ void SSAO::run()
 	renderer.setUniformMatrix4fv(programId, "model", modelMat);
 	{
 		model.draw(programId, view, pos);
-		chairModel.draw(programId, view, pos);
 	}
 
 	renderer.unprepareForFrame();
