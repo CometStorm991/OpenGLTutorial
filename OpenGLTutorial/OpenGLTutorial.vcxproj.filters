@@ -90,6 +90,15 @@
     <ClCompile Include="Source\Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\FastGLTF.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Model.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\SSAO.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\SimpleLightingFS.glsl" />
@@ -135,6 +144,14 @@
     <None Include="Shaders\Deferred\VolumeVS.glsl" />
     <None Include="Shaders\Deferred\StencilFS.glsl" />
     <None Include="Shaders\Deferred\StencilVS.glsl" />
+    <None Include="Shaders\SSAO\ModelFS.glsl" />
+    <None Include="Shaders\SSAO\ModelVS.glsl" />
+    <None Include="Shaders\SSAO\LightBoxFS.glsl" />
+    <None Include="Shaders\SSAO\LightBoxVS.glsl" />
+    <None Include="Shaders\SSAO\VolumeVS.glsl" />
+    <None Include="Shaders\SSAO\VolumeFS.glsl" />
+    <None Include="Shaders\SSAO\StencilFS.glsl" />
+    <None Include="Shaders\SSAO\StencilVS.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Shader.hpp">
@@ -213,6 +230,24 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\Icosahedron.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\FastGLTF.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Mesh.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MeshTexture.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\MeshVertex.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Model.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\SSAO.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

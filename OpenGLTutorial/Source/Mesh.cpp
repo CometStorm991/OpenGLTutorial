@@ -26,7 +26,7 @@ void Mesh::setupMesh()
 	renderer.generateVertexArray(vertexArrayId, vertexBufferId, indexBufferId, attribs);
 }
 
-void Mesh::draw(uint32_t programId, const glm::mat4& view, const glm::vec3 pos)
+void Mesh::draw(uint32_t fbId, uint32_t programId, const glm::mat4& view, const glm::vec3 pos)
 {
 	renderer.setUniform1i(programId, "material.diffuse", 0); // RELIES on only 1 diffuse/specular samplers
 	renderer.setUniform1i(programId, "material.specular", 1);
@@ -39,7 +39,7 @@ void Mesh::draw(uint32_t programId, const glm::mat4& view, const glm::vec3 pos)
 	}
 
 	{
-		renderer.prepareForDraw(0, programId, textureIds, vertexArrayId);
+		renderer.prepareForDraw(fbId, programId, textureIds, vertexArrayId);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 		glDepthMask(GL_TRUE);

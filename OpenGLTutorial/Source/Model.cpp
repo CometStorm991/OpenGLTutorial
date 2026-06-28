@@ -163,10 +163,10 @@ uint32_t Model::textureFromFile(const std::string& path, const std::string& dire
 	return id;
 }
 
-void Model::draw(uint32_t programId, const glm::mat4& view, const glm::vec3& pos)
+void Model::draw(uint32_t fbId, uint32_t programId, const glm::mat4& view, const glm::vec3& pos)
 {
 	for (Mesh mesh : meshes)
 	{
-		mesh.draw(programId, view, pos);
+		mesh.draw(fbId, programId, view, pos);
 	}
 }

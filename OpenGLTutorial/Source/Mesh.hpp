@@ -19,7 +19,7 @@ public:
 	std::vector<MeshTexture> textures;
 
 	Mesh(std::vector<MeshVertex> vertices, std::vector<uint32_t> indices, std::vector<MeshTexture> textures, Renderer& renderer);
-	void draw(uint32_t programId, const glm::mat4& view, const glm::vec3 pos);
+	void draw(uint32_t fbId, uint32_t programId, const glm::mat4& view, const glm::vec3 pos);
 private:
 	Renderer& renderer;
 

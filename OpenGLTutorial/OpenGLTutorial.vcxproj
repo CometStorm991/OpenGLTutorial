@@ -204,8 +204,14 @@
     <ClCompile Include="Vendors\stb_image.cpp" />
     <None Include="Shaders\SkyboxFS.glsl" />
     <None Include="Shaders\SkyboxVS.glsl" />
+    <None Include="Shaders\SSAO\LightBoxFS.glsl" />
+    <None Include="Shaders\SSAO\LightBoxVS.glsl" />
     <None Include="Shaders\SSAO\ModelFS.glsl" />
     <None Include="Shaders\SSAO\ModelVS.glsl" />
+    <None Include="Shaders\SSAO\StencilFS.glsl" />
+    <None Include="Shaders\SSAO\StencilVS.glsl" />
+    <None Include="Shaders\SSAO\VolumeFS.glsl" />
+    <None Include="Shaders\SSAO\VolumeVS.glsl" />
     <None Include="Shaders\TexDiffSpecFS.glsl" />
     <None Include="Shaders\TexDiffSpecVS.glsl" />
     <None Include="Shaders\TexturedObjectFS.glsl" />

@@ -6,6 +6,7 @@
 #include "CameraController.hpp"
 #include "Demo.hpp"
 #include "Model.hpp"
+#include "Icosahedron.hpp"
 #include "Renderer.hpp"
 #include "Window.hpp"
 
@@ -26,7 +27,15 @@ private:
 	std::random_device randomDevice{};
 	std::default_random_engine randomEngine{ randomDevice() };
 
-	uint32_t programId;
+	uint32_t geoFbId;
+	uint32_t posTexId = 0;
+	uint32_t normTexId = 0;
+	uint32_t diffSpecTexId = 0;
+	uint32_t posTexUnit = 0;
+	uint32_t normTexUnit = 1;
+	uint32_t diffSpecTexUnit = 2;
+
+	uint32_t ayaProgramId;
 
 	// Download from https://free3d.com/3d-model/091_aya-3dsmax-2020-189298.html
 	Model model{"Resources/AyaModel/091_W_Aya_100K.obj", renderer};
@@ -54,7 +63,22 @@ private:
 	};
 	uint32_t gpuLightSize = 5 * sizeof(glm::vec4);
 
+	uint32_t lightVaoId, lightProgramId;
 	std::vector<Light> lights{};
-	uint32_t lightCount = 50;
+	std::vector<float> lightModelData;
+	uint32_t lightCount = 64;
 	uint32_t lightSSBId;
+	uint32_t lightModelSubs = 0;
+
+	uint32_t volumeVaoId, volumeProgramId;
+	std::vector<float> volumeModelData{};
+	std::vector<uint32_t> volumeTexIds{};
+	uint32_t volumeModelSubs = 1;
+
+	uint32_t stencilProgramId = 0;
+
+	void prepareDeferred();
+	void prepareVolume();
+	float getLightVolumeRadius(const Light& light);
+	void prepareLights();
 };

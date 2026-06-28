@@ -14,7 +14,7 @@ class Model
 {
 public:
 	Model(const std::string& path, Renderer& renderer);
-	void draw(uint32_t programId, const glm::mat4& view, const glm::vec3& pos);
+	void draw(uint32_t fbId, uint32_t programId, const glm::mat4& view, const glm::vec3& pos);
 private:
 	Renderer& renderer;
 
