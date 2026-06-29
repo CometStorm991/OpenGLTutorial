@@ -7,18 +7,24 @@ SSAO::SSAO()
 
 void SSAO::prepare()
 {
-	renderer.generateProgram(ayaProgramId, "Shaders/SSAO/ModelVS.glsl", "Shaders/SSAO/ModelFS.glsl");
-	glm::mat4 ayaModelMat = glm::mat4{ 1.0f };
+	renderer.generateProgram(modelProgramId, "Shaders/SSAO/ModelVS.glsl", "Shaders/SSAO/ModelFS.glsl");
+
+	ayaModelMat = glm::mat4{ 1.0f };
 	ayaModelMat = glm::translate(ayaModelMat, glm::vec3{ 0.0f, -10.0f, -15.0f });
 	ayaModelMat = glm::rotate(ayaModelMat, static_cast<float>(std::numbers::pi), glm::vec3{ 0.0f, 1.0f, 0.0f });
-	ayaModelMat = glm::scale(ayaModelMat, glm::vec3{ 0.02f, 0.02f, 0.02f });
-	renderer.setUniformMatrix4fv(ayaProgramId, "model", ayaModelMat);
+	ayaModelMat = glm::scale(ayaModelMat, glm::vec3{ 0.01f, 0.01f, 0.01f });
+
+	apartmentModelMat = glm::mat4{ 1.0f };
+	apartmentModelMat = glm::translate(apartmentModelMat, glm::vec3{ 27.0f, -10.0f, 29.0f });
+	apartmentModelMat = glm::rotate(apartmentModelMat, static_cast<float>(3.0f * std::numbers::pi / 2.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
+	apartmentModelMat = glm::scale(apartmentModelMat, glm::vec3{ 10.0f, 10.0f, 10.0f });
 
 	prepareDeferred();
 	prepareSSAO();
 	prepareLights();
 	prepareVolume();
 	prepareHDR();
+	prepareSkybox();
 
 	renderer.prepareForRun();
 }
@@ -112,7 +118,10 @@ void SSAO::prepareVolume()
 	{
 		glm::mat4 model = glm::mat4{ 1.0f };
 		float radius = getLightVolumeRadius(lights[i]);
-		std::cout << radius << std::endl;
+		if (i == 0)
+		{
+			std::cout << "Light volume radius: " << radius << std::endl;
+		}
 		model = glm::translate(model, lights[i].pos);
 		model = glm::scale(model, glm::vec3{ radius });
 		const float* modelPtr = glm::value_ptr(model);
@@ -382,11 +391,41 @@ void SSAO::prepareHDR()
 		{ GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, hdrTextureId },
 		{ GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbId }, });
 
-	renderer.generateProgram(hdrProgramId, "Shaders/HdrVS.glsl", "Shaders/HdrFS.glsl");
+	renderer.generateProgram(hdrProgramId, "Shaders/SSAO/HdrVS.glsl", "Shaders/SSAO/HdrFS.glsl");
 	renderer.setUniform1f(hdrProgramId, "exposure", 1.0f);
 	renderer.setUniform1i(hdrProgramId, "screenTexture", hdrTexUnit);
 
 	hdrTexIds = {hdrTextureId};
+}
+
+void SSAO::prepareSkybox()
+{
+
+	std::vector<std::string> textureFaces =
+	{
+		"right.jpg", "left.jpg", "top.jpg", "bottom.jpg", "front.jpg", "back.jpg"
+	};
+	for (uint32_t i = 0; i < textureFaces.size(); i++)
+	{
+		textureFaces[i] = "Resources/TutorialSkybox/" + textureFaces[i];
+	}
+	renderer.generateResourceTextureCubemap(skyboxTextureId, textureFaces, false, GL_TEXTURE_CUBE_MAP, 0);
+
+	std::vector<float> skyboxVertices;
+	Cube::generatePSkybox(skyboxVertices);
+
+	uint32_t skyboxVertexBuffer;
+	renderer.generateVertexBuffer(skyboxVertexBuffer, skyboxVertices);
+
+	AttributeLayout posAttrib = AttributeLayout(3, GL_FLOAT);
+	std::vector<AttributeLayout> attribs = { posAttrib };
+
+	renderer.generateVertexArray(skyboxVertexArrayId, skyboxVertexBuffer, 0, attribs);
+
+	renderer.addTexture(skyboxTextureId, GL_TEXTURE_CUBE_MAP);
+
+	renderer.generateProgram(skyboxProgramId, "Shaders/SSAO/SkyboxVS.glsl", "Shaders/SSAO/SkyboxFS.glsl");
+	renderer.setUniform1i(skyboxProgramId, "skybox", 0);
 }
 
 void SSAO::run()
@@ -427,7 +466,11 @@ void SSAO::run()
 	glm::vec3 pos = camController.getCamera().pos;
 	
 	{
-		model.draw(geoFbId, ayaProgramId, view, pos);
+		renderer.setUniformMatrix4fv(modelProgramId, "model", ayaModelMat);
+		model.draw(geoFbId, modelProgramId, view, pos);
+
+		renderer.setUniformMatrix4fv(modelProgramId, "model", apartmentModelMat);
+		apartmentModel.draw(geoFbId, modelProgramId, view, pos);
 	}
 
 	{
@@ -505,22 +548,40 @@ void SSAO::run()
 	}
 
 	{
-		renderer.prepareForDraw(hdrFbId, lightProgramId, {}, lightVaoId);
+		renderer.prepareForDraw(hdrFbId, skyboxProgramId, { skyboxTextureId }, skyboxVertexArrayId);
 		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LESS);
-		glDepthMask(GL_TRUE);
+		glDepthFunc(GL_LEQUAL);
+		glDepthMask(GL_FALSE);
 		glDisable(GL_STENCIL_TEST);
-		glDisable(GL_BLEND);
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
-		glDisable(GL_FRAMEBUFFER_SRGB);
+		glDisable(GL_CULL_FACE);
 
-		renderer.updateViewMatrix(view);
-		renderer.applyMvp(lightProgramId, "", "view", "projection");
-		renderer.drawInstanced(60 * static_cast<uint32_t>(std::powf(4, lightModelSubs)), lightCount);
+		glm::mat4 model = glm::mat4(1.0f);
+		renderer.updateModelMatrix(model);
+		glm::mat4 newView = glm::mat4(glm::mat3(view));
+		renderer.updateViewMatrix(newView);
+		renderer.applyMvp(skyboxProgramId, "", "view", "projection");
+		renderer.draw(36);
 
-		renderer.unprepareForDraw(lightProgramId, {});
+		renderer.unprepareForDraw(skyboxProgramId, { skyboxTextureId });
 	}
+
+	//{
+	//	renderer.prepareForDraw(hdrFbId, lightProgramId, {}, lightVaoId);
+	//	glEnable(GL_DEPTH_TEST);
+	//	glDepthFunc(GL_LESS);
+	//	glDepthMask(GL_TRUE);
+	//	glDisable(GL_STENCIL_TEST);
+	//	glDisable(GL_BLEND);
+	//	glEnable(GL_CULL_FACE);
+	//	glCullFace(GL_BACK);
+	//	glDisable(GL_FRAMEBUFFER_SRGB);
+
+	//	renderer.updateViewMatrix(view);
+	//	renderer.applyMvp(lightProgramId, "", "view", "projection");
+	//	renderer.drawInstanced(60 * static_cast<uint32_t>(std::powf(4, lightModelSubs)), lightCount);
+
+	//	renderer.unprepareForDraw(lightProgramId, {});
+	//}
 
 	{
 		renderer.prepareForDraw(0, hdrProgramId, hdrTexIds, ssaoVaoId);

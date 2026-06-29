@@ -22,8 +22,11 @@ private:
 	std::string directory;
 
 	void loadModel(std::string path);
-	void processNode(aiNode* node, const aiScene* scene);
-	Mesh processMesh(aiMesh* mesh, const aiScene* scene);
-	std::vector<MeshTexture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, MeshTextureType meshTextureType);
+	void processNode(aiNode* node, const aiScene* scene, glm::mat4 parentTransform);
+	Mesh processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 nodeTransform);
+	std::vector<MeshTexture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, MeshTextureType meshTextureType, const aiScene* scene);
 	uint32_t textureFromFile(const std::string& path, const std::string& directory, MeshTextureType meshTextureType);
+	uint32_t loadTexture(MeshTextureType meshTextureType, int width, int height, int channelCount, unsigned char* data);
+
+	glm::mat4 convertMatrixToGLM(const aiMatrix4x4& from);
 };

@@ -206,10 +206,14 @@
     <None Include="Shaders\SkyboxVS.glsl" />
     <None Include="Shaders\SSAO\BlurFS.glsl" />
     <None Include="Shaders\SSAO\BlurVS.glsl" />
+    <None Include="Shaders\SSAO\HdrFS.glsl" />
+    <None Include="Shaders\SSAO\HdrVS.glsl" />
     <None Include="Shaders\SSAO\LightBoxFS.glsl" />
     <None Include="Shaders\SSAO\LightBoxVS.glsl" />
     <None Include="Shaders\SSAO\ModelFS.glsl" />
     <None Include="Shaders\SSAO\ModelVS.glsl" />
+    <None Include="Shaders\SSAO\SkyboxFS.glsl" />
+    <None Include="Shaders\SSAO\SkyboxVS.glsl" />
     <None Include="Shaders\SSAO\SSAOFS.glsl" />
     <None Include="Shaders\SSAO\SSAOVS.glsl" />
     <None Include="Shaders\SSAO\StencilFS.glsl" />

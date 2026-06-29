@@ -5,6 +5,7 @@
 #include <random>
 
 #include "CameraController.hpp"
+#include "Cube.hpp"
 #include "Demo.hpp"
 #include "Model.hpp"
 #include "Icosahedron.hpp"
@@ -52,10 +53,15 @@ private:
 	uint32_t hdrProgramId;
 	std::vector<uint32_t> hdrTexIds;
 
-	uint32_t ayaProgramId;
+	uint32_t modelProgramId;
+	glm::mat4 ayaModelMat;
+	glm::mat4 apartmentModelMat;
 
 	// Download from https://free3d.com/3d-model/091_aya-3dsmax-2020-189298.html
-	Model model{"Resources/AyaModel/091_W_Aya_100K.obj", renderer};
+	Model model{"Resources/Models/AyaModel/091_W_Aya_100K.obj", renderer};
+
+	// Download from https://sketchfab.com/3d-models/appartement-6a7a5fe208344b2e8123a88923dbd5b3
+	Model apartmentModel{ "Resources/Models/ApartmentModel/ApartmentModel.glb", renderer };
 
 	class Light {
 	public:
@@ -90,7 +96,7 @@ private:
 	uint32_t volumeVaoId, volumeProgramId;
 	std::vector<float> volumeModelData{};
 	std::vector<uint32_t> volumeTexIds{};
-	uint32_t volumeModelSubs = 2;
+	uint32_t volumeModelSubs = 1;
 
 	uint32_t stencilProgramId = 0;
 
@@ -110,6 +116,10 @@ private:
 	uint32_t blurProgramId;
 	std::vector<uint32_t> blurTexIds;
 
+	uint32_t skyboxProgramId = 0;
+	uint32_t skyboxTextureId = 0;
+	uint32_t skyboxVertexArrayId = 0;
+
 	void prepareDeferred();
 	void prepareVolume();
 	float getLightVolumeRadius(const Light& light);
@@ -117,5 +127,6 @@ private:
 	void prepareSSAOAssets();
 	void prepareSSAO();
 	void prepareHDR();
+	void prepareSkybox();
 	float lerp(float a, float b, float f);
 };
