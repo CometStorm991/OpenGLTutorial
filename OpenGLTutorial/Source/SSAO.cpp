@@ -18,6 +18,7 @@ void SSAO::prepare()
 	prepareSSAO();
 	prepareLights();
 	prepareVolume();
+	prepareHDR();
 
 	renderer.prepareForRun();
 }
@@ -27,10 +28,6 @@ void SSAO::prepareDeferred()
 	// Position
 	glCreateTextures(GL_TEXTURE_2D, 1, &posTexId);
 	glTextureStorage2D(posTexId, 1, GL_RGBA16F, window.width, window.height);
-	glTextureParameteri(posTexId, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTextureParameteri(posTexId, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTextureParameteri(posTexId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTextureParameteri(posTexId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	// Normal
 	glCreateTextures(GL_TEXTURE_2D, 1, &normTexId);
@@ -40,6 +37,18 @@ void SSAO::prepareDeferred()
 	glCreateTextures(GL_TEXTURE_2D, 1, &diffSpecTexId);
 	glTextureStorage2D(diffSpecTexId, 1, GL_RGBA16F, window.width, window.height);
 
+	// SSAO input position
+	glCreateTextures(GL_TEXTURE_2D, 1, &ssaoPosTexId);
+	glTextureStorage2D(ssaoPosTexId, 1, GL_RGBA16F, window.width, window.height);
+	glTextureParameteri(ssaoPosTexId, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTextureParameteri(ssaoPosTexId, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTextureParameteri(ssaoPosTexId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTextureParameteri(ssaoPosTexId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// SSAO input normal
+	glCreateTextures(GL_TEXTURE_2D, 1, &ssaoNormTexId);
+	glTextureStorage2D(ssaoNormTexId, 1, GL_RGBA16F, window.width, window.height);
+
 	uint32_t rendBufId;
 	renderer.generateRenderbuffer(rendBufId, window.width, window.height);
 
@@ -47,11 +56,13 @@ void SSAO::prepareDeferred()
 		{ GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, posTexId },
 		{ GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normTexId },
 		{ GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, diffSpecTexId },
+		{ GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, ssaoPosTexId },
+		{ GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, ssaoNormTexId },
 		{ GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rendBufId }, });
 	//glNamedFramebufferRenderbuffer(0, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rendBufId);
 
-	uint32_t attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-	glNamedFramebufferDrawBuffers(geoFbId, 3, attachments);
+	uint32_t attachments[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4 };
+	glNamedFramebufferDrawBuffers(geoFbId, 5, attachments);
 
 	if (glCheckNamedFramebufferStatus(geoFbId, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
@@ -61,6 +72,8 @@ void SSAO::prepareDeferred()
 	renderer.addTexture(posTexId, GL_TEXTURE_2D, posTexUnit);
 	renderer.addTexture(normTexId, GL_TEXTURE_2D, normTexUnit);
 	renderer.addTexture(diffSpecTexId, GL_TEXTURE_2D, diffSpecTexUnit);
+	renderer.addTexture(ssaoPosTexId, GL_TEXTURE_2D, ssaoPosTexUnit);
+	renderer.addTexture(ssaoNormTexId, GL_TEXTURE_2D, ssaoNormTexUnit);
 }
 
 void SSAO::prepareVolume()
@@ -99,6 +112,7 @@ void SSAO::prepareVolume()
 	{
 		glm::mat4 model = glm::mat4{ 1.0f };
 		float radius = getLightVolumeRadius(lights[i]);
+		std::cout << radius << std::endl;
 		model = glm::translate(model, lights[i].pos);
 		model = glm::scale(model, glm::vec3{ radius });
 		const float* modelPtr = glm::value_ptr(model);
@@ -131,7 +145,7 @@ float SSAO::getLightVolumeRadius(const Light& light)
 	const float kl = light.linear;
 	const float kq = light.quadratic;
 	const float iMax = std::fmaxf(std::fmaxf(light.color.r, light.color.g), light.color.b);
-	const float sqrtDiscrim = std::sqrtf(kl * kl - 4.0f * kq * (kc - iMax * 256.0f / 5.0f));
+	const float sqrtDiscrim = std::sqrtf(kl * kl - 4.0f * kq * (kc - iMax * 256.0f / 0.05f));
 	return (-kl + sqrtDiscrim) / (2.0f * kq);
 }
 
@@ -181,8 +195,8 @@ void SSAO::prepareLights()
 		glm::vec3 specular = color;
 
 		float constant = 1.0f;
-		float linear = 0.35f;
-		float quadratic = 0.44f;
+		float linear = 0.22f;
+		float quadratic = 0.20f;
 
 		lights.emplace_back(color, modelMat, pos, ambient, diffuse, specular, constant, linear, quadratic);
 	}
@@ -330,15 +344,15 @@ void SSAO::prepareSSAO()
 		{ 2, GL_FLOAT, 1 }, });
 
 	renderer.generateProgram(ssaoProgramId, "Shaders/SSAO/SSAOVS.glsl", "Shaders/SSAO/SSAOFS.glsl");
-	renderer.setUniform1i(ssaoProgramId, "posSamp", posTexUnit);
-	renderer.setUniform1i(ssaoProgramId, "normSamp", normTexUnit);
+	renderer.setUniform1i(ssaoProgramId, "posSamp", ssaoPosTexUnit);
+	renderer.setUniform1i(ssaoProgramId, "normSamp", ssaoNormTexUnit);
 	renderer.setUniform1i(ssaoProgramId, "texNoiseSamp", noiseTexUnit);
 	renderer.setUniform3fv(ssaoProgramId, "samples", glm::value_ptr(kernelSamples[0]), kernelSampleCount);
 	renderer.setUniform1i(ssaoProgramId, "sampleCount", kernelSampleCount);
 	renderer.setUniform2f(ssaoProgramId, "noiseScale", glm::vec2{
 		window.width / static_cast<float>(noiseTexLen), window.height / static_cast<float>(noiseTexLen) });
 	ssaoTexIds = {
-		posTexId, normTexId, noiseTexId
+		ssaoPosTexId, ssaoNormTexId, noiseTexId
 	};
 
 	renderer.generateProgram(blurProgramId, "Shaders/SSAO/BlurVS.glsl", "Shaders/SSAO/BlurFS.glsl");
@@ -352,6 +366,27 @@ void SSAO::prepareSSAO()
 float SSAO::lerp(float a, float b, float f)
 {
 	return a + f * (b - a);
+}
+
+void SSAO::prepareHDR()
+{
+	uint32_t hdrTextureId;
+	glCreateTextures(GL_TEXTURE_2D, 1, &hdrTextureId);
+	glTextureStorage2D(hdrTextureId, 1, GL_RGBA16F, window.width, window.height);
+	renderer.addTexture(hdrTextureId, GL_TEXTURE_2D, hdrTexUnit);
+
+	uint32_t rbId;
+	renderer.generateRenderbuffer(rbId, window.width, window.height);
+
+	renderer.generateFramebuffer(hdrFbId, {
+		{ GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, hdrTextureId },
+		{ GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbId }, });
+
+	renderer.generateProgram(hdrProgramId, "Shaders/HdrVS.glsl", "Shaders/HdrFS.glsl");
+	renderer.setUniform1f(hdrProgramId, "exposure", 1.0f);
+	renderer.setUniform1i(hdrProgramId, "screenTexture", hdrTexUnit);
+
+	hdrTexIds = {hdrTextureId};
 }
 
 void SSAO::run()
@@ -381,8 +416,11 @@ void SSAO::run()
 	renderer.bindFramebuffer(blurFbId);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
+	renderer.bindFramebuffer(hdrFbId);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	// Gamma correction
-	glDisable(GL_FRAMEBUFFER_SRGB);
+	glEnable(GL_FRAMEBUFFER_SRGB);
 
 	Camera camera = camController.getCamera();
 	glm::mat4 view = camera.getView();
@@ -441,7 +479,7 @@ void SSAO::run()
 	}
 
 	{
-		renderer.prepareForDraw(0, volumeProgramId, volumeTexIds, volumeVaoId);
+		renderer.prepareForDraw(hdrFbId, volumeProgramId, volumeTexIds, volumeVaoId);
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_STENCIL_TEST);
 		glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
@@ -455,7 +493,7 @@ void SSAO::run()
 		glEnable(GL_FRAMEBUFFER_SRGB);
 
 		glBlitNamedFramebuffer(
-			geoFbId, 0, 0, 0, window.width, window.height, 0, 0, window.width, window.height, GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST
+			geoFbId, hdrFbId, 0, 0, window.width, window.height, 0, 0, window.width, window.height, GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST
 		);
 
 		renderer.updateViewMatrix(view);
@@ -467,7 +505,7 @@ void SSAO::run()
 	}
 
 	{
-		renderer.prepareForDraw(0, lightProgramId, {}, lightVaoId);
+		renderer.prepareForDraw(hdrFbId, lightProgramId, {}, lightVaoId);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 		glDepthMask(GL_TRUE);
@@ -475,12 +513,26 @@ void SSAO::run()
 		glDisable(GL_BLEND);
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
+		glDisable(GL_FRAMEBUFFER_SRGB);
 
 		renderer.updateViewMatrix(view);
 		renderer.applyMvp(lightProgramId, "", "view", "projection");
 		renderer.drawInstanced(60 * static_cast<uint32_t>(std::powf(4, lightModelSubs)), lightCount);
 
 		renderer.unprepareForDraw(lightProgramId, {});
+	}
+
+	{
+		renderer.prepareForDraw(0, hdrProgramId, hdrTexIds, ssaoVaoId);
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_STENCIL_TEST);
+		glDisable(GL_BLEND);
+		glDisable(GL_CULL_FACE);
+		glEnable(GL_FRAMEBUFFER_SRGB);
+
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+		renderer.unprepareForDraw(hdrProgramId, {});
 	}
 
 	renderer.unprepareForFrame();

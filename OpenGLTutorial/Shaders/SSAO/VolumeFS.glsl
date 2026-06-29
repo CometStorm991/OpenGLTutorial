@@ -1,5 +1,7 @@
 #version 460 core
 
+precision highp float;
+
 flat in int vInstanceId;
 
 out vec4 fragColor;
@@ -63,5 +65,4 @@ void main()
     {
         //fragColor = vec4(screenFragPos, 1.0f, 1.0f);
     }
-	fragColor = vec4(vec3(ambientOcclusion) * attenuation, 1.0f);
 }

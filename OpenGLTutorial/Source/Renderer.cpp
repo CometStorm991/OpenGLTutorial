@@ -4,7 +4,7 @@ Renderer::Renderer()
     :
     model(glm::mat4(1.0f)),
     view(glm::mat4(1.0f)),
-    projection(glm::perspective(glm::radians(60.0f), 1920.0f / 1080.0f, 0.1f, 100.0f)),
+    projection(glm::perspective(glm::radians(60.0f), 1920.0f / 1080.0f, 0.1f, 500.0f)),
     mvp(glm::mat4(1.0f))
 {
     if (glewInit() != GLEW_OK) {

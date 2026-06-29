@@ -8,6 +8,9 @@ out vec3 norm;
 out vec3 fragPos;
 out vec2 texCoords;
 
+out vec3 ssaoFragPos;
+out vec3 ssaoNorm;
+
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
@@ -17,7 +20,10 @@ void main()
 	mat4 aModel = model;
 	gl_Position = projection * view * aModel * vec4(aPos, 1.0f);
 
-	norm = vec3(transpose(inverse(view * aModel)) * vec4(aNorm, 1.0f));
-	fragPos = vec3(view * aModel * vec4(aPos, 1.0f));
+	norm = vec3(transpose(inverse(aModel)) * vec4(aNorm, 1.0f));
+	fragPos = vec3(aModel * vec4(aPos, 1.0f));
 	texCoords = aTexCoords;
+
+	ssaoFragPos = vec3(view * aModel * vec4(aPos, 1.0f));
+	ssaoNorm = vec3(transpose(inverse(view * aModel)) * vec4(aNorm, 1.0f));
 }

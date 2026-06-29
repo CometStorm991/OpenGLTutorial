@@ -26,5 +26,11 @@ void main()
 {
 	vec3 posNorm = vNorm * 0.5f + 0.5f;
 	vec3 avg = lights[vInstanceId].diffuse * 0.7f + posNorm * 0.3f;
-	fragColor = vec4(avg, 1.0f);
+
+	if (vInstanceId == 0) {
+		fragColor = vec4(avg, 1.0f);
+	}  else {
+		fragColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	}
+	
 }

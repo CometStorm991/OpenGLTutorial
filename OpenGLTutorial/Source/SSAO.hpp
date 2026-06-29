@@ -32,12 +32,25 @@ private:
 	uint32_t posTexId = 0;
 	uint32_t normTexId = 0;
 	uint32_t diffSpecTexId = 0;
-	uint32_t ssaoTexUnit = 0;
+
+	uint32_t ssaoPosTexId;
+	uint32_t ssaoNormTexId;
+
 	uint32_t posTexUnit = 0;
 	uint32_t normTexUnit = 1;
 	uint32_t diffSpecTexUnit = 2;
-	uint32_t noiseTexUnit = 2;
 	uint32_t blurTexUnit = 3;
+
+	uint32_t ssaoPosTexUnit = 0;
+	uint32_t ssaoNormTexUnit = 1;
+	uint32_t noiseTexUnit = 2;
+
+	uint32_t ssaoTexUnit = 0;
+
+	uint32_t hdrFbId;
+	uint32_t hdrTexUnit = 0;
+	uint32_t hdrProgramId;
+	std::vector<uint32_t> hdrTexIds;
 
 	uint32_t ayaProgramId;
 
@@ -77,7 +90,7 @@ private:
 	uint32_t volumeVaoId, volumeProgramId;
 	std::vector<float> volumeModelData{};
 	std::vector<uint32_t> volumeTexIds{};
-	uint32_t volumeModelSubs = 1;
+	uint32_t volumeModelSubs = 2;
 
 	uint32_t stencilProgramId = 0;
 
@@ -103,5 +116,6 @@ private:
 	void prepareLights();
 	void prepareSSAOAssets();
 	void prepareSSAO();
+	void prepareHDR();
 	float lerp(float a, float b, float f);
 };
