@@ -47,8 +47,7 @@ void Mesh::draw(uint32_t fbId, uint32_t programId, const glm::mat4& view, const 
 		glDisable(GL_BLEND);
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
-		// Gamma correction
-		glEnable(GL_FRAMEBUFFER_SRGB);
+		glDisable(GL_FRAMEBUFFER_SRGB);
 
 		renderer.updateViewMatrix(view);
 		renderer.applyMvp(programId, "", "view", "projection");

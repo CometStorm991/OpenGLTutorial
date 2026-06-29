@@ -7,6 +7,7 @@ out vec4 fragColor;
 uniform sampler2D posSamp;
 uniform sampler2D normSamp;
 uniform sampler2D albedoSpecSamp;
+uniform sampler2D ssaoSamp;
 
 uniform vec3 viewPos;
 uniform float materialShininess;
@@ -34,7 +35,8 @@ void main()
 	vec2 screenFragPos = gl_FragCoord.xy / screenDims.xy;
 
 	vec3 diffuseColor = texture(albedoSpecSamp, screenFragPos).rgb;
-	vec3 specularColor = vec3(texture(albedoSpecSamp, screenFragPos).a);
+	//vec3 specularColor = vec3(texture(albedoSpecSamp, screenFragPos).a);
+	float ambientOcclusion = texture(ssaoSamp, screenFragPos).r;
 
 	vec3 fragPos = texture(posSamp, screenFragPos).rgb;
 	vec3 norm = texture(normSamp, screenFragPos).rgb;
@@ -48,17 +50,18 @@ void main()
 	float distance = length(lights[vInstanceId].position - fragPos);
 	float attenuation = 1.0f / (lights[vInstanceId].constant + lights[vInstanceId].linear * distance + lights[vInstanceId].quadratic * distance * distance);
 
-	vec3 ambient = diffuseColor * lights[vInstanceId].ambient;
+	vec3 ambient = diffuseColor * lights[vInstanceId].ambient * ambientOcclusion;
 
 	float diffuseAmount = max(dot(normalizedNorm, normalizedLightDir), 0.0f);
 	vec3 diffuse = diffuseAmount * diffuseColor * lights[vInstanceId].diffuse;
 
-	float specularAmount = pow(max(dot(normalizedNorm, normalizedHalfDir), 0.0f), materialShininess);
-	vec3 specular = specularAmount * specularColor * lights[vInstanceId].specular;
+	//float specularAmount = pow(max(dot(normalizedNorm, normalizedHalfDir), 0.0f), materialShininess);
+	//vec3 specular = specularAmount * specularColor * lights[vInstanceId].specular;
 
-	fragColor = vec4((ambient + diffuse + specular) * attenuation, 1.0f);
+	fragColor = vec4((ambient + diffuse) * attenuation, 1.0f);
 	if (fragColor == vec4(0.0f, 0.0f, 0.0f, 1.0f) || fragColor == vec4(0.0f, 0.0f, 0.0f, 0.0f))
     {
         //fragColor = vec4(screenFragPos, 1.0f, 1.0f);
     }
+	fragColor = vec4(vec3(ambientOcclusion) * attenuation, 1.0f);
 }

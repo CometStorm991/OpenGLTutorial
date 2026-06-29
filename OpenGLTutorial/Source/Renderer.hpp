@@ -63,6 +63,7 @@ public:
 	void setUniform1f(uint32_t programId, const std::string& name, float value);
 	void setUniform2f(uint32_t programId, const std::string& name, const glm::vec2& value);
 	void setUniform3f(uint32_t programId, const std::string& name, const glm::vec3& value);
+	void setUniform3fv(uint32_t programId, const std::string& name, const float* ptr, uint32_t count);
 	void setUniformMatrix4fv(uint32_t programId, const std::string& name, const glm::mat4& value);
 	void setUniformMatrix4fvArr(uint32_t programId, const std::string& name, uint32_t count, const float* ptr);
 

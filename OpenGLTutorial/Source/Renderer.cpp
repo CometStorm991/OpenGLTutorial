@@ -471,6 +471,18 @@ void Renderer::setUniform3f(uint32_t programId, const std::string& name, const g
     }
 }
 
+void Renderer::setUniform3fv(uint32_t programId, const std::string& name, const float* ptr, uint32_t count)
+{
+    Program program = programMap.at(programId);
+    bool wasUsed = program.getBeingUsed();
+    program.use();
+    glUniform3fv(glGetUniformLocation(program.getId(), name.c_str()), count, ptr);
+    if (!wasUsed)
+    {
+        program.unuse();
+    }
+}
+
 void Renderer::setUniformMatrix4fv(uint32_t programId, const std::string& name, const glm::mat4& value)
 {
     Program program = programMap.at(programId);

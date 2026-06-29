@@ -152,6 +152,10 @@
     <None Include="Shaders\SSAO\VolumeFS.glsl" />
     <None Include="Shaders\SSAO\StencilFS.glsl" />
     <None Include="Shaders\SSAO\StencilVS.glsl" />
+    <None Include="Shaders\SSAO\SSAOVS.glsl" />
+    <None Include="Shaders\SSAO\SSAOFS.glsl" />
+    <None Include="Shaders\SSAO\BlurFS.glsl" />
+    <None Include="Shaders\SSAO\BlurVS.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Shader.hpp">

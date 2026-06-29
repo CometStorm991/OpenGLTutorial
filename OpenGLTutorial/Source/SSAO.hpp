@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdexcept>
 #include <numbers>
 #include <random>
 
@@ -31,9 +32,12 @@ private:
 	uint32_t posTexId = 0;
 	uint32_t normTexId = 0;
 	uint32_t diffSpecTexId = 0;
+	uint32_t ssaoTexUnit = 0;
 	uint32_t posTexUnit = 0;
 	uint32_t normTexUnit = 1;
 	uint32_t diffSpecTexUnit = 2;
+	uint32_t noiseTexUnit = 2;
+	uint32_t blurTexUnit = 3;
 
 	uint32_t ayaProgramId;
 
@@ -77,8 +81,27 @@ private:
 
 	uint32_t stencilProgramId = 0;
 
+	uint32_t kernelSampleCount = 64;
+	std::vector<glm::vec3> kernelSamples{};
+
+	uint32_t noiseTexId;
+	uint32_t noiseTexLen = 4;
+
+	std::vector<uint32_t> ssaoTexIds;
+	uint32_t ssaoFbId;
+	uint32_t ssaoTexId;
+	uint32_t ssaoVaoId, ssaoProgramId;
+
+	uint32_t blurFbId;
+	uint32_t blurTexId;
+	uint32_t blurProgramId;
+	std::vector<uint32_t> blurTexIds;
+
 	void prepareDeferred();
 	void prepareVolume();
 	float getLightVolumeRadius(const Light& light);
 	void prepareLights();
+	void prepareSSAOAssets();
+	void prepareSSAO();
+	float lerp(float a, float b, float f);
 };

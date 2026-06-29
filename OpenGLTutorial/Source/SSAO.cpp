@@ -11,13 +11,13 @@ void SSAO::prepare()
 	glm::mat4 ayaModelMat = glm::mat4{ 1.0f };
 	ayaModelMat = glm::translate(ayaModelMat, glm::vec3{ 0.0f, -10.0f, -15.0f });
 	ayaModelMat = glm::rotate(ayaModelMat, static_cast<float>(std::numbers::pi), glm::vec3{ 0.0f, 1.0f, 0.0f });
-	ayaModelMat = glm::scale(ayaModelMat, glm::vec3{ 0.01f, 0.01f, 0.01f });
+	ayaModelMat = glm::scale(ayaModelMat, glm::vec3{ 0.02f, 0.02f, 0.02f });
 	renderer.setUniformMatrix4fv(ayaProgramId, "model", ayaModelMat);
 
 	prepareDeferred();
+	prepareSSAO();
 	prepareLights();
 	prepareVolume();
-	
 
 	renderer.prepareForRun();
 }
@@ -27,6 +27,10 @@ void SSAO::prepareDeferred()
 	// Position
 	glCreateTextures(GL_TEXTURE_2D, 1, &posTexId);
 	glTextureStorage2D(posTexId, 1, GL_RGBA16F, window.width, window.height);
+	glTextureParameteri(posTexId, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTextureParameteri(posTexId, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTextureParameteri(posTexId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTextureParameteri(posTexId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	// Normal
 	glCreateTextures(GL_TEXTURE_2D, 1, &normTexId);
@@ -51,7 +55,7 @@ void SSAO::prepareDeferred()
 
 	if (glCheckNamedFramebufferStatus(geoFbId, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
-		std::cout << "[Error] Framebuffer is not complete!" << std::endl;
+		throw std::runtime_error("[Error] Framebuffer is not complete!");
 	}
 
 	renderer.addTexture(posTexId, GL_TEXTURE_2D, posTexUnit);
@@ -84,7 +88,8 @@ void SSAO::prepareVolume()
 	renderer.setUniform1i(volumeProgramId, "posSamp", posTexUnit);
 	renderer.setUniform1i(volumeProgramId, "normSamp", normTexUnit);
 	renderer.setUniform1i(volumeProgramId, "albedoSpecSamp", diffSpecTexUnit);
-	volumeTexIds = { posTexId, normTexId, diffSpecTexId };
+	renderer.setUniform1i(volumeProgramId, "ssaoSamp", blurTexUnit);
+	volumeTexIds = { posTexId, normTexId, diffSpecTexId, blurTexId };
 
 	renderer.setUniform2f(volumeProgramId, "screenDims", glm::vec2{ window.width, window.height });
 
@@ -126,7 +131,7 @@ float SSAO::getLightVolumeRadius(const Light& light)
 	const float kl = light.linear;
 	const float kq = light.quadratic;
 	const float iMax = std::fmaxf(std::fmaxf(light.color.r, light.color.g), light.color.b);
-	const float sqrtDiscrim = std::sqrtf(kl * kl - 4.0 * kq * (kc - iMax * 256.0f / 5.0f));
+	const float sqrtDiscrim = std::sqrtf(kl * kl - 4.0f * kq * (kc - iMax * 256.0f / 5.0f));
 	return (-kl + sqrtDiscrim) / (2.0f * kq);
 }
 
@@ -176,8 +181,8 @@ void SSAO::prepareLights()
 		glm::vec3 specular = color;
 
 		float constant = 1.0f;
-		float linear = 0.22f;
-		float quadratic = 0.20f;
+		float linear = 0.35f;
+		float quadratic = 0.44f;
 
 		lights.emplace_back(color, modelMat, pos, ambient, diffuse, specular, constant, linear, quadratic);
 	}
@@ -224,6 +229,131 @@ void SSAO::prepareLights()
 	renderer.addInstToVertexArray(lightVaoId, instBuffer, instAttribs);
 }
 
+void SSAO::prepareSSAOAssets()
+{
+	kernelSamples.clear();
+	kernelSamples.reserve(kernelSampleCount * sizeof(glm::vec3));
+	std::uniform_real_distribution<float> randomFloats{ 0.0f, 1.0f };
+	for (uint32_t i = 0; i < kernelSampleCount; i++)
+	{
+		glm::vec3 sample(
+			randomFloats(randomEngine) * 2.0f - 1.0f,
+			randomFloats(randomEngine) * 2.0f - 1.0f,
+			randomFloats(randomEngine)
+		);
+
+		sample = glm::normalize(sample);
+		float scale = i / 64.0f;
+		scale = lerp(0.1f, 1.0f, scale * scale);
+		sample *= scale;
+		kernelSamples.push_back(sample);
+	}
+
+	std::vector<glm::vec3> ssaoNoiseDir{};
+	for (uint32_t i = 0; i < noiseTexLen * noiseTexLen; i++)
+	{
+		glm::vec3 noise{
+			randomFloats(randomEngine) * 2.0f - 1.0f,
+			randomFloats(randomEngine) * 2.0f - 1.0f,
+			0.0f
+		};
+
+		ssaoNoiseDir.push_back(noise);
+	}
+
+	glCreateTextures(GL_TEXTURE_2D, 1, &noiseTexId);
+	glTextureStorage2D(noiseTexId, 1, GL_RGB16F, noiseTexLen, noiseTexLen);
+	glTextureSubImage2D(noiseTexId, 0, 0, 0, noiseTexLen, noiseTexLen, GL_RGB, GL_FLOAT, ssaoNoiseDir.data());
+	glTextureParameteri(noiseTexId, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTextureParameteri(noiseTexId, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTextureParameteri(noiseTexId, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTextureParameteri(noiseTexId, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	renderer.addTexture(noiseTexId, GL_TEXTURE_2D, noiseTexUnit);
+}
+
+void SSAO::prepareSSAO()
+{
+	prepareSSAOAssets();
+
+	// AO buffer
+	glCreateTextures(GL_TEXTURE_2D, 1, &ssaoTexId);
+	glTextureStorage2D(ssaoTexId, 1, GL_R8, window.width, window.height);
+	glTextureParameteri(ssaoTexId, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTextureParameteri(ssaoTexId, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	renderer.addTexture(ssaoTexId, GL_TEXTURE_2D, ssaoTexUnit);
+
+	renderer.generateFramebuffer(ssaoFbId, {
+		{ GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoTexId }
+		});
+
+	if (glCheckNamedFramebufferStatus(ssaoFbId, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		throw std::runtime_error("[Error] Framebuffer is not complete!");
+	}
+
+	// Blur buffer
+	glCreateTextures(GL_TEXTURE_2D, 1, &blurTexId);
+	glTextureStorage2D(blurTexId, 1, GL_R8, window.width, window.height);
+	glTextureParameteri(blurTexId, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTextureParameteri(blurTexId, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	renderer.addTexture(blurTexId, GL_TEXTURE_2D, blurTexUnit);
+
+	renderer.generateFramebuffer(blurFbId, {
+		{ GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, blurTexId }
+		});
+
+	if (glCheckNamedFramebufferStatus(blurFbId, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		throw std::runtime_error("[Error] Framebuffer is not complete!");
+	}
+
+	std::vector<float> ssaoVertices = {
+		-1.0f, -1.0f, 0.0f, 0.0f,
+		1.0f, -1.0f, 1.0f, 0.0f,
+		-1.0f, 1.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+	};
+
+	std::vector<uint32_t> ssaoIndices = {
+		0, 1, 2,
+		3, 2, 1,
+	};
+
+	uint32_t vertBufId;
+	renderer.generateVertexBuffer(vertBufId, ssaoVertices);
+
+	uint32_t indexBufId;
+	renderer.generateIndexBuffer(indexBufId, ssaoIndices);
+
+	renderer.createVertexArray(ssaoVaoId, vertBufId, indexBufId, {
+		{ 2, GL_FLOAT, 0 },
+		{ 2, GL_FLOAT, 1 }, });
+
+	renderer.generateProgram(ssaoProgramId, "Shaders/SSAO/SSAOVS.glsl", "Shaders/SSAO/SSAOFS.glsl");
+	renderer.setUniform1i(ssaoProgramId, "posSamp", posTexUnit);
+	renderer.setUniform1i(ssaoProgramId, "normSamp", normTexUnit);
+	renderer.setUniform1i(ssaoProgramId, "texNoiseSamp", noiseTexUnit);
+	renderer.setUniform3fv(ssaoProgramId, "samples", glm::value_ptr(kernelSamples[0]), kernelSampleCount);
+	renderer.setUniform1i(ssaoProgramId, "sampleCount", kernelSampleCount);
+	renderer.setUniform2f(ssaoProgramId, "noiseScale", glm::vec2{
+		window.width / static_cast<float>(noiseTexLen), window.height / static_cast<float>(noiseTexLen) });
+	ssaoTexIds = {
+		posTexId, normTexId, noiseTexId
+	};
+
+	renderer.generateProgram(blurProgramId, "Shaders/SSAO/BlurVS.glsl", "Shaders/SSAO/BlurFS.glsl");
+	renderer.setUniform1i(blurProgramId, "ssaoSamp", ssaoTexUnit);
+	renderer.setUniform1f(blurProgramId, "noiseTexLen", static_cast<float>(noiseTexLen));
+	blurTexIds = {
+		ssaoTexId
+	};
+}
+
+float SSAO::lerp(float a, float b, float f)
+{
+	return a + f * (b - a);
+}
+
 void SSAO::run()
 {
 	renderer.prepareForFrame();
@@ -244,16 +374,49 @@ void SSAO::run()
 	glStencilMask(0xFF);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+	renderer.bindFramebuffer(ssaoFbId);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	renderer.bindFramebuffer(blurFbId);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 	// Gamma correction
-	glEnable(GL_FRAMEBUFFER_SRGB);
+	glDisable(GL_FRAMEBUFFER_SRGB);
 
 	Camera camera = camController.getCamera();
 	glm::mat4 view = camera.getView();
 	glm::vec3 pos = camController.getCamera().pos;
-
 	
 	{
 		model.draw(geoFbId, ayaProgramId, view, pos);
+	}
+
+	{
+		renderer.prepareForDraw(ssaoFbId, ssaoProgramId, ssaoTexIds, ssaoVaoId);
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_STENCIL_TEST);
+		glDisable(GL_BLEND);
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_FRAMEBUFFER_SRGB);
+
+		renderer.applyMvp(ssaoProgramId, "", "view", "projection");
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+		renderer.unprepareForDraw(ssaoProgramId, ssaoTexIds);
+	}
+
+	{
+		renderer.prepareForDraw(blurFbId, blurProgramId, blurTexIds, ssaoVaoId);
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_STENCIL_TEST);
+		glDisable(GL_BLEND);
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_FRAMEBUFFER_SRGB);
+
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+		renderer.unprepareForDraw(blurProgramId, ssaoTexIds);
 	}
 
 	{
@@ -268,6 +431,7 @@ void SSAO::run()
 		glStencilMask(0xFF);
 		glDisable(GL_BLEND);
 		glDisable(GL_CULL_FACE);
+		glDisable(GL_FRAMEBUFFER_SRGB);
 
 		renderer.updateViewMatrix(view);
 		renderer.applyMvp(stencilProgramId, "", "view", "projection");
@@ -287,6 +451,8 @@ void SSAO::run()
 		glBlendFunc(GL_ONE, GL_ONE);
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_FRONT);
+		// Gamma correction
+		glEnable(GL_FRAMEBUFFER_SRGB);
 
 		glBlitNamedFramebuffer(
 			geoFbId, 0, 0, 0, window.width, window.height, 0, 0, window.width, window.height, GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST
