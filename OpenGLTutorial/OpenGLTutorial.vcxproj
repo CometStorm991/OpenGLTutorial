@@ -188,6 +188,7 @@
     <ClCompile Include="Source\Mesh.cpp" />
     <ClCompile Include="Source\Model.cpp" />
     <ClCompile Include="Source\MultipleLighting.cpp" />
+    <ClCompile Include="Source\PBR.cpp" />
     <ClCompile Include="Source\Rearview.cpp" />
     <ClCompile Include="Source\Renderer.cpp" />
     <ClCompile Include="Source\AttributeLayout.cpp" />
@@ -200,6 +201,7 @@
     <ClCompile Include="Source\Texture.cpp" />
     <ClCompile Include="Source\TextureParameter.cpp" />
     <ClCompile Include="Source\TextureSetup.cpp" />
+    <ClCompile Include="Source\UVSphere.cpp" />
     <ClCompile Include="Source\Window.cpp" />
     <ClCompile Include="Vendors\stb_image.cpp" />
     <None Include="Shaders\SkyboxFS.glsl" />
@@ -248,6 +250,7 @@
     <ClInclude Include="Source\MeshVertex.hpp" />
     <ClInclude Include="Source\Model.hpp" />
     <ClInclude Include="Source\MultipleLighting.hpp" />
+    <ClInclude Include="Source\PBR.hpp" />
     <ClInclude Include="Source\Rearview.hpp" />
     <ClInclude Include="Source\Renderer.hpp" />
     <ClInclude Include="Source\AttributeLayout.hpp" />
@@ -261,6 +264,7 @@
     <ClInclude Include="Source\TextureParameter.hpp" />
     <ClInclude Include="Source\TextureSetup.hpp" />
     <ClInclude Include="Source\TextureType.hpp" />
+    <ClInclude Include="Source\UVSphere.hpp" />
     <ClInclude Include="Source\Window.hpp" />
   </ItemGroup>
   <ItemGroup>
