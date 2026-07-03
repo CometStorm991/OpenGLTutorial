@@ -57,7 +57,6 @@ std::vector<float> UVSphere::fillT(uint32_t slices, uint32_t stacks)
 
 	std::vector<glm::vec2> bottomPoints{};
 	bottomPoints.reserve(slices);
-	float sliceWidth = 1.0f / slices;
 	for (uint32_t j = 0; j < slices; j++)
 	{
 		topPoints.push_back(glm::vec2{ std::fmodf(j + 0.5f, slices) * sliceWidth, 0.0f });

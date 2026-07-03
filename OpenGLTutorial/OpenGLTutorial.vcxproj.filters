@@ -166,6 +166,10 @@
     <None Include="Shaders\SSAO\HdrVS.glsl" />
     <None Include="Shaders\SSAO\SkyboxVS.glsl" />
     <None Include="Shaders\SSAO\SkyboxFS.glsl" />
+    <None Include="Shaders\PBR\SphereFS.glsl" />
+    <None Include="Shaders\PBR\SphereVS.glsl" />
+    <None Include="Shaders\PBR\HdrFS.glsl" />
+    <None Include="Shaders\PBR\HdrVS.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Shader.hpp">

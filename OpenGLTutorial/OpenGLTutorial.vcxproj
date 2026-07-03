@@ -160,6 +160,10 @@
     <None Include="Shaders\HdrVS.glsl" />
     <None Include="Shaders\MetalBoxFS.glsl" />
     <None Include="Shaders\MetalBoxVS.glsl" />
+    <None Include="Shaders\PBR\HdrFS.glsl" />
+    <None Include="Shaders\PBR\HdrVS.glsl" />
+    <None Include="Shaders\PBR\SphereFS.glsl" />
+    <None Include="Shaders\PBR\SphereVS.glsl" />
     <None Include="Shaders\QuadFS.glsl" />
     <None Include="Shaders\QuadVS.glsl" />
     <None Include="Shaders\ReflectionFS.glsl" />
