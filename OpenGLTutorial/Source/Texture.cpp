@@ -30,19 +30,19 @@ Texture Texture::ResourceTexture2D(const std::string& imagePath, bool flip, GLen
         std::cout << "[Error] Width or height is equal to or less than 0" << std::endl;
         std::cout << "Width is " << width << "Height is " << height << std::endl;
     }
-    if (channelCount < 3 || channelCount > 4)
-    {
-        std::cout << "[Error]: Channel count is " << channelCount << std::endl;
-    }
 
     texture.width = width;
     texture.height = height;
     texture.data = { data };
     switch (channelCount)
     {
+    case 1:
+        texture.pixelFormat = GL_RED;
+        break;
     case 3:
         texture.pixelFormat = GL_RGB;
         break;
+    case 2:
     case 4:
     default:
         texture.pixelFormat = GL_RGBA;

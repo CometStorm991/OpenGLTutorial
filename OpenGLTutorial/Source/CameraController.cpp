@@ -56,7 +56,7 @@ void CameraController::updateCamera(const InputState& inputState, uint32_t milli
     if (inputState.z)
     {
         
-        camera.exposure -= cameraSpeed;
+        camera.exposure -= deltaTime;
         if (camera.exposure < 0.0f)
         {
             camera.exposure = 0.0f;
@@ -64,7 +64,7 @@ void CameraController::updateCamera(const InputState& inputState, uint32_t milli
     }
     if (inputState.x)
     {
-        camera.exposure += cameraSpeed;
+        camera.exposure += deltaTime;
         if (camera.exposure > 100.0f)
         {
             camera.exposure = 100.0f;

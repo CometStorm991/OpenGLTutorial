@@ -16,6 +16,7 @@
 #include "GettingStarted.hpp"
 #include "Instancing.hpp"
 #include "MultipleLighting.hpp"
+#include "PBR.hpp"
 #include "Program.hpp"
 #include "Rearview.hpp"
 #include "Renderer.hpp"

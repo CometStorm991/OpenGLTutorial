@@ -1,8 +1,12 @@
 #include "PBR.hpp"
 
+PBR::PBR() {}
+
 void PBR::prepare()
 {
 	prepareSpheres();
+	prepareLights();
+	prepareHDR();
 
 	renderer.prepareForRun();
 }
@@ -23,7 +27,7 @@ void PBR::prepareSpheres()
 	AttributeLayout posAttrib{ 3, GL_FLOAT, 0 };
 	AttributeLayout normAttrib{ 3, GL_FLOAT, 1 };
 	AttributeLayout texAttrib{ 2, GL_FLOAT, 2 };
-	AttributeLayout tanAttrib{ 3, GL_FLOAT, 2 };
+	AttributeLayout tanAttrib{ 3, GL_FLOAT, 3 };
 
 	std::vector<AttributeLayout> attribs = std::vector<AttributeLayout>();
 	attribs.push_back(posAttrib);
@@ -33,23 +37,27 @@ void PBR::prepareSpheres()
 
 	renderer.generateVertexArray(sphereVaoId, vertexBuffer, 0, attribs);
 
-	renderer.generateProgram(sphereProgramId, "Shaders/SSAO/LightBoxVS.glsl", "Shaders/SSAO/LightBoxFS.glsl");
+	renderer.generateProgram(sphereProgramId, "Shaders/PBR/SphereVS.glsl", "Shaders/PBR/SphereFS.glsl");
+	renderer.setUniform1i(sphereProgramId, "albedoSamp", 0);
+	renderer.setUniform1i(sphereProgramId, "normSamp", 1);
+	renderer.setUniform1i(sphereProgramId, "metallicSamp", 2);
+	renderer.setUniform1i(sphereProgramId, "roughnessSamp", 3);
 
 	uint32_t texture0;
 	renderer.generateResourceTexture2D(texture0, "Resources/RustedIronPBRTextures/rustediron2_basecolor.png", true, GL_SRGB8, GL_TEXTURE_2D, 0);
 	uint32_t texture1;
 	renderer.generateResourceTexture2D(texture1, "Resources/RustedIronPBRTextures/rustediron2_normal.png", true, GL_RGB8, GL_TEXTURE_2D, 1);
 	uint32_t texture2;
-	renderer.generateResourceTexture2D(texture2, "Resources/RustedIronPBRTextures/rustediron2_metallic.png", true, GL_RGB8, GL_TEXTURE_2D, 2);
+	renderer.generateResourceTexture2D(texture2, "Resources/RustedIronPBRTextures/rustediron2_metallic.png", true, GL_R8, GL_TEXTURE_2D, 2);
 	uint32_t texture3;
-	renderer.generateResourceTexture2D(texture3, "Resources/RustedIronPBRTextures/rustediron2_roughness.png", true, GL_RGB8, GL_TEXTURE_2D, 3);
+	renderer.generateResourceTexture2D(texture3, "Resources/RustedIronPBRTextures/rustediron2_roughness.png", true, GL_R8, GL_TEXTURE_2D, 3);
 	sphereTexIds = { texture0, texture1, texture2, texture3 };
 
 	std::vector<float> modelData{};
 	for (uint32_t i = 0; i < sphereCount; i++)
 	{
-		float x = static_cast<float>(i % 8 / 1);
-		float y = static_cast<float>(i % 64 / 8);
+		float x = static_cast<float>(i % 8 / 1) * 3.0f;
+		float y = static_cast<float>(i % 64 / 8) * 3.0f;
 
 		glm::mat4 modelMat{ 1.0f };
 		modelMat = glm::translate(modelMat, glm::vec3{ x, y, 0.0f });
@@ -74,6 +82,100 @@ void PBR::prepareSpheres()
 	};
 
 	renderer.addInstToVertexArray(sphereVaoId, instBuffer, instAttribs);
+}
+
+void PBR::prepareLights()
+{
+	std::vector<float> vertices;
+	uint32_t stride = 0;
+
+	stride = renderer.addToData(vertices, Icosahedron::fillP(lightModelSubs), stride, 3);
+	stride = renderer.addToData(vertices, Icosahedron::fillN(lightModelSubs), stride, 3);
+
+	uint32_t vertexBuffer;
+	renderer.generateVertexBuffer(vertexBuffer, vertices);
+
+	AttributeLayout posAttrib{ 3, GL_FLOAT, 0 };
+	AttributeLayout normAttrib{ 3, GL_FLOAT, 1 };
+
+	std::vector<AttributeLayout> attribs = std::vector<AttributeLayout>();
+	attribs.push_back(posAttrib);
+	attribs.push_back(normAttrib);
+
+	renderer.generateVertexArray(lightVaoId, vertexBuffer, 0, attribs);
+
+	renderer.generateProgram(lightProgramId, "Shaders/SSAO/LightBoxVS.glsl", "Shaders/SSAO/LightBoxFS.glsl");
+
+	for (unsigned int i = 0; i < lightCount; i++)
+	{
+		glm::vec3 color{
+			0.5f, 0.5f, 0.5f
+		};
+
+		float posX = (i % 8 / 1) * 3.0f;
+		float posY = (i % 64 / 8) * 3.0f;
+		float posZ = (i % 256 / 64) * 3.0f + 10.0f;
+
+		glm::vec3 pos{
+			posX, posY, posZ
+		};
+
+		glm::mat4 modelMat = glm::mat4{ 1.0f };
+		modelMat = glm::translate(modelMat, pos);
+		modelMat = glm::scale(modelMat, glm::vec3{ 0.5f, 0.5f, 0.5f });
+
+		glm::vec3 ambient = 0.2f * color;
+		glm::vec3 diffuse = color;
+		//glm::vec3 specular{ 1.0f, 1.0f, 1.0f };
+		glm::vec3 specular = color;
+
+		float constant = 1.0f;
+		float linear = 0.7f;
+		float quadratic = 1.8f;
+
+		lights.emplace_back(color, modelMat, pos, ambient, diffuse, specular, constant, linear, quadratic);
+	}
+
+	uint32_t lightSSBSize = lights.size() * gpuLightSize;
+	glCreateBuffers(1, &lightSSBId);
+	std::vector<GPULight> gpuLights;
+	for (uint32_t i = 0; i < lights.size(); i++)
+	{
+		gpuLights.push_back({
+			glm::vec4{ lights[i].pos, 0.0f },
+			glm::vec4{ lights[i].ambient, 0.0f },
+			glm::vec4{ lights[i].diffuse, 0.0f },
+			glm::vec4{ lights[i].specular, 0.0f },
+			glm::vec4{ lights[i].constant, lights[i].linear, lights[i].quadratic, 0.0f },
+			});
+	}
+	glNamedBufferStorage(lightSSBId, lightSSBSize, gpuLights.data(), GL_DYNAMIC_STORAGE_BIT);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, lightSSBId);
+
+	lightModelData = std::vector<float>{};
+	lightModelData.reserve(lightCount * 16);
+	for (uint32_t i = 0; i < lights.size(); i++)
+	{
+		const float* modelPtr = glm::value_ptr(lights[i].modelMat);
+		lightModelData.insert(lightModelData.end(), modelPtr, modelPtr + 16);
+	}
+
+	std::vector<float> instData;
+	uint32_t instStride = 0;
+
+	instStride = renderer.addToData(instData, lightModelData, instStride, 16);
+
+	uint32_t instBuffer;
+	renderer.generateVertexBuffer(instBuffer, instData);
+
+	std::vector<AttributeLayout> instAttribs = {
+		{4, GL_FLOAT, 2},
+		{4, GL_FLOAT, 3},
+		{4, GL_FLOAT, 4},
+		{4, GL_FLOAT, 5}
+	};
+
+	renderer.addInstToVertexArray(lightVaoId, instBuffer, instAttribs);
 }
 
 void PBR::prepareHDR()
@@ -129,10 +231,17 @@ void PBR::run()
 	glDepthMask(GL_TRUE);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	renderer.bindFramebuffer(hdrFbId);
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	Camera camera = camController.getCamera();
 	glm::mat4 view = camera.getView();
 	glm::vec3 pos = camController.getCamera().pos;
+	float exposure = camController.getCamera().exposure;
 
 	{
 		renderer.prepareForDraw(hdrFbId, sphereProgramId, sphereTexIds, sphereVaoId);
@@ -147,9 +256,28 @@ void PBR::run()
 
 		renderer.updateViewMatrix(view);
 		renderer.applyMvp(sphereProgramId, "", "view", "projection");
+		renderer.setUniform3f(sphereProgramId, "viewPos", camera.pos);
 		renderer.drawInstanced(3 * slices * 2 + 3 * 2 * (stacks - 2) * slices, sphereCount);
 
 		renderer.unprepareForDraw(sphereProgramId, {});
+	}
+
+	{
+		renderer.prepareForDraw(hdrFbId, lightProgramId, {}, lightVaoId);
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
+		glDepthMask(GL_TRUE);
+		glDisable(GL_STENCIL_TEST);
+		glDisable(GL_BLEND);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+		glDisable(GL_FRAMEBUFFER_SRGB);
+
+		renderer.updateViewMatrix(view);
+		renderer.applyMvp(lightProgramId, "", "view", "projection");
+		renderer.drawInstanced(60 * static_cast<uint32_t>(std::powf(4, lightModelSubs)), lightCount);
+
+		renderer.unprepareForDraw(lightProgramId, {});
 	}
 
 	{
@@ -160,12 +288,13 @@ void PBR::run()
 		glDisable(GL_CULL_FACE);
 		glEnable(GL_FRAMEBUFFER_SRGB);
 
+		renderer.setUniform1f(hdrProgramId, "exposure", exposure);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		renderer.unprepareForDraw(hdrProgramId, {});
 	}
 
-	renderer.unprepareForFrame();
+	renderer.unprepareForFrame(exposure);
 
 	window.updateGLFW();
 	camController.updateCamera(window.getInputState(), renderer.getFrameTimeMilliseconds());

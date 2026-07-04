@@ -8,27 +8,7 @@ std::vector<float> UVSphere::fillP(uint32_t slices, uint32_t stacks)
 
 std::vector<float> UVSphere::fillN(uint32_t slices, uint32_t stacks)
 {
-	std::vector<UVSphere::Triangle> mesh = generateMesh(slices, stacks);
-
-	std::vector<Triangle> norms{};
-	norms.reserve(mesh.size());
-	for (uint32_t i = 0; i < mesh.size(); i++)
-	{
-		Triangle& tri = mesh[i];
-
-		glm::vec3 sum{ 0.0f, 0.0f, 0.0f };
-		for (uint32_t j = 0; j < tri.verts.size(); j++)
-		{
-			sum += tri.verts[j];
-		}
-
-		glm::vec3 avg = sum / static_cast<float>(tri.verts.size());
-		glm::vec3 norm = glm::normalize(avg);
-
-		norms.push_back(Triangle{ norm, norm, norm });
-	}
-
-	return flatten(norms);
+	return fillP(slices, stacks);
 }
 
 std::vector<float> UVSphere::fillT(uint32_t slices, uint32_t stacks)
@@ -45,8 +25,8 @@ std::vector<float> UVSphere::fillT(uint32_t slices, uint32_t stacks)
 	points.push_back(glm::vec2{ 0.0f, 1.0f }); // Temporary
 	const glm::vec2& v0 = points[points.size() - 1];
 
-	float sliceWidth = 1.0f / slices;
-	float stackHeight = 1.0f / stacks;
+	float sliceWidth = 2.0f / slices;
+	float stackHeight = 2.0f / stacks;
 
 	std::vector<glm::vec2> topPoints{};
 	topPoints.reserve(slices);
@@ -59,7 +39,7 @@ std::vector<float> UVSphere::fillT(uint32_t slices, uint32_t stacks)
 	bottomPoints.reserve(slices);
 	for (uint32_t j = 0; j < slices; j++)
 	{
-		topPoints.push_back(glm::vec2{ std::fmodf(j + 0.5f, slices) * sliceWidth, 0.0f });
+		bottomPoints.push_back(glm::vec2{ std::fmodf(j + 0.5f, slices) * sliceWidth, 0.0f });
 	}
 
 	// Middle vertices
@@ -67,7 +47,7 @@ std::vector<float> UVSphere::fillT(uint32_t slices, uint32_t stacks)
 	{
 		for (uint32_t j = 0; j < slices; j++)
 		{
-			points.push_back(glm::vec2{(i + 1) * stackHeight, j * sliceWidth});
+			points.push_back(glm::vec2{1.0f - (i + 1) * stackHeight, j * sliceWidth});
 		}
 	}
 
@@ -82,10 +62,10 @@ std::vector<float> UVSphere::fillT(uint32_t slices, uint32_t stacks)
 	{
 		uint32_t i0 = i + 1;
 		uint32_t i1 = (i + 1) % slices + 1;
-		mesh.push_back(UVTriangle{ topPoints[i], points[i0], points[i1] });
+		mesh.push_back(UVTriangle{ topPoints[i], points[i1], points[i0] });
 		i0 = i + slices * (stacks - 2) + 1;
 		i1 = (i + 1) % slices + slices * (stacks - 2) + 1;
-		mesh.push_back(UVTriangle{ bottomPoints[i], points[i1], points[i0] });
+		mesh.push_back(UVTriangle{ bottomPoints[i], points[i0], points[i1] });
 	}
 
 	// Add middle triangles
@@ -99,8 +79,8 @@ std::vector<float> UVSphere::fillT(uint32_t slices, uint32_t stacks)
 			uint32_t i1 = j0 + (i + 1) % slices;
 			uint32_t i2 = j1 + (i + 1) % slices;
 			uint32_t i3 = j1 + i;
-			mesh.push_back(UVTriangle{ points[i0], points[i3], points[i1] });
-			mesh.push_back(UVTriangle{ points[i2], points[i1], points[i3] });
+			mesh.push_back(UVTriangle{ points[i0], points[i1], points[i3] });
+			mesh.push_back(UVTriangle{ points[i2], points[i3], points[i1] });
 		}
 	}
 
@@ -161,10 +141,10 @@ std::vector<float> UVSphere::fillTan(uint32_t slices, uint32_t stacks)
 	{
 		uint32_t i0 = i + 1;
 		uint32_t i1 = (i + 1) % slices + 1;
-		mesh.push_back(Triangle{ polePoints[i], points[i0], points[i1]});
+		mesh.push_back(Triangle{ polePoints[i], points[i1], points[i0]});
 		i0 = i + slices * (stacks - 2) + 1;
 		i1 = (i + 1) % slices + slices * (stacks - 2) + 1;
-		mesh.push_back(Triangle{ polePoints[i], points[i1], points[i0] });
+		mesh.push_back(Triangle{ polePoints[i], points[i0], points[i1] });
 	}
 
 	// Add middle triangles
@@ -178,8 +158,8 @@ std::vector<float> UVSphere::fillTan(uint32_t slices, uint32_t stacks)
 			uint32_t i1 = j0 + (i + 1) % slices;
 			uint32_t i2 = j1 + (i + 1) % slices;
 			uint32_t i3 = j1 + i;
-			mesh.push_back(Triangle{ points[i0], points[i3], points[i1] });
-			mesh.push_back(Triangle{ points[i2], points[i1], points[i3] });
+			mesh.push_back(Triangle{ points[i0], points[i1], points[i3] });
+			mesh.push_back(Triangle{ points[i2], points[i3], points[i1] });
 		}
 	}
 
@@ -230,10 +210,10 @@ std::vector<UVSphere::Triangle> UVSphere::generateMesh(uint32_t slices, uint32_t
 	{
 		uint32_t i0 = i + 1;
 		uint32_t i1 = (i + 1) % slices + 1;
-		mesh.push_back(Triangle{ v0, points[i0], points[i1] });
+		mesh.push_back(Triangle{ v0, points[i1], points[i0] });
 		i0 = i + slices * (stacks - 2) + 1;
 		i1 = (i + 1) % slices + slices * (stacks - 2) + 1;
-		mesh.push_back(Triangle{ v1, points[i1], points[i0] });
+		mesh.push_back(Triangle{ v1, points[i0], points[i1] });
 	}
 
 	// Add middle triangles
@@ -247,8 +227,8 @@ std::vector<UVSphere::Triangle> UVSphere::generateMesh(uint32_t slices, uint32_t
 			uint32_t i1 = j0 + (i + 1) % slices;
 			uint32_t i2 = j1 + (i + 1) % slices;
 			uint32_t i3 = j1 + i;
-			mesh.push_back(Triangle{ points[i0], points[i3], points[i1] });
-			mesh.push_back(Triangle{ points[i2], points[i1], points[i3] });
+			mesh.push_back(Triangle{ points[i0], points[i1], points[i3] });
+			mesh.push_back(Triangle{ points[i2], points[i3], points[i1] });
 		}
 	}
 

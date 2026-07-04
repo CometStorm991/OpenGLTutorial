@@ -1,7 +1,7 @@
 #include "Application.hpp"
 
 Application::Application()
-    : demo(std::make_unique<SSAO>())
+    : demo(std::make_unique<PBR>())
 {
 }
 

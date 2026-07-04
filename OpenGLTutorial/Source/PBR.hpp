@@ -2,6 +2,7 @@
 
 #include "CameraController.hpp"
 #include "Demo.hpp"
+#include "Icosahedron.hpp"
 #include "Renderer.hpp"
 #include "UVSphere.hpp"
 #include "Window.hpp"
@@ -20,10 +21,39 @@ private:
 	Renderer renderer{};
 	CameraController camController{};
 
-	uint32_t slices = 10, stacks = 10;
+	uint32_t slices = 50, stacks = 50;
 	uint32_t sphereCount = 8 * 8;
 	uint32_t sphereVaoId, sphereProgramId;
 	std::vector<uint32_t> sphereTexIds;
+
+	class Light {
+	public:
+		glm::vec3 color;
+		glm::mat4 modelMat;
+
+		glm::vec3 pos;
+		glm::vec3 ambient;
+		glm::vec3 diffuse;
+		glm::vec3 specular;
+		float constant;
+		float linear;
+		float quadratic;
+	};
+	class GPULight {
+	public:
+		glm::vec4 pos;
+		glm::vec4 ambient;
+		glm::vec4 diffuse;
+		glm::vec4 specular;
+		glm::vec4 attentuation;
+	};
+	uint32_t gpuLightSize = 5 * sizeof(glm::vec4);
+	uint32_t lightVaoId, lightProgramId;
+	std::vector<Light> lights{};
+	std::vector<float> lightModelData;
+	uint32_t lightCount = 64;
+	uint32_t lightSSBId;
+	uint32_t lightModelSubs = 0;
 
 	uint32_t hdrFbId;
 	uint32_t hdrTexUnit = 0;
@@ -31,5 +61,6 @@ private:
 	std::vector<uint32_t> hdrTexIds;
 
 	void prepareSpheres();
+	void prepareLights();
 	void prepareHDR();
 };
