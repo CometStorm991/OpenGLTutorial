@@ -25,21 +25,28 @@ std::vector<float> UVSphere::fillT(uint32_t slices, uint32_t stacks)
 	points.push_back(glm::vec2{ 0.0f, 1.0f }); // Temporary
 	const glm::vec2& v0 = points[points.size() - 1];
 
-	float sliceWidth = 2.0f / slices;
-	float stackHeight = 2.0f / stacks;
+	float sliceWidth = 1.0f / slices;
+	float stackHeight = 1.0f / stacks;
 
 	std::vector<glm::vec2> topPoints{};
 	topPoints.reserve(slices);
 	for (uint32_t j = 0; j < slices; j++)
 	{
-		topPoints.push_back(glm::vec2{ std::fmodf(j + 0.5f, slices) * sliceWidth, 1.0f });
+		topPoints.push_back(glm::vec2{ (j + 0.5f) * sliceWidth, 1.0f });
+	}
+
+	std::vector<glm::vec2> middlePoints{};
+	topPoints.reserve(stacks - 1);
+	for (uint32_t i = 0; i < stacks - 1; i++)
+	{
+		middlePoints.push_back(glm::vec2{ 1.0f, 1.0f - (i + 1) * stackHeight });
 	}
 
 	std::vector<glm::vec2> bottomPoints{};
 	bottomPoints.reserve(slices);
 	for (uint32_t j = 0; j < slices; j++)
 	{
-		bottomPoints.push_back(glm::vec2{ std::fmodf(j + 0.5f, slices) * sliceWidth, 0.0f });
+		bottomPoints.push_back(glm::vec2{ (j + 0.5f) * sliceWidth, 0.0f });
 	}
 
 	// Middle vertices
@@ -47,7 +54,7 @@ std::vector<float> UVSphere::fillT(uint32_t slices, uint32_t stacks)
 	{
 		for (uint32_t j = 0; j < slices; j++)
 		{
-			points.push_back(glm::vec2{1.0f - (i + 1) * stackHeight, j * sliceWidth});
+			points.push_back(glm::vec2{j * sliceWidth, 1.0f - (i + 1) * stackHeight });
 		}
 	}
 
@@ -73,7 +80,7 @@ std::vector<float> UVSphere::fillT(uint32_t slices, uint32_t stacks)
 	{
 		uint32_t j0 = j * slices + 1;
 		uint32_t j1 = (j + 1) * slices + 1;
-		for (uint32_t i = 0; i < slices; i++)
+		for (uint32_t i = 0; i < slices - 1; i++)
 		{
 			uint32_t i0 = j0 + i;
 			uint32_t i1 = j0 + (i + 1) % slices;
@@ -82,6 +89,12 @@ std::vector<float> UVSphere::fillT(uint32_t slices, uint32_t stacks)
 			mesh.push_back(UVTriangle{ points[i0], points[i1], points[i3] });
 			mesh.push_back(UVTriangle{ points[i2], points[i3], points[i1] });
 		}
+
+		uint32_t i = slices - 1;
+		uint32_t i0 = j0 + i;
+		uint32_t i3 = j1 + i;
+		mesh.push_back(UVTriangle{ points[i0], middlePoints[j], points[i3] });
+		mesh.push_back(UVTriangle{ middlePoints[j + 1], points[i3], middlePoints[j] });
 	}
 
 	return flatten(mesh);
