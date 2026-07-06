@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CameraController.hpp"
+#include "Cube.hpp"
 #include "Demo.hpp"
 #include "Icosahedron.hpp"
 #include "Renderer.hpp"
@@ -60,6 +61,17 @@ private:
 	uint32_t hdrProgramId, hdrVaoId;
 	std::vector<uint32_t> hdrTexIds;
 
+	uint32_t envTexId, envTexUnit = 0;
+	uint32_t envCubemapTexId, envCubemapTexUnit = 0;
+	uint32_t envCubemapLength = 512;
+	uint32_t envCubemapFbId;
+	uint32_t envCubemapProgramId, envCubemapVaoId;
+	std::vector<uint32_t> envCubemapTexIds{};
+
+	uint32_t skyboxVaoId, skyboxProgramId;
+	std::vector<uint32_t> skyboxTexIds{};
+
+	void prepareEnvMap();
 	void prepareSpheres();
 	void prepareLights();
 	void prepareHDR();

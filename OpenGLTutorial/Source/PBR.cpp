@@ -7,8 +7,130 @@ void PBR::prepare()
 	prepareSpheres();
 	prepareLights();
 	prepareHDR();
+	prepareEnvMap();
 
 	renderer.prepareForRun();
+}
+
+void PBR::prepareEnvMap()
+{
+	// Load image manually since no abstractions for HDR maps exists in Renderer
+	stbi_set_flip_vertically_on_load(true);
+	int width, height, channelCount;
+	float* data = stbi_loadf("Resources/SeaviewHDRMap/relax_inn_seaview_suite_4k.hdr", &width, &height, &channelCount, 0);
+	if (data)
+	{
+		glCreateTextures(GL_TEXTURE_2D, 1, &envTexId);
+		glTextureStorage2D(envTexId, 1, GL_RGB16F, width, height);
+		glTextureSubImage2D(envTexId, 0, 0, 0, width, height, GL_RGB, GL_FLOAT, data);
+
+		glTextureParameteri(envTexId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(envTexId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(envTexId, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(envTexId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		stbi_image_free(data);
+	}
+	else
+	{
+		std::cerr << "[Error] Failed to load Seaview texture" << std::endl;
+	}
+
+	renderer.addTexture(envTexId, GL_TEXTURE_2D, envTexUnit);
+
+	{
+		glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &envCubemapTexId);
+		glTextureStorage2D(envCubemapTexId, 1, GL_RGB16F, envCubemapLength, envCubemapLength);
+
+		glTextureParameteri(envCubemapTexId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(envCubemapTexId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(envCubemapTexId, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(envCubemapTexId, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(envCubemapTexId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		renderer.addTexture(envCubemapTexId, GL_TEXTURE_CUBE_MAP, envCubemapTexUnit);
+
+		glCreateFramebuffers(1, &envCubemapFbId);
+
+		glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+		glm::mat4 captureViews[] = {
+			glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+			glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+			glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
+			glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
+			glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+			glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
+		};
+
+		std::vector<float> vertices;
+		uint32_t stride = 0;
+
+		stride = renderer.addToData(vertices, Cube::fillP(), stride, 3);
+
+		uint32_t vertexBuffer;
+		renderer.generateVertexBuffer(vertexBuffer, vertices);
+
+		AttributeLayout posAttrib{ 3, GL_FLOAT, 0 };
+
+		std::vector<AttributeLayout> attribs = std::vector<AttributeLayout>();
+		attribs.push_back(posAttrib);
+
+		renderer.generateVertexArray(envCubemapVaoId, vertexBuffer, 0, attribs);
+
+		renderer.generateProgram(envCubemapProgramId, "Shaders/PBR/CaptureVS.glsl", "Shaders/PBR/CaptureFS.glsl");
+		renderer.setUniform1i(envCubemapProgramId, "equirectMap", envTexUnit);
+		renderer.setUniformMatrix4fv(envCubemapProgramId, "projection", captureProjection);
+
+		envCubemapTexIds = { envTexId };
+
+		for (uint32_t i = 0; i < 6; i++)
+		{
+			glNamedFramebufferTextureLayer(envCubemapFbId, GL_COLOR_ATTACHMENT0, envCubemapTexId, 0, i);
+			if (glCheckNamedFramebufferStatus(envCubemapFbId, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			{
+				std::cerr << "[Error] Framebuffer is not complete!" << std::endl;
+			}
+
+			glViewport(0, 0, envCubemapLength, envCubemapLength);
+
+			//renderer.bindFramebuffer(envCubemapFbId);
+			//glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+			//glEnable(GL_DEPTH_TEST);
+			//glDepthMask(GL_TRUE);
+			//glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+			//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			renderer.prepareForDraw(envCubemapFbId, envCubemapProgramId, envCubemapTexIds, envCubemapVaoId);
+			glDisable(GL_DEPTH_TEST);
+			glDisable(GL_STENCIL_TEST);
+			glDisable(GL_BLEND);
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_FRONT);
+			glDisable(GL_FRAMEBUFFER_SRGB);
+
+			renderer.setUniformMatrix4fv(envCubemapProgramId, "view", captureViews[i]);
+			renderer.draw(36);
+
+			renderer.unprepareForDraw(envCubemapProgramId, envCubemapTexIds);
+		}
+	}
+
+	{
+		std::vector<float> skyboxVertices;
+		Cube::generatePSkybox(skyboxVertices);
+
+		uint32_t skyboxVertexBuffer;
+		renderer.generateVertexBuffer(skyboxVertexBuffer, skyboxVertices);
+
+		AttributeLayout posAttrib = AttributeLayout(3, GL_FLOAT);
+		std::vector<AttributeLayout> attribs = { posAttrib };
+
+		renderer.generateVertexArray(skyboxVaoId, skyboxVertexBuffer, 0, attribs);
+
+		renderer.generateProgram(skyboxProgramId, "Shaders/PBR/SkyboxVS.glsl", "Shaders/PBR/SkyboxFS.glsl");
+		renderer.setUniform1i(skyboxProgramId, "skybox", envCubemapTexUnit);
+		skyboxTexIds = { envCubemapTexId };
+	}
 }
 
 void PBR::prepareSpheres()
@@ -225,6 +347,8 @@ void PBR::run()
 {
 	renderer.prepareForFrame();
 
+	glViewport(0, 0, window.width, window.height);
+
 	renderer.bindFramebuffer(0);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glEnable(GL_DEPTH_TEST);
@@ -292,6 +416,26 @@ void PBR::run()
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		renderer.unprepareForDraw(hdrProgramId, {});
+	}
+
+	{
+		renderer.prepareForDraw(0, skyboxProgramId, skyboxTexIds, skyboxVaoId);
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LEQUAL);
+		glDisable(GL_STENCIL_TEST);
+		glDisable(GL_BLEND);
+		glDisable(GL_CULL_FACE);
+		glEnable(GL_FRAMEBUFFER_SRGB);
+
+		glBlitNamedFramebuffer(
+			hdrFbId, 0, 0, 0, window.width, window.height, 0, 0, window.width, window.height, GL_DEPTH_BUFFER_BIT, GL_NEAREST
+		);
+
+		renderer.updateViewMatrix(glm::mat4{ glm::mat3{ view } });
+		renderer.applyMvp(skyboxProgramId, "", "view", "projection");
+		renderer.draw(36);
+
+		renderer.unprepareForDraw(skyboxProgramId, skyboxTexIds);
 	}
 
 	renderer.unprepareForFrame(exposure);

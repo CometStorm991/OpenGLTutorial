@@ -160,8 +160,12 @@
     <None Include="Shaders\HdrVS.glsl" />
     <None Include="Shaders\MetalBoxFS.glsl" />
     <None Include="Shaders\MetalBoxVS.glsl" />
+    <None Include="Shaders\PBR\CaptureFS.glsl" />
+    <None Include="Shaders\PBR\CaptureVS.glsl" />
     <None Include="Shaders\PBR\HdrFS.glsl" />
     <None Include="Shaders\PBR\HdrVS.glsl" />
+    <None Include="Shaders\PBR\SkyboxFS.glsl" />
+    <None Include="Shaders\PBR\SkyboxVS.glsl" />
     <None Include="Shaders\PBR\SphereFS.glsl" />
     <None Include="Shaders\PBR\SphereVS.glsl" />
     <None Include="Shaders\QuadFS.glsl" />
