@@ -68,7 +68,9 @@ public:
 	void setUniformMatrix4fvArr(uint32_t programId, const std::string& name, uint32_t count, const float* ptr);
 
 	uint32_t getFrameTimeMilliseconds();
+	uint32_t getFrameTimeMicroseconds();
 	uint64_t getMillisecondsSinceRunPreparation();
+	uint64_t getMicrosecondsSinceRunPreparation();
 private:
 	std::unordered_map<uint32_t, Program> programMap;
 	std::unordered_map<uint32_t, Texture> textureMap;
@@ -86,6 +88,9 @@ private:
 	uint32_t fps = 0;
 	uint32_t previousMillis = 0;
 
+	uint32_t microseconds = 0;
+	uint32_t previousMicros = 0;
+
 	float lastX = 0.0f;
 	float lastY = 0.0f;
 
@@ -93,6 +98,8 @@ private:
 
 	template <class ClockType>
 	uint64_t getMillisecondsSinceTimePoint(std::chrono::time_point<ClockType> start);
+	template <class ClockType>
+	uint64_t getMicrosecondsSinceTimePoint(std::chrono::time_point<ClockType> start);
 
 	static void APIENTRY debugOutputOpenGL(
 		GLenum source,
@@ -111,4 +118,12 @@ uint64_t Renderer::getMillisecondsSinceTimePoint(std::chrono::time_point<ClockTy
 	std::chrono::steady_clock::time_point current = std::chrono::steady_clock::now();
 	std::chrono::duration duration = current - start;
 	return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+}
+
+template <class ClockType>
+uint64_t Renderer::getMicrosecondsSinceTimePoint(std::chrono::time_point<ClockType> start)
+{
+	std::chrono::steady_clock::time_point current = std::chrono::steady_clock::now();
+	std::chrono::duration duration = current - start;
+	return std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
 }

@@ -7,6 +7,11 @@ CameraController::CameraController()
 
 void CameraController::updateCamera(const InputState& inputState, uint32_t millisecondDiff)
 {
+    updateCameraMicroseconds(inputState, millisecondDiff * 1000);
+}
+
+void CameraController::updateCameraMicroseconds(const InputState& inputState, uint32_t microsecondDiff)
+{
     float xOffset = inputState.posX - inputState.lastX;
     float yOffset = inputState.lastY - inputState.posY; // Reversed because y coordinates range bottom up
 
@@ -26,7 +31,7 @@ void CameraController::updateCamera(const InputState& inputState, uint32_t milli
 
     camera.updateOrientation(yaw, pitch);
 
-    float deltaTime = millisecondDiff / 1000.0f;
+    float deltaTime = microsecondDiff / 1000000.0f;
     float cameraSpeed = deltaTime * 10.0f;
     if (inputState.w)
     {

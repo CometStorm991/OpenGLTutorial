@@ -306,6 +306,9 @@ void Renderer::prepareForFrame()
 {
     previousMillis = milliseconds;
     milliseconds = getMillisecondsSinceRunPreparation();
+
+    previousMicros = microseconds;
+    microseconds = getMicrosecondsSinceRunPreparation();
 }
 
 void Renderer::prepareForDraw(uint32_t programId, const std::vector<uint32_t>& textureIds, uint32_t vaoId)
@@ -511,11 +514,20 @@ uint32_t Renderer::getFrameTimeMilliseconds()
 {
     return milliseconds - previousMillis;
 }
+uint32_t Renderer::getFrameTimeMicroseconds()
+{
+    return microseconds - previousMicros;
+}
 
 uint64_t Renderer::getMillisecondsSinceRunPreparation()
 {
     return getMillisecondsSinceTimePoint(startTime);
 }
+uint64_t Renderer::getMicrosecondsSinceRunPreparation()
+{
+    return getMicrosecondsSinceTimePoint(startTime);
+}
+
 
 // This code is from learnopengl.com
 void APIENTRY Renderer::debugOutputOpenGL(GLenum source,

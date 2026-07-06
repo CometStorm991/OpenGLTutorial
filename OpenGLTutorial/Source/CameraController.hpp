@@ -9,6 +9,7 @@ public:
 	CameraController();
 
 	void updateCamera(const InputState& inputState, uint32_t millisecondDiff);
+	void updateCameraMicroseconds(const InputState& inputState, uint32_t microsecondDiff);
 
 	const Camera& getCamera();
 	void setCameraPos(const glm::vec3& pos);
