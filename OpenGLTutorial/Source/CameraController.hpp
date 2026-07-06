@@ -18,4 +18,6 @@ private:
 	Camera camera;
 
 	float sensitivity = 0.1f;
+
+	void updateCamera(const InputState& inputState, uint32_t microsecondDiff, float xOffset, float yOffset);
 };

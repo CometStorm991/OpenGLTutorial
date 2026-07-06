@@ -442,6 +442,7 @@ void PBR::run()
 
 	window.updateGLFW();
 	camController.updateCameraMicroseconds(window.getInputState(), renderer.getFrameTimeMicroseconds());
+	window.updateMouse();
 }
 
 bool PBR::shouldEnd()

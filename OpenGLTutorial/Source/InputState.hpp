@@ -7,6 +7,9 @@ struct InputState
 	float posX = 0.0f;
 	float posY = 0.0f;
 
+	float prevX = 0.0f;
+	float prevY = 0.0f;
+
 	bool w = false;
 	bool s = false;
 	bool d = false;

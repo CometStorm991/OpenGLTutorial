@@ -101,3 +101,8 @@ void Window::mouseCallback(double posX, double posY)
     updatedMouse = true;
 }
 
+void Window::updateMouse()
+{
+    inputState.prevX = inputState.posX;
+    inputState.prevY = inputState.posY;
+}

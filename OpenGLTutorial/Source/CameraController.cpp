@@ -7,14 +7,14 @@ CameraController::CameraController()
 
 void CameraController::updateCamera(const InputState& inputState, uint32_t millisecondDiff)
 {
-    updateCameraMicroseconds(inputState, millisecondDiff * 1000);
-}
-
-void CameraController::updateCameraMicroseconds(const InputState& inputState, uint32_t microsecondDiff)
-{
     float xOffset = inputState.posX - inputState.lastX;
     float yOffset = inputState.lastY - inputState.posY; // Reversed because y coordinates range bottom up
 
+    updateCamera(inputState, millisecondDiff * 1000, xOffset, yOffset);
+}
+
+void CameraController::updateCamera(const InputState& inputState, uint32_t microsecondDiff, float xOffset, float yOffset)
+{
     xOffset *= sensitivity;
     yOffset *= sensitivity;
 
@@ -57,10 +57,10 @@ void CameraController::updateCameraMicroseconds(const InputState& inputState, ui
     {
         camera.pos -= cameraSpeed * glm::vec3(0.0f, 1.0f, 0.0f);
     }
-    
+
     if (inputState.z)
     {
-        
+
         camera.exposure -= deltaTime;
         if (camera.exposure < 0.0f)
         {
@@ -75,6 +75,14 @@ void CameraController::updateCameraMicroseconds(const InputState& inputState, ui
             camera.exposure = 100.0f;
         }
     }
+}
+
+void CameraController::updateCameraMicroseconds(const InputState& inputState, uint32_t microsecondDiff)
+{
+    float xOffset = inputState.posX - inputState.prevX;
+    float yOffset = inputState.prevY - inputState.posY; // Reversed because y coordinates range bottom up
+
+    updateCamera(inputState, microsecondDiff, xOffset, yOffset);
 }
 
 void CameraController::setCameraPos(const glm::vec3& pos)

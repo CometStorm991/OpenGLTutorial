@@ -18,6 +18,7 @@ public:
 	~Window();
 
 	void updateGLFW();
+	void updateMouse();
 	bool getShouldClose();
 	void terminate();
 
