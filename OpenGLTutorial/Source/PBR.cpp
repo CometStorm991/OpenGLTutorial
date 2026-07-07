@@ -4,10 +4,13 @@ PBR::PBR() {}
 
 void PBR::prepare()
 {
+	prepareEnvMap();
+	prepareEnvCubemap();
+	prepareIrradiance();
+	prepareSkybox();
 	prepareSpheres();
 	prepareLights();
 	prepareHDR();
-	prepareEnvMap();
 
 	renderer.prepareForRun();
 }
@@ -37,100 +40,146 @@ void PBR::prepareEnvMap()
 	}
 
 	renderer.addTexture(envTexId, GL_TEXTURE_2D, envTexUnit);
+}
 
+void PBR::prepareEnvCubemap()
+{
+	glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &envCubemapTexId);
+	glTextureStorage2D(envCubemapTexId, 1, GL_RGB16F, envCubemapLength, envCubemapLength);
+
+	glTextureParameteri(envCubemapTexId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTextureParameteri(envCubemapTexId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTextureParameteri(envCubemapTexId, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTextureParameteri(envCubemapTexId, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTextureParameteri(envCubemapTexId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	renderer.addTexture(envCubemapTexId, GL_TEXTURE_CUBE_MAP, envCubemapTexUnit);
+
+	glCreateFramebuffers(1, &envCubemapFbId);
+
+	std::vector<float> vertices;
+	uint32_t stride = 0;
+
+	stride = renderer.addToData(vertices, Cube::fillP(), stride, 3);
+
+	uint32_t vertexBuffer;
+	renderer.generateVertexBuffer(vertexBuffer, vertices);
+
+	AttributeLayout posAttrib{ 3, GL_FLOAT, 0 };
+
+	std::vector<AttributeLayout> attribs = std::vector<AttributeLayout>();
+	attribs.push_back(posAttrib);
+
+	renderer.generateVertexArray(envCubemapVaoId, vertexBuffer, 0, attribs);
+
+	renderer.generateProgram(envCubemapProgramId, "Shaders/PBR/CaptureVS.glsl", "Shaders/PBR/CaptureFS.glsl");
+	renderer.setUniform1i(envCubemapProgramId, "equirectMap", envTexUnit);
+	renderer.setUniformMatrix4fv(envCubemapProgramId, "projection", captureProjection);
+
+	envCubemapTexIds = { envTexId };
+
+	for (uint32_t i = 0; i < captureViews.size(); i++)
 	{
-		glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &envCubemapTexId);
-		glTextureStorage2D(envCubemapTexId, 1, GL_RGB16F, envCubemapLength, envCubemapLength);
-
-		glTextureParameteri(envCubemapTexId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTextureParameteri(envCubemapTexId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTextureParameteri(envCubemapTexId, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-		glTextureParameteri(envCubemapTexId, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTextureParameteri(envCubemapTexId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		renderer.addTexture(envCubemapTexId, GL_TEXTURE_CUBE_MAP, envCubemapTexUnit);
-
-		glCreateFramebuffers(1, &envCubemapFbId);
-
-		glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
-		glm::mat4 captureViews[] = {
-			glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-			glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-			glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
-			glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
-			glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-			glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
-		};
-
-		std::vector<float> vertices;
-		uint32_t stride = 0;
-
-		stride = renderer.addToData(vertices, Cube::fillP(), stride, 3);
-
-		uint32_t vertexBuffer;
-		renderer.generateVertexBuffer(vertexBuffer, vertices);
-
-		AttributeLayout posAttrib{ 3, GL_FLOAT, 0 };
-
-		std::vector<AttributeLayout> attribs = std::vector<AttributeLayout>();
-		attribs.push_back(posAttrib);
-
-		renderer.generateVertexArray(envCubemapVaoId, vertexBuffer, 0, attribs);
-
-		renderer.generateProgram(envCubemapProgramId, "Shaders/PBR/CaptureVS.glsl", "Shaders/PBR/CaptureFS.glsl");
-		renderer.setUniform1i(envCubemapProgramId, "equirectMap", envTexUnit);
-		renderer.setUniformMatrix4fv(envCubemapProgramId, "projection", captureProjection);
-
-		envCubemapTexIds = { envTexId };
-
-		for (uint32_t i = 0; i < 6; i++)
+		glNamedFramebufferTextureLayer(envCubemapFbId, GL_COLOR_ATTACHMENT0, envCubemapTexId, 0, i);
+		if (glCheckNamedFramebufferStatus(envCubemapFbId, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		{
-			glNamedFramebufferTextureLayer(envCubemapFbId, GL_COLOR_ATTACHMENT0, envCubemapTexId, 0, i);
-			if (glCheckNamedFramebufferStatus(envCubemapFbId, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-			{
-				std::cerr << "[Error] Framebuffer is not complete!" << std::endl;
-			}
-
-			glViewport(0, 0, envCubemapLength, envCubemapLength);
-
-			//renderer.bindFramebuffer(envCubemapFbId);
-			//glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-			//glEnable(GL_DEPTH_TEST);
-			//glDepthMask(GL_TRUE);
-			//glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-			//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-			renderer.prepareForDraw(envCubemapFbId, envCubemapProgramId, envCubemapTexIds, envCubemapVaoId);
-			glDisable(GL_DEPTH_TEST);
-			glDisable(GL_STENCIL_TEST);
-			glDisable(GL_BLEND);
-			glEnable(GL_CULL_FACE);
-			glCullFace(GL_FRONT);
-			glDisable(GL_FRAMEBUFFER_SRGB);
-
-			renderer.setUniformMatrix4fv(envCubemapProgramId, "view", captureViews[i]);
-			renderer.draw(36);
-
-			renderer.unprepareForDraw(envCubemapProgramId, envCubemapTexIds);
+			std::cerr << "[Error] Framebuffer is not complete!" << std::endl;
 		}
-	}
 
+		glViewport(0, 0, envCubemapLength, envCubemapLength);
+
+		renderer.bindFramebuffer(envCubemapFbId);
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		renderer.prepareForDraw(envCubemapFbId, envCubemapProgramId, envCubemapTexIds, envCubemapVaoId);
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_STENCIL_TEST);
+		glDisable(GL_BLEND);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
+		glDisable(GL_FRAMEBUFFER_SRGB);
+
+		renderer.setUniformMatrix4fv(envCubemapProgramId, "view", captureViews[i]);
+		renderer.draw(36);
+
+		renderer.unprepareForDraw(envCubemapProgramId, envCubemapTexIds);
+	}
+}
+
+void PBR::prepareIrradiance()
+{
+	glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &irradTexId);
+	glTextureStorage2D(irradTexId, 1, GL_RGB16F, irradCubemapLength, irradCubemapLength);
+
+	glTextureParameteri(irradTexId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTextureParameteri(irradTexId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTextureParameteri(irradTexId, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTextureParameteri(irradTexId, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTextureParameteri(irradTexId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	renderer.addTexture(irradTexId, GL_TEXTURE_CUBE_MAP, irradTexUnit);
+
+	renderer.generateProgram(irradProgramId, "Shaders/PBR/IrradianceVS.glsl", "Shaders/PBR/IrradianceFS.glsl");
+	renderer.setUniform1i(irradProgramId, "environmentMap", envCubemapTexUnit);
+	renderer.setUniformMatrix4fv(irradProgramId, "projection", captureProjection);
+
+	irradTexIds = { envCubemapTexId };
+
+	for (uint32_t i = 0; i < captureViews.size(); i++)
 	{
-		std::vector<float> skyboxVertices;
-		Cube::generatePSkybox(skyboxVertices);
+		glNamedFramebufferTextureLayer(envCubemapFbId, GL_COLOR_ATTACHMENT0, irradTexId, 0, i);
+		if (glCheckNamedFramebufferStatus(envCubemapFbId, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		{
+			std::cerr << "[Error] Framebuffer is not complete!" << std::endl;
+		}
 
-		uint32_t skyboxVertexBuffer;
-		renderer.generateVertexBuffer(skyboxVertexBuffer, skyboxVertices);
+		glViewport(0, 0, irradCubemapLength, irradCubemapLength);
 
-		AttributeLayout posAttrib = AttributeLayout(3, GL_FLOAT);
-		std::vector<AttributeLayout> attribs = { posAttrib };
+		renderer.bindFramebuffer(envCubemapFbId);
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		renderer.generateVertexArray(skyboxVaoId, skyboxVertexBuffer, 0, attribs);
+		renderer.prepareForDraw(envCubemapFbId, irradProgramId, irradTexIds, envCubemapVaoId);
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_STENCIL_TEST);
+		glDisable(GL_BLEND);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
+		glDisable(GL_FRAMEBUFFER_SRGB);
 
-		renderer.generateProgram(skyboxProgramId, "Shaders/PBR/SkyboxVS.glsl", "Shaders/PBR/SkyboxFS.glsl");
-		renderer.setUniform1i(skyboxProgramId, "skybox", envCubemapTexUnit);
-		skyboxTexIds = { envCubemapTexId };
+		renderer.setUniformMatrix4fv(irradProgramId, "view", captureViews[i]);
+		renderer.draw(36);
+
+		renderer.unprepareForDraw(irradProgramId, irradTexIds);
 	}
+}
+
+void PBR::prepareSkybox()
+{
+	std::vector<float> skyboxVertices;
+	Cube::generatePSkybox(skyboxVertices);
+
+	uint32_t skyboxVertexBuffer;
+	renderer.generateVertexBuffer(skyboxVertexBuffer, skyboxVertices);
+
+	AttributeLayout posAttrib = AttributeLayout(3, GL_FLOAT);
+	std::vector<AttributeLayout> attribs = { posAttrib };
+
+	renderer.generateVertexArray(skyboxVaoId, skyboxVertexBuffer, 0, attribs);
+
+	renderer.generateProgram(skyboxProgramId, "Shaders/PBR/SkyboxVS.glsl", "Shaders/PBR/SkyboxFS.glsl");
+	renderer.setUniform1i(skyboxProgramId, "skybox", envCubemapTexUnit);
+	skyboxTexIds = { envCubemapTexId };
+	
+	//renderer.setUniform1i(skyboxProgramId, "skybox", irradTexUnit);
+	//skyboxTexIds = { irradTexId };
 }
 
 void PBR::prepareSpheres()
@@ -164,6 +213,7 @@ void PBR::prepareSpheres()
 	renderer.setUniform1i(sphereProgramId, "normSamp", 1);
 	renderer.setUniform1i(sphereProgramId, "metallicSamp", 2);
 	renderer.setUniform1i(sphereProgramId, "roughnessSamp", 3);
+	renderer.setUniform1i(sphereProgramId, "irradianceSamp", irradTexUnit);
 
 	uint32_t texture0;
 	renderer.generateResourceTexture2D(texture0, "Resources/RustedIronPBRTextures/rustediron2_basecolor.png", true, GL_SRGB8, GL_TEXTURE_2D, 0);
@@ -173,7 +223,7 @@ void PBR::prepareSpheres()
 	renderer.generateResourceTexture2D(texture2, "Resources/RustedIronPBRTextures/rustediron2_metallic.png", true, GL_R8, GL_TEXTURE_2D, 2);
 	uint32_t texture3;
 	renderer.generateResourceTexture2D(texture3, "Resources/RustedIronPBRTextures/rustediron2_roughness.png", true, GL_R8, GL_TEXTURE_2D, 3);
-	sphereTexIds = { texture0, texture1, texture2, texture3 };
+	sphereTexIds = { texture0, texture1, texture2, texture3, irradTexId };
 
 	std::vector<float> modelData{};
 	for (uint32_t i = 0; i < sphereCount; i++)

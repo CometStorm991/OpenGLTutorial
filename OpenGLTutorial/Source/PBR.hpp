@@ -63,15 +63,33 @@ private:
 
 	uint32_t envTexId, envTexUnit = 0;
 	uint32_t envCubemapTexId, envCubemapTexUnit = 0;
-	uint32_t envCubemapLength = 512;
+	uint32_t envCubemapLength = 2560;
 	uint32_t envCubemapFbId;
 	uint32_t envCubemapProgramId, envCubemapVaoId;
 	std::vector<uint32_t> envCubemapTexIds{};
+
+	glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+	std::array<glm::mat4, 6> captureViews = {
+		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
+		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
+		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
+	};
+
+	uint32_t irradTexId, irradTexUnit = 4;
+	uint32_t irradCubemapLength = 32;
+	uint32_t irradProgramId;
+	std::vector<uint32_t> irradTexIds{};
 
 	uint32_t skyboxVaoId, skyboxProgramId;
 	std::vector<uint32_t> skyboxTexIds{};
 
 	void prepareEnvMap();
+	void prepareEnvCubemap();
+	void prepareIrradiance();
+	void prepareSkybox();
 	void prepareSpheres();
 	void prepareLights();
 	void prepareHDR();

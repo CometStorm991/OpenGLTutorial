@@ -13,6 +13,8 @@ uniform sampler2D normSamp;
 uniform sampler2D metallicSamp;
 uniform sampler2D roughnessSamp;
 
+uniform samplerCube irradianceSamp;
+
 uniform vec3 viewPos;
 
 struct PointLight
@@ -38,6 +40,10 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }  
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
+{
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+} 
 float DistributionGGX(vec3 N, vec3 H, float roughness)
 {
     float a      = roughness*roughness;
@@ -76,6 +82,7 @@ void main()
 	vec3 albedo = texture(albedoSamp, vTexCoords).xyz;
 	float metallic = texture(metallicSamp, vTexCoords).x;
 	float roughness = texture(roughnessSamp, vTexCoords).x;
+	float ao = 1.0f;
 
 	mat3 tbn = mat3(normalize(vTang), normalize(vBi), normalize(vNorm));
 
@@ -115,7 +122,14 @@ void main()
 		l0 += (kD * albedo / pi + specular) * radiance * normDotLightDir;
 	}
 
-	vec3 ambient = vec3(0.03f) * albedo;
+	vec3 kS = fresnelSchlickRoughness(max(dot(norm, viewDir), 0.0f), F0, roughness);
+	vec3 kD = 1.0f - kS;
+	vec3 irradiance = texture(irradianceSamp, norm).rgb;
+	vec3 diffuse = irradiance * albedo;
+	vec3 ambient = (kD * diffuse) * ao;
+
+	//ambient = irradiance;
+
 	fragColor = vec4(l0 + ambient, 1.0f);
-	//fragColor = vec4(0.5f, 0.0f, 0.5f, 1.0f);
+	//fragColor = vec4(ambient, 1.0f);
 }
