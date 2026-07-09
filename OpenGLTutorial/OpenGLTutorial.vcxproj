@@ -166,6 +166,10 @@
     <None Include="Shaders\PBR\HdrVS.glsl" />
     <None Include="Shaders\PBR\IrradianceFS.glsl" />
     <None Include="Shaders\PBR\IrradianceVS.glsl" />
+    <None Include="Shaders\PBR\LightBoxFS.glsl" />
+    <None Include="Shaders\PBR\LightBoxVS.glsl" />
+    <None Include="Shaders\PBR\LutFS.glsl" />
+    <None Include="Shaders\PBR\LutVS.glsl" />
     <None Include="Shaders\PBR\PrefilteredFS.glsl" />
     <None Include="Shaders\PBR\PrefilteredVS.glsl" />
     <None Include="Shaders\PBR\SkyboxFS.glsl" />

@@ -14,6 +14,10 @@ uniform sampler2D metallicSamp;
 uniform sampler2D roughnessSamp;
 
 uniform samplerCube irradianceSamp;
+uniform samplerCube prefSamp;
+uniform sampler2D lutSamp;
+
+uniform float maxReflectionLod;
 
 uniform vec3 viewPos;
 
@@ -91,12 +95,14 @@ void main()
 	vec3 norm = normalize(tbn * normMap);
 	
 	vec3 viewDir = normalize(viewPos - vFragPos);
+	vec3 reflectDir = reflect(-viewDir, norm);
+	float NdotV = max(dot(norm, viewDir), 0.0f);
 
 	vec3 F0 = vec3(0.04f);
 	F0 = mix(F0, albedo, metallic);
 
 	vec3 l0 = vec3(0.0f);
-	for (uint i = 0; i < lights.length(); i++)
+	for (uint i = 0u; i < lights.length(); i++)
 	{
 		vec3 lightDir = normalize(lights[i].position - vFragPos);
 		vec3 halfDir = normalize(lightDir + viewDir);
@@ -122,11 +128,15 @@ void main()
 		l0 += (kD * albedo / pi + specular) * radiance * normDotLightDir;
 	}
 
-	vec3 kS = fresnelSchlickRoughness(max(dot(norm, viewDir), 0.0f), F0, roughness);
+	vec3 kS = fresnelSchlickRoughness(NdotV, F0, roughness);
+	vec3 prefColor = textureLod(prefSamp, reflectDir, roughness * maxReflectionLod).rgb;
+	vec2 envBRDF = texture(lutSamp, vec2(NdotV, roughness)).rg;
+	vec3 specular = prefColor * (F0 * envBRDF.x + envBRDF.y);
+
 	vec3 kD = 1.0f - kS;
 	vec3 irradiance = texture(irradianceSamp, norm).rgb;
 	vec3 diffuse = irradiance * albedo;
-	vec3 ambient = (kD * diffuse) * ao;
+	vec3 ambient = (kD * diffuse + specular) * ao;
 
 	//ambient = irradiance;
 

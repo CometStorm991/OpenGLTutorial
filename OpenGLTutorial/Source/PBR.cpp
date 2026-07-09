@@ -4,16 +4,43 @@ PBR::PBR() {}
 
 void PBR::prepare()
 {
+	prepareQuad();
 	prepareEnvMap();
 	prepareEnvCubemap();
 	prepareIrradiance();
 	preparePrefiltered();
+	prepareLut();
 	prepareSkybox();
 	prepareSpheres();
 	prepareLights();
 	prepareHDR();
 
 	renderer.prepareForRun();
+}
+
+void PBR::prepareQuad()
+{
+	std::vector<float> quadVertices = {
+		-1.0f, -1.0f, 0.0f, 0.0f,
+		1.0f, -1.0f, 1.0f, 0.0f,
+		-1.0f, 1.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+	};
+
+	std::vector<uint32_t> quadIndices = {
+		0, 1, 2,
+		3, 2, 1,
+	};
+
+	uint32_t vertBufId;
+	renderer.generateVertexBuffer(vertBufId, quadVertices);
+
+	uint32_t indexBufId;
+	renderer.generateIndexBuffer(indexBufId, quadIndices);
+
+	renderer.createVertexArray(quadVaoId, vertBufId, indexBufId, {
+		{ 2, GL_FLOAT, 0 },
+		{ 2, GL_FLOAT, 1 }, });
 }
 
 void PBR::prepareEnvMap()
@@ -219,6 +246,40 @@ void PBR::preparePrefiltered()
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
 
+void PBR::prepareLut()
+{
+	glCreateTextures(GL_TEXTURE_2D, 1, &lutTexId);
+	glTextureStorage2D(lutTexId, 1, GL_RGBA16F, lutLength, lutLength);
+	glTextureParameteri(lutTexId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTextureParameteri(lutTexId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTextureParameteri(lutTexId, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTextureParameteri(lutTexId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glNamedFramebufferTexture(envCubemapFbId, GL_COLOR_ATTACHMENT0, lutTexId, 0);
+
+	renderer.addTexture(lutTexId, GL_TEXTURE_2D, lutTexUnit);
+
+	renderer.generateProgram(lutProgramId, "Shaders/PBR/LutVS.glsl", "Shaders/PBR/LutFS.glsl");
+
+	renderer.bindFramebuffer(envCubemapFbId);
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glViewport(0, 0, lutLength, lutLength);
+
+	renderer.prepareForDraw(envCubemapFbId, lutProgramId, {}, quadVaoId);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_STENCIL_TEST);
+	glDisable(GL_BLEND);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_FRAMEBUFFER_SRGB);
+
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+	renderer.unprepareForDraw(lutProgramId, {});
+}
+
 void PBR::prepareSkybox()
 {
 	std::vector<float> skyboxVertices;
@@ -233,14 +294,14 @@ void PBR::prepareSkybox()
 	renderer.generateVertexArray(skyboxVaoId, skyboxVertexBuffer, 0, attribs);
 
 	renderer.generateProgram(skyboxProgramId, "Shaders/PBR/SkyboxVS.glsl", "Shaders/PBR/SkyboxFS.glsl");
-	//renderer.setUniform1i(skyboxProgramId, "skybox", envCubemapTexUnit);
-	//skyboxTexIds = { envCubemapTexId };
+	renderer.setUniform1i(skyboxProgramId, "skybox", envCubemapTexUnit);
+	skyboxTexIds = { envCubemapTexId };
 	
 	//renderer.setUniform1i(skyboxProgramId, "skybox", irradTexUnit);
 	//skyboxTexIds = { irradTexId };
 
-	renderer.setUniform1i(skyboxProgramId, "skybox", prefTexUnit);
-	skyboxTexIds = { prefTexId };
+	//renderer.setUniform1i(skyboxProgramId, "skybox", prefTexUnit);
+	//skyboxTexIds = { prefTexId };
 }
 
 void PBR::prepareSpheres()
@@ -275,6 +336,9 @@ void PBR::prepareSpheres()
 	renderer.setUniform1i(sphereProgramId, "metallicSamp", 2);
 	renderer.setUniform1i(sphereProgramId, "roughnessSamp", 3);
 	renderer.setUniform1i(sphereProgramId, "irradianceSamp", irradTexUnit);
+	renderer.setUniform1i(sphereProgramId, "prefSamp", prefTexUnit);
+	renderer.setUniform1i(sphereProgramId, "lutSamp", lutTexUnit);
+	renderer.setUniform1f(sphereProgramId, "maxReflectionLod", static_cast<float>(prefMipLevels - 1));
 
 	uint32_t texture0;
 	renderer.generateResourceTexture2D(texture0, "Resources/RustedIronPBRTextures/rustediron2_basecolor.png", true, GL_SRGB8, GL_TEXTURE_2D, 0);
@@ -284,7 +348,7 @@ void PBR::prepareSpheres()
 	renderer.generateResourceTexture2D(texture2, "Resources/RustedIronPBRTextures/rustediron2_metallic.png", true, GL_R8, GL_TEXTURE_2D, 2);
 	uint32_t texture3;
 	renderer.generateResourceTexture2D(texture3, "Resources/RustedIronPBRTextures/rustediron2_roughness.png", true, GL_R8, GL_TEXTURE_2D, 3);
-	sphereTexIds = { texture0, texture1, texture2, texture3, irradTexId };
+	sphereTexIds = { texture0, texture1, texture2, texture3, irradTexId, prefTexId, lutTexId };
 
 	std::vector<float> modelData{};
 	for (uint32_t i = 0; i < sphereCount; i++)
@@ -337,7 +401,7 @@ void PBR::prepareLights()
 
 	renderer.generateVertexArray(lightVaoId, vertexBuffer, 0, attribs);
 
-	renderer.generateProgram(lightProgramId, "Shaders/SSAO/LightBoxVS.glsl", "Shaders/SSAO/LightBoxFS.glsl");
+	renderer.generateProgram(lightProgramId, "Shaders/PBR/LightBoxVS.glsl", "Shaders/PBR/LightBoxFS.glsl");
 
 	for (unsigned int i = 0; i < lightCount; i++)
 	{
@@ -425,28 +489,6 @@ void PBR::prepareHDR()
 		{ GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, hdrTextureId },
 		{ GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbId }, });
 
-	std::vector<float> hdrVertices = {
-		-1.0f, -1.0f, 0.0f, 0.0f,
-		1.0f, -1.0f, 1.0f, 0.0f,
-		-1.0f, 1.0f, 0.0f, 1.0f,
-		1.0f, 1.0f, 1.0f, 1.0f,
-	};
-
-	std::vector<uint32_t> hdrIndices = {
-		0, 1, 2,
-		3, 2, 1,
-	};
-
-	uint32_t vertBufId;
-	renderer.generateVertexBuffer(vertBufId, hdrVertices);
-
-	uint32_t indexBufId;
-	renderer.generateIndexBuffer(indexBufId, hdrIndices);
-
-	renderer.createVertexArray(hdrVaoId, vertBufId, indexBufId, {
-		{ 2, GL_FLOAT, 0 },
-		{ 2, GL_FLOAT, 1 }, });
-
 	renderer.generateProgram(hdrProgramId, "Shaders/PBR/HdrVS.glsl", "Shaders/PBR/HdrFS.glsl");
 	renderer.setUniform1f(hdrProgramId, "exposure", 1.0f);
 	renderer.setUniform1i(hdrProgramId, "screenTexture", hdrTexUnit);
@@ -516,7 +558,7 @@ void PBR::run()
 	}
 
 	{
-		renderer.prepareForDraw(0, hdrProgramId, hdrTexIds, hdrVaoId);
+		renderer.prepareForDraw(0, hdrProgramId, hdrTexIds, quadVaoId);
 		glDisable(GL_DEPTH_TEST);
 		glDisable(GL_STENCIL_TEST);
 		glDisable(GL_BLEND);
@@ -548,6 +590,19 @@ void PBR::run()
 
 		renderer.unprepareForDraw(skyboxProgramId, skyboxTexIds);
 	}
+
+	//{
+	//	renderer.prepareForDraw(0, lutProgramId, {}, quadVaoId);
+	//	glDisable(GL_DEPTH_TEST);
+	//	glDisable(GL_STENCIL_TEST);
+	//	glDisable(GL_BLEND);
+	//	glDisable(GL_CULL_FACE);
+	//	glDisable(GL_FRAMEBUFFER_SRGB);
+
+	//	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+	//	renderer.unprepareForDraw(lutProgramId, {});
+	//}
 
 	renderer.unprepareForFrame(exposure);
 

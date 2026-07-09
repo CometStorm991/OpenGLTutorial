@@ -52,13 +52,15 @@ private:
 	uint32_t lightVaoId, lightProgramId;
 	std::vector<Light> lights{};
 	std::vector<float> lightModelData;
-	uint32_t lightCount = 64;
+	uint32_t lightCount = 1;
 	uint32_t lightSSBId;
 	uint32_t lightModelSubs = 0;
 
+	uint32_t quadVaoId;
+
 	uint32_t hdrFbId;
 	uint32_t hdrTexUnit = 0;
-	uint32_t hdrProgramId, hdrVaoId;
+	uint32_t hdrProgramId;
 	std::vector<uint32_t> hdrTexIds;
 
 	uint32_t envTexId, envTexUnit = 0;
@@ -90,13 +92,19 @@ private:
 	uint32_t prefProgramId;
 	std::vector<uint32_t> prefTexIds{};
 
+	uint32_t lutTexId, lutTexUnit = 6;
+	uint32_t lutLength = 512;
+	uint32_t lutProgramId;
+
 	uint32_t skyboxVaoId, skyboxProgramId;
 	std::vector<uint32_t> skyboxTexIds{};
-
+	
+	void prepareQuad();
 	void prepareEnvMap();
 	void prepareEnvCubemap();
 	void prepareIrradiance();
 	void preparePrefiltered();
+	void prepareLut();
 	void prepareSkybox();
 	void prepareSpheres();
 	void prepareLights();
