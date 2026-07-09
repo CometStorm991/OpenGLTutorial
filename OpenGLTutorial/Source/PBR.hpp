@@ -64,6 +64,7 @@ private:
 	uint32_t envTexId, envTexUnit = 0;
 	uint32_t envCubemapTexId, envCubemapTexUnit = 0;
 	uint32_t envCubemapLength = 2560;
+	uint32_t envCubemapMipLevels = 1 + (uint32_t)std::floor(std::log2(envCubemapLength));
 	uint32_t envCubemapFbId;
 	uint32_t envCubemapProgramId, envCubemapVaoId;
 	std::vector<uint32_t> envCubemapTexIds{};
@@ -83,12 +84,19 @@ private:
 	uint32_t irradProgramId;
 	std::vector<uint32_t> irradTexIds{};
 
+	uint32_t prefTexId, prefTexUnit = 5;
+	uint32_t prefMipLevels = 5;
+	uint32_t prefCubemapLength = 128;
+	uint32_t prefProgramId;
+	std::vector<uint32_t> prefTexIds{};
+
 	uint32_t skyboxVaoId, skyboxProgramId;
 	std::vector<uint32_t> skyboxTexIds{};
 
 	void prepareEnvMap();
 	void prepareEnvCubemap();
 	void prepareIrradiance();
+	void preparePrefiltered();
 	void prepareSkybox();
 	void prepareSpheres();
 	void prepareLights();

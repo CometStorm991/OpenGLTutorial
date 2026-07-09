@@ -7,6 +7,7 @@ void PBR::prepare()
 	prepareEnvMap();
 	prepareEnvCubemap();
 	prepareIrradiance();
+	preparePrefiltered();
 	prepareSkybox();
 	prepareSpheres();
 	prepareLights();
@@ -45,12 +46,12 @@ void PBR::prepareEnvMap()
 void PBR::prepareEnvCubemap()
 {
 	glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &envCubemapTexId);
-	glTextureStorage2D(envCubemapTexId, 1, GL_RGB16F, envCubemapLength, envCubemapLength);
+	glTextureStorage2D(envCubemapTexId, envCubemapMipLevels, GL_RGB16F, envCubemapLength, envCubemapLength);
 
 	glTextureParameteri(envCubemapTexId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTextureParameteri(envCubemapTexId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTextureParameteri(envCubemapTexId, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	glTextureParameteri(envCubemapTexId, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTextureParameteri(envCubemapTexId, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTextureParameteri(envCubemapTexId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	renderer.addTexture(envCubemapTexId, GL_TEXTURE_CUBE_MAP, envCubemapTexUnit);
@@ -90,10 +91,8 @@ void PBR::prepareEnvCubemap()
 
 		renderer.bindFramebuffer(envCubemapFbId);
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		glEnable(GL_DEPTH_TEST);
-		glDepthMask(GL_TRUE);
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT);
 
 		renderer.prepareForDraw(envCubemapFbId, envCubemapProgramId, envCubemapTexIds, envCubemapVaoId);
 		glDisable(GL_DEPTH_TEST);
@@ -108,6 +107,8 @@ void PBR::prepareEnvCubemap()
 
 		renderer.unprepareForDraw(envCubemapProgramId, envCubemapTexIds);
 	}
+
+	glGenerateTextureMipmap(envCubemapTexId);
 }
 
 void PBR::prepareIrradiance()
@@ -141,10 +142,8 @@ void PBR::prepareIrradiance()
 
 		renderer.bindFramebuffer(envCubemapFbId);
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		glEnable(GL_DEPTH_TEST);
-		glDepthMask(GL_TRUE);
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT);
 
 		renderer.prepareForDraw(envCubemapFbId, irradProgramId, irradTexIds, envCubemapVaoId);
 		glDisable(GL_DEPTH_TEST);
@@ -161,6 +160,65 @@ void PBR::prepareIrradiance()
 	}
 }
 
+void PBR::preparePrefiltered()
+{
+	glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &prefTexId);
+	glTextureStorage2D(prefTexId, prefMipLevels, GL_RGBA16F, prefCubemapLength, prefCubemapLength);
+
+	glTextureParameteri(prefTexId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTextureParameteri(prefTexId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTextureParameteri(prefTexId, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTextureParameteri(prefTexId, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTextureParameteri(prefTexId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	renderer.addTexture(prefTexId, GL_TEXTURE_CUBE_MAP, prefTexUnit);
+
+	renderer.generateProgram(prefProgramId, "Shaders/PBR/PrefilteredVS.glsl", "Shaders/PBR/PrefilteredFS.glsl");
+	renderer.setUniform1i(prefProgramId, "environmentMap", envCubemapTexUnit);
+	renderer.setUniform1f(prefProgramId, "resolution", envCubemapLength);
+	renderer.setUniformMatrix4fv(prefProgramId, "projection", captureProjection);
+
+	prefTexIds = { envCubemapTexId };
+
+	for (uint32_t i = 0; i < prefMipLevels; i++)
+	{
+		uint32_t mipmapLength = prefCubemapLength >> i;
+		float roughness = i / static_cast<float>(prefMipLevels - 1);
+		renderer.setUniform1f(prefProgramId, "roughness", roughness);
+
+		glViewport(0, 0, mipmapLength, mipmapLength);
+
+		for (uint32_t j = 0; j < captureViews.size(); j++)
+		{
+			glNamedFramebufferTextureLayer(envCubemapFbId, GL_COLOR_ATTACHMENT0, prefTexId, i, j);
+			if (glCheckNamedFramebufferStatus(envCubemapFbId, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			{
+				std::cerr << "[Error] Framebuffer is not complete!" << std::endl;
+			}
+
+			renderer.bindFramebuffer(envCubemapFbId);
+			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
+			
+			renderer.prepareForDraw(envCubemapFbId, prefProgramId, prefTexIds, envCubemapVaoId);
+			glDisable(GL_DEPTH_TEST);
+			glDisable(GL_STENCIL_TEST);
+			glDisable(GL_BLEND);
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_FRONT);
+			glDisable(GL_FRAMEBUFFER_SRGB);
+
+			renderer.setUniformMatrix4fv(prefProgramId, "view", captureViews[j]);
+			renderer.draw(36);
+
+			renderer.unprepareForDraw(prefProgramId, prefTexIds);
+		}
+	}
+
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+}
+
 void PBR::prepareSkybox()
 {
 	std::vector<float> skyboxVertices;
@@ -175,11 +233,14 @@ void PBR::prepareSkybox()
 	renderer.generateVertexArray(skyboxVaoId, skyboxVertexBuffer, 0, attribs);
 
 	renderer.generateProgram(skyboxProgramId, "Shaders/PBR/SkyboxVS.glsl", "Shaders/PBR/SkyboxFS.glsl");
-	renderer.setUniform1i(skyboxProgramId, "skybox", envCubemapTexUnit);
-	skyboxTexIds = { envCubemapTexId };
+	//renderer.setUniform1i(skyboxProgramId, "skybox", envCubemapTexUnit);
+	//skyboxTexIds = { envCubemapTexId };
 	
 	//renderer.setUniform1i(skyboxProgramId, "skybox", irradTexUnit);
 	//skyboxTexIds = { irradTexId };
+
+	renderer.setUniform1i(skyboxProgramId, "skybox", prefTexUnit);
+	skyboxTexIds = { prefTexId };
 }
 
 void PBR::prepareSpheres()

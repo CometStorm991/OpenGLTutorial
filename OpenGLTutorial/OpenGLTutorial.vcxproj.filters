@@ -176,6 +176,8 @@
     <None Include="Shaders\PBR\SkyboxFS.glsl" />
     <None Include="Shaders\PBR\IrradianceFS.glsl" />
     <None Include="Shaders\PBR\IrradianceVS.glsl" />
+    <None Include="Shaders\PBR\PrefilteredFS.glsl" />
+    <None Include="Shaders\PBR\PrefilteredVS.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Shader.hpp">
