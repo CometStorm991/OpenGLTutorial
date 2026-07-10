@@ -5,7 +5,22 @@
 <tr>
 <td width="50%" valign="top">
 <figure>
-    <img src="ReadmeResources/SSAO.png" alt="Deferred Rendering" width="400"/>
+    <img src="ReadmeResources/PBR.png" alt="PBR" width="400"/>
+    <figcaption>
+    PBR: Four spheres float in a bedroom<br />
+    <ul>
+        <li>PBR theory</li>
+        <li>Diffuse irradiance capturing via a cubemap</li>
+        <li>Prefilitered cubemap for specular component</li>
+        <li>LUT to prevent recalculation of split-sum BRDF term</li>
+        <li>Used LearnOpenGL tutorials</li>
+    </ul>
+  </figcaption>
+</figure>
+</td>
+<td>
+<figure>
+    <img src="ReadmeResources/SSAO.png" alt="SSAO" width="400"/>
     <figcaption>
     SSAO: Person sits on a couch in an apartment unit<br />
     <ul>
@@ -18,6 +33,8 @@
   </figcaption>
 </figure>
 </td>
+</tr>
+<tr>
 <td width="50%" valign="top">
 <figure>
     <img src="ReadmeResources/DeferredRendering.png" alt="Deferred Rendering" width="400"/>
@@ -32,8 +49,6 @@
   </figcaption>
 </figure>
 </td>
-</tr>
-<tr>
 <td width="50%" valign="top">
 <figure>
     <img src="ReadmeResources/AdvancedLighting.png" alt="Advanced Lighting" width="400"/>
@@ -49,6 +64,8 @@
   </figcaption>
 </figure>
 </td>
+</tr>
+<tr>
 <td width="50%" valign="top">
 <figure>
     <img src="ReadmeResources/Instancing.png" alt="Instancing" width="400"/>
@@ -63,8 +80,6 @@
   </figcaption>
 </figure>
 </td>
-</tr>
-<tr>
 <td width="50%" valign="top">
 <figure>
     <img src="ReadmeResources/Skybox.png" alt="Skybox" width="400"/>
@@ -78,6 +93,8 @@
   </figcaption>
 </figure>
 </td>
+</tr>
+<tr>
 <td width="50%" valign="top">
 <figure>
     <img src="ReadmeResources/Rearview.png" alt="Rearview" width="400"/>
@@ -90,8 +107,6 @@
   </figcaption>
 </figure>
 </td>
-</tr>
-<tr>
 <td width="50%" valign="top">
 <figure>
     <img src="ReadmeResources/MultipleLighting.png" alt="Multiple Lighting" width="400"/>
@@ -104,6 +119,8 @@
   </figcaption>
 </figure>
 </td>
+</tr>
+<tr>
 <td width="50%" valign="top">
 <figure>
     <img src="ReadmeResources/SimpleLighting.png" alt="Simple Lighting" width="400"/>
@@ -118,8 +135,6 @@
   </figcaption>
 </figure>
 </td>
-</tr>
-<tr>
 <td width="50%" valign="top">
 <figure>
     <img src="ReadmeResources/GettingStarted.png" alt="Getting Started" width="400"/>

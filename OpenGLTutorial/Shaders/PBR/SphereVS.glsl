@@ -5,6 +5,7 @@ layout(location = 1) in vec3 aNorm;
 layout(location = 2) in vec2 aTexCoords;
 layout(location = 3) in vec3 aTang;
 layout(location = 4) in mat4 aModel;
+layout(location = 8) in vec2 aWeights;
 
 uniform mat4 view;
 uniform mat4 projection;
@@ -14,6 +15,7 @@ out vec3 vNorm;
 out vec3 vTang;
 out vec3 vBi;
 out vec2 vTexCoords;
+flat out vec2 vWeights;
 
 void main()
 {
@@ -31,4 +33,6 @@ void main()
 	vBi = bi;
 
 	vTexCoords = aTexCoords;
+
+	vWeights = aWeights;
 }

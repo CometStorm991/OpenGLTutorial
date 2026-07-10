@@ -5,6 +5,7 @@ in vec3 vNorm;
 in vec3 vTang;
 in vec3 vBi;
 in vec2 vTexCoords;
+flat in vec2 vWeights;
 
 out vec4 fragColor;
 
@@ -93,6 +94,25 @@ void main()
 	vec3 normMap = texture(normSamp, vTexCoords).xyz;
 	normMap = normMap * 2.0f - 1.0f;
 	vec3 norm = normalize(tbn * normMap);
+
+	if (vWeights.x == 0.0f || vWeights.y == 0.0f)
+	{
+		albedo = vec3(0.0f, 0.0f, 1.0f);
+		metallic = 0.0f;
+		roughness = 0.0f;
+		norm = vNorm;
+
+		if (vWeights.x == 1.0f)
+		{
+			metallic += 1.0f;
+			albedo += vec3(0.5f, 0.0f, 0.0f);
+		}
+		if (vWeights.y == 1.0f)
+		{
+			roughness += 1.0f;
+			albedo += vec3(0.0f, 0.5f, 0.0f);
+		}
+	}
 	
 	vec3 viewDir = normalize(viewPos - vFragPos);
 	vec3 reflectDir = reflect(-viewDir, norm);

@@ -353,8 +353,8 @@ void PBR::prepareSpheres()
 	std::vector<float> modelData{};
 	for (uint32_t i = 0; i < sphereCount; i++)
 	{
-		float x = static_cast<float>(i % 8 / 1) * 3.0f;
-		float y = static_cast<float>(i % 64 / 8) * 3.0f;
+		float x = static_cast<float>(i % 2 / 1) * 3.0f;
+		float y = static_cast<float>(i % 4 / 2) * 3.0f;
 
 		glm::mat4 modelMat{ 1.0f };
 		modelMat = glm::translate(modelMat, glm::vec3{ x, y, 0.0f });
@@ -363,10 +363,22 @@ void PBR::prepareSpheres()
 		modelData.insert(modelData.end(), modelPtr, modelPtr + 16);
 	}
 
+	std::vector<float> weightData{};
+	for (uint32_t i = 0; i < sphereCount; i++)
+	{
+		float metallic = static_cast<float>(i % 2 / 1);
+		float roughness = static_cast<float>(i % 4 / 2);
+
+		glm::vec2 weights{ metallic, roughness };
+		const float* weightPtr = glm::value_ptr(weights);
+		weightData.insert(weightData.end(), weightPtr, weightPtr + 2);
+	}
+
 	std::vector<float> instData;
 	uint32_t instStride = 0;
 
 	instStride = renderer.addToData(instData, modelData, instStride, 16);
+	instStride = renderer.addToData(instData, weightData, instStride, 2);
 
 	uint32_t instBuffer;
 	renderer.generateVertexBuffer(instBuffer, instData);
@@ -375,7 +387,8 @@ void PBR::prepareSpheres()
 		{4, GL_FLOAT, 4},
 		{4, GL_FLOAT, 5},
 		{4, GL_FLOAT, 6},
-		{4, GL_FLOAT, 7}
+		{4, GL_FLOAT, 7},
+		{2, GL_FLOAT, 8},
 	};
 
 	renderer.addInstToVertexArray(sphereVaoId, instBuffer, instAttribs);

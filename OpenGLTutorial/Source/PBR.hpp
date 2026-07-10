@@ -23,7 +23,7 @@ private:
 	CameraController camController{};
 
 	uint32_t slices = 50, stacks = 50;
-	uint32_t sphereCount = 8 * 8;
+	uint32_t sphereCount = 4;
 	uint32_t sphereVaoId, sphereProgramId;
 	std::vector<uint32_t> sphereTexIds;
 
